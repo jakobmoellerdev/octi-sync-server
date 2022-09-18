@@ -16,6 +16,8 @@ import (
 func New(ctx context.Context, config *config.Config) http.Handler {
 	router := gin.New()
 
+	router.Use(requestmiddleware.LimitHandler(requestmiddleware.DefaultLimit))
+
 	//Global Middleware
 	router.Use(
 		ginzap.RecoveryWithZap(config.Logger, true),
