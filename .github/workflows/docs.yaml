@@ -1,0 +1,41 @@
+name: Swagger Consistency
+
+on:
+  push:
+    branches: [ "main" ]
+    # Publish semver tags as releases.
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "main" ]
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # windows-latest | macos-latest
+    name: Test Swagger Consistency
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
+
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.19'
+          cache: true
+
+      - run: go install github.com/swaggo/swag/cmd/swag@latest
+      - run: swag init
+
+      - name: Verify Changed files
+        uses: tj-actions/verify-changed-files@v11.1
+        id: verify-changed-files
+        with:
+          files: |
+            docs/swagger.json
+            docs/swagger.yaml
+            docs/docs.go
+
+      - name: Run step only when files change.
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        run: |
+          echo "Changed files: ${{ steps.verify-changed-files.outputs.changed_files }}"
