@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"go.jakob-moeller.cloud/octi-sync-server/service"
 
 	"github.com/go-redis/redis/v9"
 	"go.uber.org/zap"

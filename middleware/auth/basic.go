@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unsafe"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"go.jakob-moeller.cloud/octi-sync-server/service"
 
 	"github.com/gin-gonic/gin"
 )

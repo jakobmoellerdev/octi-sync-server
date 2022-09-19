@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/config"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"go.jakob-moeller.cloud/octi-sync-server/config"
+	"go.jakob-moeller.cloud/octi-sync-server/service"
 
-	authmiddleware "github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
+	authmiddleware "go.jakob-moeller.cloud/octi-sync-server/middleware/auth"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
