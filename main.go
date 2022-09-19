@@ -8,10 +8,10 @@ import (
 	"os"
 	"os/signal"
 
-	"go.jakob-moeller.cloud/octi-sync-server/config"
-	"go.jakob-moeller.cloud/octi-sync-server/redis"
-	"go.jakob-moeller.cloud/octi-sync-server/router"
-	"go.jakob-moeller.cloud/octi-sync-server/service"
+	"github.com/jakob-moeller-cloud/octi-sync-server/config"
+	"github.com/jakob-moeller-cloud/octi-sync-server/redis"
+	"github.com/jakob-moeller-cloud/octi-sync-server/router"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"

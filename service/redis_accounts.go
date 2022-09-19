@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 
-	"go.jakob-moeller.cloud/octi-sync-server/service/util"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service/util"
 
 	"github.com/go-redis/redis/v9"
 )

@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"go.jakob-moeller.cloud/octi-sync-server/middleware/request"
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/request"
 
 	"github.com/gin-gonic/gin"
 )

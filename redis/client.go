@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"go.jakob-moeller.cloud/octi-sync-server/config"
+	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 
 	"github.com/go-redis/redis/v9"
 )

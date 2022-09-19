@@ -1,4 +1,4 @@
-module go.jakob-moeller.cloud/octi-sync-server
+module github.com/jakob-moeller-cloud/octi-sync-server
 
 go 1.19
 
