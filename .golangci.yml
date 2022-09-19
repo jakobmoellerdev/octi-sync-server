@@ -24,6 +24,7 @@ linters:
     - nosnakecase
     - ireturn
     - gci
+    - gofumpt
 linters-settings:
   ireturn:
     allow:

@@ -3,13 +3,14 @@ package router
 import (
 	"context"
 	"fmt"
-	"github.com/gin-contrib/gzip"
 	"net/http"
+
 	"octi-sync-server/config"
 	"octi-sync-server/middleware/logging"
 	requestmiddleware "octi-sync-server/middleware/request"
 	v1 "octi-sync-server/router/v1"
 
+	"github.com/gin-contrib/gzip"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 )

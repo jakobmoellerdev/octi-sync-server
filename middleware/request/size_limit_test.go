@@ -5,8 +5,9 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"octi-sync-server/middleware/request"
 	"testing"
+
+	"octi-sync-server/middleware/request"
 
 	"github.com/gin-gonic/gin"
 )
