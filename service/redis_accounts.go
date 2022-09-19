@@ -57,3 +57,9 @@ func (r *RedisAccounts) Register(ctx context.Context, username string) (Account,
 
 	return RedisAccountFromUsername(username, hashedPass), pass, nil
 }
+
+func (r *RedisAccounts) HealthCheck() HealthCheck {
+	return func(ctx context.Context) (string, bool) {
+		return "redis-accounts", r.client.Ping(ctx).Err() == nil
+	}
+}

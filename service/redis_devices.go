@@ -47,3 +47,9 @@ func (r *RedisDevices) FindByDeviceID(ctx context.Context, acc Account, deviceID
 func (r *RedisDevices) Register(ctx context.Context, acc Account, deviceID string) error {
 	return r.client.LPush(ctx, r.deviceKeyForAccount(acc), deviceID).Err()
 }
+
+func (r *RedisDevices) HealthCheck() HealthCheck {
+	return func(ctx context.Context) (string, bool) {
+		return "redis-devices", r.client.Ping(ctx).Err() == nil
+	}
+}

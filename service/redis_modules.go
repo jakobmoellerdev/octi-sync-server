@@ -42,3 +42,9 @@ func (r *RedisModules) Get(ctx context.Context, name string) (Module, error) {
 
 	return RedisModuleFromBytes(bytes), nil
 }
+
+func (r *RedisModules) HealthCheck() HealthCheck {
+	return func(ctx context.Context) (string, bool) {
+		return "redis-modules", r.client.Ping(ctx).Err() == nil
+	}
+}

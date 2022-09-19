@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -33,7 +34,9 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 					return
 				case <-ticker.C:
 					if err := VerifyConnection(ctx, client, config.Redis.Ping.Timeout); err != nil {
-						config.Logger.Warn("redis client could not verify connection, ping failed")
+						config.Logger.Warn(fmt.Sprintf(
+							"redis client could not verify connection to %s as %s, ping failed",
+							config.Redis.Addr, config.Redis.Username))
 					} else {
 						config.Logger.Debug("redis ping ok!")
 					}
