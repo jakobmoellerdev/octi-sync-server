@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 
-	"octi-sync-server/service"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 
 	"github.com/gin-gonic/gin"
 )

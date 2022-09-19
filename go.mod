@@ -5,6 +5,9 @@ go 1.19
 require (
 	// rate limiting
 	github.com/didip/tollbooth/v7 v7.0.0
+
+	// gzip encoding
+	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-contrib/zap v0.1.0
 
 	// routing
@@ -21,9 +24,6 @@ require (
 
 	// logging
 	go.uber.org/zap v1.23.0
-
-	// gzip encoding
-	github.com/gin-contrib/gzip v0.0.6
 
 	// yaml+json parsing
 	gopkg.in/yaml.v3 v3.0.1

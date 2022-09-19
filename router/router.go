@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"octi-sync-server/config"
-	"octi-sync-server/middleware/logging"
-	requestmiddleware "octi-sync-server/middleware/request"
-	v1 "octi-sync-server/router/v1"
+	"github.com/jakob-moeller-cloud/octi-sync-server/config"
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
+	requestmiddleware "github.com/jakob-moeller-cloud/octi-sync-server/middleware/request"
+	v1 "github.com/jakob-moeller-cloud/octi-sync-server/router/v1"
 
 	"github.com/gin-contrib/gzip"
 	ginzap "github.com/gin-contrib/zap"
