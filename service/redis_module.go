@@ -21,7 +21,7 @@ func (r RedisModule) Size() int {
 func RedisModuleFromBytes(data []byte) *RedisModule {
 	return &RedisModule{
 		bytes.NewReader(data),
-		int(len(data)),
+		len(data),
 	}
 }
 

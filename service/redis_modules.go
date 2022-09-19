@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/go-redis/redis/v9"
 	"io"
 	"time"
-)
 
-var noExpiry = time.Duration(-1)
+	"github.com/go-redis/redis/v9"
+)
 
 func NewRedisModules(client *redis.Client) *RedisModules {
 	return &RedisModules{client}
@@ -21,7 +21,8 @@ type RedisModules struct {
 func (r *RedisModules) Set(ctx context.Context, name string, module Module) error {
 	moduleData, err := io.ReadAll(module.Raw())
 	if err == nil {
-		err = r.client.Set(ctx, name, moduleData, noExpiry).Err()
+		NoExpiry := time.Duration(-1)
+		err = r.client.Set(ctx, name, moduleData, NoExpiry).Err()
 	}
 	if err != nil {
 		return fmt.Errorf("persisting %s failed: %w", name, ErrWritingModuleFailed)
@@ -31,7 +32,7 @@ func (r *RedisModules) Set(ctx context.Context, name string, module Module) erro
 
 func (r *RedisModules) Get(ctx context.Context, name string) (Module, error) {
 	bytes, err := r.client.Get(ctx, name).Bytes()
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		return RedisModuleFromBytes([]byte{}), nil
 	}
 

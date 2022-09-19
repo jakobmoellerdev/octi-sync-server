@@ -1,15 +1,19 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
-	"github.com/go-redis/redis/v9"
-	"go.uber.org/zap"
-	"gopkg.in/yaml.v3"
 	"octi-sync-server/service"
 	"os"
 	"time"
+
+	"github.com/go-redis/redis/v9"
+	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
 )
+
+var ErrIsADirectory = errors.New("is a directory, not a normal file")
 
 // Config struct for webapp config.
 type Config struct {
@@ -90,13 +94,13 @@ func ValidateConfigPath(path string) error {
 		return err
 	}
 	if s.IsDir() {
-		return fmt.Errorf("'%s' is a directory, not a normal file", path)
+		return fmt.Errorf("'%s':%w", path, ErrIsADirectory)
 	}
 	return nil
 }
 
 // ParseFlags will create and parse the CLI flags
-// and return the path to be used elsewhere
+// and return the path to be used elsewhere.
 func ParseFlags() (string, error) {
 	// String that contains the configured configuration path
 	var configPath string

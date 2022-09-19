@@ -3,22 +3,23 @@ package router
 import (
 	"context"
 	"fmt"
-	ginzap "github.com/gin-contrib/zap"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"octi-sync-server/config"
 	"octi-sync-server/middleware/logging"
 	requestmiddleware "octi-sync-server/middleware/request"
 	v1 "octi-sync-server/router/v1"
+
+	ginzap "github.com/gin-contrib/zap"
+	"github.com/gin-gonic/gin"
 )
 
-// New generates the router used in the HTTP Server
+// New generates the router used in the HTTP Server.
 func New(ctx context.Context, config *config.Config) http.Handler {
 	router := gin.New()
 
-	router.Use(requestmiddleware.LimitHandler(requestmiddleware.DefaultLimit))
+	router.Use(requestmiddleware.LimitHandler(requestmiddleware.DefaultLimit()))
 
-	//Global Middleware
+	// Global Middleware
 	router.Use(
 		ginzap.RecoveryWithZap(config.Logger, true),
 		logging.RequestLogging(config.Logger),
@@ -37,6 +38,6 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 
 func healthCheck(_ *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.JSON(200, gin.H{"health": "up"})
+		c.JSON(http.StatusOK, gin.H{"health": "up"})
 	}
 }

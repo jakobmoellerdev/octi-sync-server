@@ -3,16 +3,18 @@ package v1
 import (
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
 	"octi-sync-server/config"
-	authmiddleware "octi-sync-server/middleware/auth"
 	"octi-sync-server/service"
+
+	authmiddleware "octi-sync-server/middleware/auth"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func New(_ context.Context, engine *gin.Engine, config *config.Config) {
-	v1 := engine.Group("/v1")
+	v1 := engine.Group("/v1") //nolint:varnamelen
 
 	{
 		auth := v1.Group("/auth")
@@ -50,7 +52,8 @@ func createModule(modules service.Modules) gin.HandlerFunc {
 		deviceID, found := context.Get(authmiddleware.DeviceID)
 		if !found {
 			context.JSON(http.StatusInternalServerError, gin.H{
-				"msg": "device id was not propagated from middleware"})
+				"msg": "device id was not propagated from middleware",
+			})
 			return
 		}
 
@@ -59,7 +62,6 @@ func createModule(modules service.Modules) gin.HandlerFunc {
 			fmt.Sprintf("%s-%s", deviceID, request.Name),
 			service.RedisModuleFromReader(context.Request.Body, int(context.Request.ContentLength)),
 		)
-
 		if err != nil {
 			_ = context.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -79,7 +81,8 @@ func getModule(modules service.Modules) gin.HandlerFunc {
 		deviceID, found := context.Get(authmiddleware.DeviceID)
 		if !found {
 			context.JSON(http.StatusInternalServerError, gin.H{
-				"msg": "device id was not propagated from middleware"})
+				"msg": "device id was not propagated from middleware",
+			})
 			return
 		}
 
@@ -90,12 +93,12 @@ func getModule(modules service.Modules) gin.HandlerFunc {
 			return
 		}
 
-		//context.Stream(func(w io.Writer) bool {
+		// context.Stream(func(w io.Writer) bool {
 		//	if _, err := io.Copy(w, module.Raw()); err != nil {
 		//		_ = context.AbortWithError(http.StatusInternalServerError, err)
 		//	}
 		//	return false
-		//})
+		// })
 
 		context.DataFromReader(
 			http.StatusOK,
@@ -115,7 +118,7 @@ type RegistrationResponse struct {
 
 func register(accounts service.Accounts, devices service.Devices) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		id, err := uuid.NewRandom()
+		accountID, err := uuid.NewRandom()
 		if err != nil {
 			_ = context.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -132,7 +135,7 @@ func register(accounts service.Accounts, devices service.Devices) gin.HandlerFun
 			context.Header(authmiddleware.DeviceIDHeader, deviceID)
 		}
 
-		acc, password, err := accounts.Register(context.Request.Context(), id.String())
+		acc, password, err := accounts.Register(context.Request.Context(), accountID.String())
 		if err != nil {
 			_ = context.AbortWithError(http.StatusInternalServerError, err)
 			return

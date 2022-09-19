@@ -2,25 +2,28 @@ package redis
 
 import (
 	"context"
-	"github.com/go-redis/redis/v9"
 	"octi-sync-server/config"
 	"time"
+
+	"github.com/go-redis/redis/v9"
 )
 
-var DefaultRedisPingInterval = 5 * time.Second
-var DefaultRedisPingTimeout = 5 * time.Second
+const (
+	DefaultIntervalSeconds = 5
+	DefaultTimeoutSeconds  = 5
+)
 
 func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redis.Client, error) {
 	client := redis.NewClient(&config.Redis.Options)
 
 	if config.Redis.Ping.Interval <= 0 {
-		config.Redis.Ping.Interval = DefaultRedisPingInterval
-		config.Logger.Info("defaulting redis ping interval to " + DefaultRedisPingInterval.String())
+		config.Redis.Ping.Interval = DefaultIntervalSeconds * time.Second
+		config.Logger.Info("defaulting redis ping interval to " + config.Redis.Ping.Interval.String())
 	}
 
 	if config.Redis.Ping.Timeout <= 0 {
-		config.Redis.Ping.Timeout = DefaultRedisPingTimeout
-		config.Logger.Info("defaulting redis ping timeout to " + DefaultRedisPingTimeout.String())
+		config.Redis.Ping.Timeout = DefaultTimeoutSeconds * time.Second
+		config.Logger.Info("defaulting redis ping timeout to " + config.Redis.Ping.Timeout.String())
 	}
 
 	if config.Redis.Ping.Enable {
@@ -39,7 +42,6 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 					}
 				}
 			}
-
 		}
 		go verify()
 	}

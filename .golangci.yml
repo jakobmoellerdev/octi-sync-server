@@ -1,0 +1,42 @@
+linters:
+  enable-all: true
+  disable:
+    - exhaustivestruct
+    - golint
+    - interfacer
+    - maligned
+    - scopelint
+    - forcetypeassert
+    - godox
+    - wsl
+    - nlreturn
+    - exhaustruct
+    - wrapcheck
+    - bodyclose
+    - contextcheck
+    - rowserrcheck
+    - sqlclosecheck
+    - structcheck
+    - wastedassign
+    - ifshort
+    - varcheck
+    - deadcode
+    - nosnakecase
+    - ireturn
+    - gci
+linters-settings:
+  ireturn:
+    allow:
+      - anon
+      - error
+      - empty
+      - stdlib
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  fix: true
+output:
+  sort-results: true
+run:
+  concurrency: 2
+  timeout: 3m

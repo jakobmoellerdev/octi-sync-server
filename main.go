@@ -2,8 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
+	"errors"
 	"log"
 	"net/http"
 	"octi-sync-server/config"
@@ -12,10 +11,12 @@ import (
 	"octi-sync-server/service"
 	"os"
 	"os/signal"
-	"time"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
-// Func main should be as small as possible and do as little as possible by convention
+// Func main should be as small as possible and do as little as possible by convention.
 func main() {
 	// Generate our config based on the config supplied
 	// by the user in the flags
@@ -47,14 +48,15 @@ func main() {
 	Run(cfg)
 }
 
-// Run will run the HTTP Server
+// Run will run the HTTP Server.
 func Run(config *config.Config) {
 	startUpContext, cancelStartUpContext := context.WithCancel(context.Background())
 	defer cancelStartUpContext()
 
 	client, err := redis.NewClientWithRegularPing(startUpContext, config)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return
 	}
 	config.Services.Accounts = service.Accounts(service.NewRedisAccounts(client))
 	config.Services.Modules = service.Modules(service.NewRedisModules(client))
@@ -62,11 +64,12 @@ func Run(config *config.Config) {
 
 	// Define server options
 	srv := &http.Server{
-		Addr:         config.Server.Host + ":" + config.Server.Port,
-		Handler:      router.New(startUpContext, config),
-		ReadTimeout:  config.Server.Timeout.Read * time.Second,
-		WriteTimeout: config.Server.Timeout.Write * time.Second,
-		IdleTimeout:  config.Server.Timeout.Idle * time.Second,
+		Addr:              config.Server.Host + ":" + config.Server.Port,
+		Handler:           router.New(startUpContext, config),
+		ReadTimeout:       config.Server.Timeout.Read,
+		ReadHeaderTimeout: config.Server.Timeout.Read,
+		WriteTimeout:      config.Server.Timeout.Write,
+		IdleTimeout:       config.Server.Timeout.Idle,
 	}
 
 	idleConsClosed := make(chan struct{})
@@ -89,7 +92,7 @@ func Run(config *config.Config) {
 	}()
 
 	// service connections
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		config.Logger.Fatal("listen: %s" + err.Error())
 	}
 

@@ -16,7 +16,7 @@ import (
 // UserKey is the cookie name for user credential in basic auth.
 const UserKey = "user"
 
-// HeaderPrefix gets appended for every Auth Header
+// HeaderPrefix gets appended for every Auth Header.
 const HeaderPrefix = "Basic "
 
 // BasicAuthForRealm returns a Basic HTTP Authorization middleware. It takes as arguments a map[string]string where
@@ -28,21 +28,21 @@ func BasicAuthForRealm(accounts service.Accounts, realm string) gin.HandlerFunc 
 		realm = "Authorization Required"
 	}
 	realm = "Basic realm=" + strconv.Quote(realm)
-	return func(c *gin.Context) {
+	return func(context *gin.Context) {
 		// Search user in the slice of allowed credentials
-		user, err := accounts.FindHashed(c.Request.Context(),
-			getHashedPassFromHeader(c.Request.Header.Get("Authorization")))
+		user, err := accounts.FindHashed(context.Request.Context(),
+			getHashedPassFromHeader(context.Request.Header.Get("Authorization")))
 		if err != nil {
 			// Credentials doesn't match, we return 401 and abort handlers chain.
-			c.Header("WWW-Authenticate", realm)
-			c.AbortWithStatus(http.StatusUnauthorized)
+			context.Header("WWW-Authenticate", realm)
+			context.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
 		// The user credentials was found, set user's id to key DeviceID in this context,
 		// the user's id can be read later using
-		// c.MustGet(auth.DeviceID).
-		c.Set(UserKey, user)
+		// context.MustGet(auth.DeviceID).
+		context.Set(UserKey, user)
 	}
 }
 

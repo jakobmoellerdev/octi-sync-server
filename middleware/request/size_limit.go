@@ -1,10 +1,11 @@
 package request
 
 import (
-	"fmt"
-	"github.com/gin-gonic/gin"
+	"errors"
 	"io"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type maxBytesReader struct {
@@ -16,8 +17,10 @@ type maxBytesReader struct {
 	responseObj any
 }
 
-func (r *maxBytesReader) abortRequestEntityTooLarge() (n int, err error) {
-	n, err = 0, fmt.Errorf("HTTP request too large")
+var ErrRequestTooLarge = errors.New("HTTP request too large")
+
+func (r *maxBytesReader) abortRequestEntityTooLarge() (int, error) {
+	err := ErrRequestTooLarge
 
 	if !r.wasAborted {
 		r.wasAborted = true
@@ -26,10 +29,10 @@ func (r *maxBytesReader) abortRequestEntityTooLarge() (n int, err error) {
 		ctx.Header("connection", "close")
 		ctx.AbortWithStatusJSON(http.StatusRequestEntityTooLarge, r.responseObj)
 	}
-	return
+	return 0, ErrRequestTooLarge
 }
 
-func (r *maxBytesReader) Read(p []byte) (n int, err error) {
+func (r *maxBytesReader) Read(bytes []byte) (int, error) {
 	toRead := r.remaining
 	if r.remaining == 0 {
 		if r.sawEOF {
@@ -43,26 +46,26 @@ func (r *maxBytesReader) Read(p []byte) (n int, err error) {
 		// too (it returns (0, nil) even at EOF).
 		toRead = 1
 	}
-	if int64(len(p)) > toRead {
-		p = p[:toRead]
+	if int64(len(bytes)) > toRead {
+		bytes = bytes[:toRead]
 	}
-	n, err = r.body.Read(p)
-	if err == io.EOF {
+	data, err := r.body.Read(bytes)
+	if errors.Is(err, io.EOF) {
 		r.sawEOF = true
 	}
 	if r.remaining == 0 {
 		// If we had zero bytes to read remaining (but hadn't seen EOF)
 		// and we get a byte here, that means we went over our limit.
-		if n > 0 {
+		if data > 0 {
 			return r.abortRequestEntityTooLarge()
 		}
 		return 0, err
 	}
-	r.remaining -= int64(n)
+	r.remaining -= int64(data)
 	if r.remaining < 0 {
 		r.remaining = 0
 	}
-	return n, err
+	return data, err
 }
 
 func (r *maxBytesReader) Close() error {
@@ -74,7 +77,7 @@ func (r *maxBytesReader) Close() error {
 // * Error will be added to the context
 // * Connection: close header will be set
 // * Error 413 will be sent to the client (http.StatusRequestEntityTooLarge)
-// * Current context will be aborted
+// * Current context will be aborted.
 func BodySizeLimiter(limit int64, respondOnTooLarge any) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Request.Body = &maxBytesReader{

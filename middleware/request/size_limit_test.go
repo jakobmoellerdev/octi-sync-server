@@ -1,26 +1,29 @@
-package request
+package request_test
 
 import (
 	"bytes"
-	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"octi-sync-server/middleware/request"
 	"testing"
+
+	"github.com/gin-gonic/gin"
 )
 
 func TestRequestSizeLimiterOK(t *testing.T) {
+	t.Parallel()
 	router := gin.New()
-	router.Use(BodySizeLimiter(10, gin.H{
+	router.Use(request.BodySizeLimiter(10, gin.H{
 		"msg": "request too large",
 	}))
-	router.POST("/test_ok", func(c *gin.Context) {
-		_, _ = io.ReadAll(c.Request.Body)
-		if len(c.Errors) > 0 {
+	router.POST("/test_ok", func(context *gin.Context) {
+		_, _ = io.ReadAll(context.Request.Body)
+		if len(context.Errors) > 0 {
 			return
 		}
-		_ = c.Request.Body.Close()
-		c.String(http.StatusOK, "OK")
+		_ = context.Request.Body.Close()
+		context.String(http.StatusOK, "OK")
 	})
 	resp := performRequest(http.MethodPost, "/test_ok", "big=abc", router)
 
@@ -30,17 +33,18 @@ func TestRequestSizeLimiterOK(t *testing.T) {
 }
 
 func TestRequestSizeLimiterOver(t *testing.T) {
+	t.Parallel()
 	router := gin.New()
-	router.Use(BodySizeLimiter(10, gin.H{
+	router.Use(request.BodySizeLimiter(10, gin.H{
 		"msg": "request too large",
 	}))
-	router.POST("/test_large", func(c *gin.Context) {
-		_, _ = io.ReadAll(c.Request.Body)
-		if len(c.Errors) > 0 {
+	router.POST("/test_large", func(context *gin.Context) {
+		_, _ = io.ReadAll(context.Request.Body)
+		if len(context.Errors) > 0 {
 			return
 		}
-		_ = c.Request.Body.Close()
-		c.String(http.StatusOK, "OK")
+		_ = context.Request.Body.Close()
+		context.String(http.StatusOK, "OK")
 	})
 	resp := performRequest(http.MethodPost, "/test_large", "big=abcdefghijklmnop", router)
 

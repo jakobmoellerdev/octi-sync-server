@@ -16,5 +16,7 @@ type Modules interface {
 	Get(ctx context.Context, name string) (Module, error)
 }
 
-var ErrWritingModuleFailed = errors.New("module write failed")
-var ErrReadingModule = errors.New("module read failed")
+var (
+	ErrWritingModuleFailed = errors.New("module write failed")
+	ErrReadingModule       = errors.New("module read failed")
+)

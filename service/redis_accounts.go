@@ -4,8 +4,9 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"github.com/go-redis/redis/v9"
 	"octi-sync-server/middleware/auth/util"
+
+	"github.com/go-redis/redis/v9"
 )
 
 const RedisAccountKeySpace = "octi:accounts"
@@ -28,7 +29,6 @@ func (r *RedisAccounts) Find(ctx context.Context, username string) (Account, err
 
 func (r *RedisAccounts) FindHashed(ctx context.Context, hash string) (Account, error) {
 	res, err := r.client.HGetAll(ctx, RedisAccountKeySpace).Result()
-
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,8 @@ func (r *RedisAccounts) Register(ctx context.Context, username string) (Account,
 		return nil, "", ErrAccountAlreadyExists
 	}
 
-	pass := util.NewInPlacePasswordGenerator().Generate(32, 6, 6, 6)
+	passLength, minSpecial, minNum, minUpper := 32, 6, 6, 6
+	pass := util.NewInPlacePasswordGenerator().Generate(passLength, minSpecial, minNum, minUpper)
 	hashedPass := fmt.Sprintf("%x", sha256.Sum256([]byte(pass)))
 	if err := r.client.HSet(ctx, RedisAccountKeySpace, username, hashedPass).Err(); err != nil {
 		return nil, "", err

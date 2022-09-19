@@ -1,24 +1,32 @@
 package request
 
 import (
+	"time"
+
 	"github.com/didip/tollbooth/v7"
 	"github.com/didip/tollbooth/v7/limiter"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
-var DefaultLimit = tollbooth.NewLimiter(10, &limiter.ExpirableOptions{
-	DefaultExpirationTTL: 1 * time.Second,
-})
+const (
+	DefaultLimitMaxCallAmount        = 10
+	DefaultLimitExpirationTTLSeconds = 1
+)
+
+func DefaultLimit() *limiter.Limiter {
+	return tollbooth.NewLimiter(DefaultLimitMaxCallAmount, &limiter.ExpirableOptions{
+		DefaultExpirationTTL: DefaultLimitExpirationTTLSeconds * time.Second,
+	})
+}
 
 func LimitHandler(lmt *limiter.Limiter) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		httpError := tollbooth.LimitByRequest(lmt, c.Writer, c.Request)
+	return func(context *gin.Context) {
+		httpError := tollbooth.LimitByRequest(lmt, context.Writer, context.Request)
 		if httpError != nil {
-			c.Data(httpError.StatusCode, lmt.GetMessageContentType(), []byte(httpError.Message))
-			c.Abort()
+			context.Data(httpError.StatusCode, lmt.GetMessageContentType(), []byte(httpError.Message))
+			context.Abort()
 		} else {
-			c.Next()
+			context.Next()
 		}
 	}
 }
