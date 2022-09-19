@@ -32,7 +32,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer logger.Sync()
+	defer func(logger *zap.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(logger)
 
 	cfg.Logger = logger
 

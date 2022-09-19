@@ -42,7 +42,8 @@ func DeviceAuth(devices service.Devices) gin.HandlerFunc {
 			return
 		}
 
-		// The account credentials was found, set account's id to key DeviceID in this context, the account's id can be read later using
+		// The account credentials was found, set account's id to key DeviceID in this context,
+		// the account's id can be read later using
 		// c.MustGet(auth.DeviceID).
 		c.Set(DeviceID, device)
 	}

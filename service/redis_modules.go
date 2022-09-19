@@ -34,8 +34,10 @@ func (r *RedisModules) Get(ctx context.Context, name string) (Module, error) {
 	if err == redis.Nil {
 		return RedisModuleFromBytes([]byte{}), nil
 	}
+
 	if err != nil {
 		return nil, fmt.Errorf("reading %s failed: %w", name, ErrReadingModule)
 	}
+
 	return RedisModuleFromBytes(bytes), nil
 }

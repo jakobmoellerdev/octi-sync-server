@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// Config struct for webapp config
+// Config struct for webapp config.
 type Config struct {
 	Server struct {
 		// Host is the local machine IP Address to bind the HTTP Server to
@@ -59,7 +59,7 @@ type Config struct {
 	} `yaml:"-"`
 }
 
-// NewConfig returns a new decoded Config struct
+// NewConfig returns a new decoded Config struct.
 func NewConfig(configPath string) (*Config, error) {
 	// Create config structure
 	config := &Config{}
@@ -83,7 +83,7 @@ func NewConfig(configPath string) (*Config, error) {
 }
 
 // ValidateConfigPath just makes sure, that the path provided is a file,
-// that can be read
+// that can be read.
 func ValidateConfigPath(path string) error {
 	s, err := os.Stat(path)
 	if err != nil {

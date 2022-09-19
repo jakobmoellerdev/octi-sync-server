@@ -25,7 +25,7 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 
 	if config.Redis.Ping.Enable {
 		ticker := time.NewTicker(config.Redis.Ping.Interval)
-		go func() {
+		verify := func() {
 			for {
 				select {
 				case <-ctx.Done():
@@ -40,7 +40,8 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 				}
 			}
 
-		}()
+		}
+		go verify()
 	}
 
 	return client, nil

@@ -33,7 +33,6 @@ func New(_ context.Context, engine *gin.Engine, config *config.Config) {
 			module.POST("/:name", createModule(config.Services.Modules))
 		}
 	}
-
 }
 
 type ModuleRequest struct {

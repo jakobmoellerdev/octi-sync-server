@@ -49,7 +49,7 @@ func TestRequestSizeLimiterOver(t *testing.T) {
 	}
 }
 
-func performRequest(method, target, body string, router *gin.Engine) *httptest.ResponseRecorder {
+func performRequest(method, target, body string, router http.Handler) *httptest.ResponseRecorder {
 	var buf *bytes.Buffer
 	if body != "" {
 		buf = new(bytes.Buffer)

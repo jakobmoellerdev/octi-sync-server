@@ -16,5 +16,7 @@ type Accounts interface {
 	Register(ctx context.Context, username string) (Account, string, error)
 }
 
-var ErrAccountAlreadyExists = errors.New("account already exists")
-var ErrAccountNotFound = errors.New("account not found")
+var (
+	ErrAccountAlreadyExists = errors.New("account already exists")
+	ErrAccountNotFound      = errors.New("account not found")
+)

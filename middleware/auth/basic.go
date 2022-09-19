@@ -39,7 +39,8 @@ func BasicAuthForRealm(accounts service.Accounts, realm string) gin.HandlerFunc 
 			return
 		}
 
-		// The user credentials was found, set user's id to key DeviceID in this context, the user's id can be read later using
+		// The user credentials was found, set user's id to key DeviceID in this context,
+		// the user's id can be read later using
 		// c.MustGet(auth.DeviceID).
 		c.Set(UserKey, user)
 	}

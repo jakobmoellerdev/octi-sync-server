@@ -1,7 +1,9 @@
 package util
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"math/big"
+	mrand "math/rand"
 	"strings"
 )
 
@@ -26,31 +28,31 @@ type inPlacePasswordGenerator struct{}
 func (*inPlacePasswordGenerator) Generate(passwordLength, minSpecialChar, minNum, minUpperCase int) string {
 	var password strings.Builder
 
-	//Set special character
+	// Set special character
 	for i := 0; i < minSpecialChar; i++ {
-		random := rand.Intn(len(specialCharSet))
-		password.WriteString(string(specialCharSet[random]))
+		random, _ := rand.Int(rand.Reader, big.NewInt(int64(len(specialCharSet))))
+		password.WriteString(string(specialCharSet[random.Int64()]))
 	}
 
-	//Set numeric
+	// Set numeric
 	for i := 0; i < minNum; i++ {
-		random := rand.Intn(len(numberSet))
-		password.WriteString(string(numberSet[random]))
+		random, _ := rand.Int(rand.Reader, big.NewInt(int64(len(numberSet))))
+		password.WriteString(string(numberSet[random.Int64()]))
 	}
 
-	//Set uppercase
+	// Set uppercase
 	for i := 0; i < minUpperCase; i++ {
-		random := rand.Intn(len(upperCharSet))
-		password.WriteString(string(upperCharSet[random]))
+		random, _ := rand.Int(rand.Reader, big.NewInt(int64(len(upperCharSet))))
+		password.WriteString(string(upperCharSet[random.Int64()]))
 	}
 
 	remainingLength := passwordLength - minSpecialChar - minNum - minUpperCase
 	for i := 0; i < remainingLength; i++ {
-		random := rand.Intn(len(allCharSet))
-		password.WriteString(string(allCharSet[random]))
+		random, _ := rand.Int(rand.Reader, big.NewInt(int64(len(allCharSet))))
+		password.WriteString(string(allCharSet[random.Int64()]))
 	}
 	inRune := []rune(password.String())
-	rand.Shuffle(len(inRune), func(i, j int) {
+	mrand.Shuffle(len(inRune), func(i, j int) {
 		inRune[i], inRune[j] = inRune[j], inRune[i]
 	})
 	return string(inRune)
