@@ -45,17 +45,17 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 }
 
 func healthCheck(cfg *config.Config) gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(context *gin.Context) {
 		aggregation := service.HealthAggregator([]service.HealthCheck{
 			cfg.Services.Accounts.HealthCheck(),
 			cfg.Services.Devices.HealthCheck(),
 			cfg.Services.Modules.HealthCheck(),
-		}).Check(c.Request.Context())
+		}).Check(context.Request.Context())
 
 		if aggregation.Health == service.HealthUp {
-			c.JSON(http.StatusOK, aggregation)
+			context.JSON(http.StatusOK, aggregation)
 		} else {
-			c.JSON(http.StatusServiceUnavailable, aggregation)
+			context.JSON(http.StatusServiceUnavailable, aggregation)
 		}
 	}
 }

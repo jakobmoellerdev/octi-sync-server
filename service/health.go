@@ -56,10 +56,9 @@ func HealthAggregator(healthChecks []HealthCheck) Health {
 	return &healthAggregator{healthChecks}
 }
 
-func HealthResultFromBool(b bool) HealthResult {
-	if b {
+func HealthResultFromBool(healthUp bool) HealthResult {
+	if healthUp {
 		return HealthUp
-	} else {
-		return HealthDown
 	}
+	return HealthDown
 }
