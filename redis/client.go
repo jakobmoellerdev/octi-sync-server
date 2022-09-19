@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"errors"
 	"os"
 	"time"
 
@@ -10,8 +9,6 @@ import (
 
 	"github.com/go-redis/redis/v9"
 )
-
-var ErrNoAddrProvided = errors.New("no redis address provided")
 
 const (
 	EnvRedisAddr           = "REDIS_ADDR"
@@ -26,16 +23,6 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 
 	if err := applyDefaultConfiguration(config); err != nil {
 		return nil, err
-	}
-
-	if config.Redis.Ping.Interval <= 0 {
-		config.Redis.Ping.Interval = DefaultIntervalSeconds * time.Second
-		config.Logger.Info("defaulting redis ping interval to " + config.Redis.Ping.Interval.String())
-	}
-
-	if config.Redis.Ping.Timeout <= 0 {
-		config.Redis.Ping.Timeout = DefaultTimeoutSeconds * time.Second
-		config.Logger.Info("defaulting redis ping timeout to " + config.Redis.Ping.Timeout.String())
 	}
 
 	if config.Redis.Ping.Enable {
@@ -62,13 +49,24 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 }
 
 func applyDefaultConfiguration(config *config.Config) error {
-	if config.Redis.Addr == "" {
-		config.Logger.Info("config does not contain address, defaulting redis addr to " + EnvRedisAddr)
+	if config.Redis.Ping.Interval <= 0 {
+		config.Redis.Ping.Interval = DefaultIntervalSeconds * time.Second
+		config.Logger.Info("defaulting redis ping interval to " + config.Redis.Ping.Interval.String())
+	}
+
+	if config.Redis.Ping.Timeout <= 0 {
+		config.Redis.Ping.Timeout = DefaultTimeoutSeconds * time.Second
+		config.Logger.Info("defaulting redis ping timeout to " + config.Redis.Ping.Timeout.String())
+	}
+
+	if config.Redis.Addr == "localhost:6379" {
 		addrFromEnv, found := os.LookupEnv(EnvRedisAddr)
-		if !found {
-			return ErrNoAddrProvided
+		if found {
+			config.Logger.Info("config does not contain address, defaulting redis addr to " + EnvRedisAddr)
+			config.Redis.Addr = addrFromEnv
+		} else {
+			config.Logger.Info("connecting against localhost instead of connecting remotely")
 		}
-		config.Redis.Addr = addrFromEnv
 	}
 	if config.Redis.Username == "" {
 		usernameFromEnv, found := os.LookupEnv(EnvRedisUsername)
