@@ -46,7 +46,7 @@ jobs:
       # Setup Builder
       # https://github.com/ docker/setup-buildx-action
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@v3.1.1
+        uses: docker/setup-buildx-action@f385c9ed953addec511152eb20a6021fe3d09fe6
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
