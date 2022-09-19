@@ -8,10 +8,6 @@ ENV CGO_ENABLED=0
 
 RUN go mod download
 
-RUN go vet -v
-
-RUN go test -v
-
 RUN go build -o /go/bin/app
 
 # Now copy it into our base image.
