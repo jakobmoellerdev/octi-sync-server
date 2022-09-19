@@ -5,12 +5,13 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+
 	"octi-sync-server/config"
 	"octi-sync-server/redis"
 	"octi-sync-server/router"
 	"octi-sync-server/service"
-	"os"
-	"os/signal"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"

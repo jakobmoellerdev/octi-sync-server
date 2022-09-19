@@ -4,9 +4,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"octi-sync-server/service"
 	"os"
 	"time"
+
+	"octi-sync-server/service"
 
 	"github.com/go-redis/redis/v9"
 	"go.uber.org/zap"

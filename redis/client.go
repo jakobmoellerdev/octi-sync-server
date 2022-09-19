@@ -2,8 +2,9 @@ package redis
 
 import (
 	"context"
-	"octi-sync-server/config"
 	"time"
+
+	"octi-sync-server/config"
 
 	"github.com/go-redis/redis/v9"
 )

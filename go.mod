@@ -22,6 +22,9 @@ require (
 	// logging
 	go.uber.org/zap v1.23.0
 
+	// gzip encoding
+	github.com/gin-contrib/gzip v0.0.6
+
 	// yaml+json parsing
 	gopkg.in/yaml.v3 v3.0.1
 )

@@ -5,10 +5,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"octi-sync-server/service"
 	"strconv"
 	"strings"
 	"unsafe"
+
+	"octi-sync-server/service"
 
 	"github.com/gin-gonic/gin"
 )
