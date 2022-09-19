@@ -21,9 +21,7 @@ const (
 func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redis.Client, error) {
 	client := redis.NewClient(&config.Redis.Options)
 
-	if err := applyDefaultConfiguration(config); err != nil {
-		return nil, err
-	}
+	applyDefaultConfiguration(config)
 
 	if config.Redis.Ping.Enable {
 		ticker := time.NewTicker(config.Redis.Ping.Interval)
@@ -48,7 +46,7 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 	return client, nil
 }
 
-func applyDefaultConfiguration(config *config.Config) error {
+func applyDefaultConfiguration(config *config.Config) {
 	if config.Redis.Ping.Interval <= 0 {
 		config.Redis.Ping.Interval = DefaultIntervalSeconds * time.Second
 		config.Logger.Info("defaulting redis ping interval to " + config.Redis.Ping.Interval.String())
@@ -82,7 +80,6 @@ func applyDefaultConfiguration(config *config.Config) error {
 			config.Redis.Password = passwordFromEnv
 		}
 	}
-	return nil
 }
 
 func VerifyConnection(ctx context.Context, client *redis.Client, timeout time.Duration) error {

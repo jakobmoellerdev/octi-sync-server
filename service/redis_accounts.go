@@ -4,8 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-
-	"go.jakob-moeller.cloud/octi-sync-server/middleware/auth/util"
+	"go.jakob-moeller.cloud/octi-sync-server/service/util"
 
 	"github.com/go-redis/redis/v9"
 )
