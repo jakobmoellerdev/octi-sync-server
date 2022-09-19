@@ -1,0 +1,191 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is the Octi Sync Server.",
+        "title": "Octi Sync Server",
+        "contact": {
+            "name": "API Support",
+            "url": "jakob-moeller.de",
+            "email": "contact@jakob-moeller.de"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "https://github.com/jakob-moeller-cloud/octi-sync-server/blob/main/LICENSE"
+        },
+        "version": "generated"
+    },
+    "host": "localhost:8080",
+    "basePath": "/v1/swagger",
+    "paths": {
+        "/auth/register": {
+            "post": {
+                "description": "Creates a new Registration",
+                "tags": [
+                    "auth"
+                ],
+                "summary": "register Device Registration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device Header",
+                        "name": "X-Device-ID",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large"
+                    },
+                    "429": {
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/module/{name}": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "Get the Module",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "modules"
+                ],
+                "summary": "getModule Get the Module",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "module-name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device Header",
+                        "name": "X-Device-ID",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large"
+                    },
+                    "429": {
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "Create the Module",
+                "consumes": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "modules"
+                ],
+                "summary": "createModule Create the Module",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "module-name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "module-name",
+                        "name": "moduleData",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device Header",
+                        "name": "X-Device-ID",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large"
+                    },
+                    "429": {
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BasicAuth": {
+            "type": "basic"
+        }
+    }
+}

@@ -1,0 +1,125 @@
+basePath: /v1/swagger
+host: localhost:8080
+info:
+  contact:
+    email: contact@jakob-moeller.de
+    name: API Support
+    url: jakob-moeller.de
+  description: This is the Octi Sync Server.
+  license:
+    name: Apache 2.0
+    url: https://github.com/jakob-moeller-cloud/octi-sync-server/blob/main/LICENSE
+  title: Octi Sync Server
+  version: generated
+paths:
+  /auth/register:
+    post:
+      description: Creates a new Registration
+      parameters:
+      - description: Device Header
+        in: header
+        name: X-Device-ID
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "413":
+          description: Request Entity Too Large
+        "429":
+          description: Too Many Requests
+        "500":
+          description: Internal Server Error
+      summary: register Device Registration
+      tags:
+      - auth
+  /module/{name}:
+    get:
+      description: Get the Module
+      parameters:
+      - description: module-name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Device Header
+        in: header
+        name: X-Device-ID
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "413":
+          description: Request Entity Too Large
+        "429":
+          description: Too Many Requests
+        "500":
+          description: Internal Server Error
+      security:
+      - BasicAuth: []
+      summary: getModule Get the Module
+      tags:
+      - modules
+    post:
+      consumes:
+      - application/octet-stream
+      description: Create the Module
+      parameters:
+      - description: module-name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: module-name
+        in: body
+        name: moduleData
+        required: true
+        schema:
+          type: string
+      - description: Device Header
+        in: header
+        name: X-Device-ID
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not Found
+        "413":
+          description: Request Entity Too Large
+        "429":
+          description: Too Many Requests
+        "500":
+          description: Internal Server Error
+      security:
+      - BasicAuth: []
+      summary: createModule Create the Module
+      tags:
+      - modules
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

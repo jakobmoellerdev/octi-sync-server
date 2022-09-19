@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"octi-sync-server/config"
+	"octi-sync-server/docs"
 	"octi-sync-server/redis"
 	"octi-sync-server/router"
 	"octi-sync-server/service"
@@ -16,8 +17,24 @@ import (
 	"go.uber.org/zap"
 )
 
+// @title       Octi Sync Server
+// @description This is the Octi Sync Server.
+// @version     generated
+
+// @contact.name  API Support
+// @contact.email contact@jakob-moeller.de
+
+// @license.name Apache 2.0
+// @license.url  https://github.com/jakob-moeller-cloud/octi-sync-server/blob/main/LICENSE
+
+// @host     localhost:8080
+// @BasePath /v1/swagger
+
+// @securityDefinitions.basic BasicAuth
+
 // Func main should be as small as possible and do as little as possible by convention.
 func main() {
+	docs.SwaggerInfo.BasePath = "/v1"
 	// Generate our config based on the config supplied
 	// by the user in the flags
 	cfgPath, err := config.ParseFlags()
