@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      role: master
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        role: master
+        tier: backend
+    spec:
+      containers:
+        - name: master
+          image: redis  # or just image: redis
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          args: [ "--requirepass", "$(REDIS_PASSWORD)" ]
+          ports:
+            - name: redis
+              containerPort: 6379
+          env:
+            - name: MASTER
+              value: "true"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sync-server-secret
+                  key: REDIS_PASSWORD
