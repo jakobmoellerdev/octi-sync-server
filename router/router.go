@@ -3,8 +3,9 @@ package router
 import (
 	"context"
 	"fmt"
-	"go.jakob-moeller.cloud/octi-sync-server/service"
 	"net/http"
+
+	"go.jakob-moeller.cloud/octi-sync-server/service"
 
 	"go.jakob-moeller.cloud/octi-sync-server/config"
 	"go.jakob-moeller.cloud/octi-sync-server/middleware/logging"
