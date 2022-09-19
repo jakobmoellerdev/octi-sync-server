@@ -2,6 +2,8 @@ package redis
 
 import (
 	"context"
+	"errors"
+	"os"
 	"time"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
@@ -9,13 +11,41 @@ import (
 	"github.com/go-redis/redis/v9"
 )
 
+var ErrNoAddrProvided = errors.New("no redis address provided")
+
 const (
+	EnvRedisAddr           = "REDIS_ADDR"
+	EnvRedisUsername       = "REDIS_USERNAME"
+	EnvRedisPassword       = "REDIS_PASSWORD"
 	DefaultIntervalSeconds = 5
 	DefaultTimeoutSeconds  = 5
 )
 
 func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redis.Client, error) {
 	client := redis.NewClient(&config.Redis.Options)
+
+	if config.Redis.Addr == "" {
+		config.Logger.Info("config does not contain address, defaulting redis addr to " + EnvRedisAddr)
+		addrFromEnv, found := os.LookupEnv(EnvRedisAddr)
+		if !found {
+			return nil, ErrNoAddrProvided
+		}
+		config.Redis.Addr = addrFromEnv
+	}
+	if config.Redis.Username == "" {
+		usernameFromEnv, found := os.LookupEnv(EnvRedisUsername)
+		if found {
+			config.Logger.Info("config does not contain username, defaulting to " + EnvRedisUsername)
+			config.Redis.Username = usernameFromEnv
+		}
+	}
+	if config.Redis.Password == "" {
+		passwordFromEnv, found := os.LookupEnv(EnvRedisPassword)
+		if found {
+			config.Logger.Info("config does not contain password, defaulting to " + EnvRedisPassword)
+			config.Redis.Password = passwordFromEnv
+		}
+	}
 
 	if config.Redis.Ping.Interval <= 0 {
 		config.Redis.Ping.Interval = DefaultIntervalSeconds * time.Second
