@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.jakob-moeller.cloud/octi-sync-server/service"
+
 	"go.jakob-moeller.cloud/octi-sync-server/config"
 	"go.jakob-moeller.cloud/octi-sync-server/middleware/logging"
 	requestmiddleware "go.jakob-moeller.cloud/octi-sync-server/middleware/request"
@@ -34,13 +36,26 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 
 	v1.New(ctx, router, config)
 
-	router.GET("/health", healthCheck(config))
+	router.GET("/ready", healthCheck(config))
+	router.GET("/health", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
 
 	return router
 }
 
-func healthCheck(_ *config.Config) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"health": "up"})
+func healthCheck(cfg *config.Config) gin.HandlerFunc {
+	return func(context *gin.Context) {
+		aggregation := service.HealthAggregator([]service.HealthCheck{
+			cfg.Services.Accounts.HealthCheck(),
+			cfg.Services.Devices.HealthCheck(),
+			cfg.Services.Modules.HealthCheck(),
+		}).Check(context.Request.Context())
+
+		if aggregation.Health == service.HealthUp {
+			context.JSON(http.StatusOK, aggregation)
+		} else {
+			context.JSON(http.StatusServiceUnavailable, aggregation)
+		}
 	}
 }

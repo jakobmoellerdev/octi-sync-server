@@ -13,6 +13,6 @@ func (r *RedisAccount) HashedPass() string {
 	return r.hashedPass
 }
 
-func RedisAccountFromUsername(username string, hashedPass string) *RedisAccount {
+func RedisAccountFromUsername(username, hashedPass string) *RedisAccount {
 	return &RedisAccount{username, hashedPass}
 }

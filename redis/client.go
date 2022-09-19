@@ -2,7 +2,7 @@ package redis
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -10,8 +10,6 @@ import (
 
 	"github.com/go-redis/redis/v9"
 )
-
-var ErrNoAddrProvided = errors.New("no redis address provided")
 
 const (
 	EnvRedisAddr           = "REDIS_ADDR"
@@ -24,19 +22,7 @@ const (
 func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redis.Client, error) {
 	client := redis.NewClient(&config.Redis.Options)
 
-	if err := applyDefaultConfiguration(config); err != nil {
-		return nil, err
-	}
-
-	if config.Redis.Ping.Interval <= 0 {
-		config.Redis.Ping.Interval = DefaultIntervalSeconds * time.Second
-		config.Logger.Info("defaulting redis ping interval to " + config.Redis.Ping.Interval.String())
-	}
-
-	if config.Redis.Ping.Timeout <= 0 {
-		config.Redis.Ping.Timeout = DefaultTimeoutSeconds * time.Second
-		config.Logger.Info("defaulting redis ping timeout to " + config.Redis.Ping.Timeout.String())
-	}
+	applyDefaultConfiguration(config)
 
 	if config.Redis.Ping.Enable {
 		ticker := time.NewTicker(config.Redis.Ping.Interval)
@@ -48,7 +34,9 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 					return
 				case <-ticker.C:
 					if err := VerifyConnection(ctx, client, config.Redis.Ping.Timeout); err != nil {
-						config.Logger.Warn("redis client could not verify connection, ping failed")
+						config.Logger.Warn(fmt.Sprintf(
+							"redis client could not verify connection to %s as %s, ping failed",
+							config.Redis.Addr, config.Redis.Username))
 					} else {
 						config.Logger.Debug("redis ping ok!")
 					}
@@ -61,14 +49,25 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 	return client, nil
 }
 
-func applyDefaultConfiguration(config *config.Config) error {
-	if config.Redis.Addr == "" {
-		config.Logger.Info("config does not contain address, defaulting redis addr to " + EnvRedisAddr)
+func applyDefaultConfiguration(config *config.Config) {
+	if config.Redis.Ping.Interval <= 0 {
+		config.Redis.Ping.Interval = DefaultIntervalSeconds * time.Second
+		config.Logger.Info("defaulting redis ping interval to " + config.Redis.Ping.Interval.String())
+	}
+
+	if config.Redis.Ping.Timeout <= 0 {
+		config.Redis.Ping.Timeout = DefaultTimeoutSeconds * time.Second
+		config.Logger.Info("defaulting redis ping timeout to " + config.Redis.Ping.Timeout.String())
+	}
+
+	if config.Redis.Addr == "localhost:6379" {
 		addrFromEnv, found := os.LookupEnv(EnvRedisAddr)
-		if !found {
-			return ErrNoAddrProvided
+		if found {
+			config.Logger.Info("config does not contain address, defaulting redis addr to " + EnvRedisAddr)
+			config.Redis.Addr = addrFromEnv
+		} else {
+			config.Logger.Info("connecting against localhost instead of connecting remotely")
 		}
-		config.Redis.Addr = addrFromEnv
 	}
 	if config.Redis.Username == "" {
 		usernameFromEnv, found := os.LookupEnv(EnvRedisUsername)
@@ -84,7 +83,6 @@ func applyDefaultConfiguration(config *config.Config) error {
 			config.Redis.Password = passwordFromEnv
 		}
 	}
-	return nil
 }
 
 func VerifyConnection(ctx context.Context, client *redis.Client, timeout time.Duration) error {

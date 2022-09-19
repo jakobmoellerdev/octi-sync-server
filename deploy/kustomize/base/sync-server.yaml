@@ -24,6 +24,18 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "500m"
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          failureThreshold: 5
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 1
+          periodSeconds: 3
         command: [ "/app", "-config", "/config/config.yml" ]
         ports:
           - name: http

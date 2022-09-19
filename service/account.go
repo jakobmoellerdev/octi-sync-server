@@ -14,6 +14,7 @@ type Accounts interface {
 	Find(ctx context.Context, username string) (Account, error)
 	FindHashed(ctx context.Context, hash string) (Account, error)
 	Register(ctx context.Context, username string) (Account, string, error)
+	HealthCheck() HealthCheck
 }
 
 var (

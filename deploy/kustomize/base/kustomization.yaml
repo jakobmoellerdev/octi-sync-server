@@ -15,7 +15,7 @@ configMapGenerator:
 secretGenerator:
   - name: sync-server-secret
     literals:
-      - REDIS_USERNAME=redis
+      - REDIS_USERNAME=
       - REDIS_PASSWORD=redis
 
 vars:

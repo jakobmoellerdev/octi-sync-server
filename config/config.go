@@ -61,6 +61,7 @@ type Config struct {
 		service.Accounts
 		service.Modules
 		service.Devices
+		service.Health
 	} `yaml:"-"`
 }
 
