@@ -35,7 +35,7 @@ spec:
             path: /ready
             port: http
           initialDelaySeconds: 1
-          periodSeconds: 3
+          periodSeconds: 10
         command: [ "/app", "-config", "/config/config.yml" ]
         ports:
           - name: http
