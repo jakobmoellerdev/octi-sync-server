@@ -6,7 +6,7 @@ metadata:
   name: redis
 spec:
   ports:
-    - port: $(REDIS_PORT)
+    - port: 6379
       protocol: TCP
       targetPort: redis
   selector:

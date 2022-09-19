@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: sync-server
+  name: sync-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sync-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sync-server
+    spec:
+      containers:
+      - image: ghcr.io/jakob-moeller-cloud/octi-sync-server:latest
+        name: sync-server
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        command: [ "/app", "-config", "/config/config.yml" ]
+        ports:
+          - name: http
+            protocol: TCP
+            containerPort: 8080
+        volumeMounts:
+          - name: config
+            mountPath: /config
+            readOnly: true
+        env:
+          - name: REDIS_ADDR
+            value: $(REDIS_NAME).$(REDIS_NAMESPACE):$(REDIS_PORT)
+          - name: REDIS_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: sync-server-secret
+                key: REDIS_USERNAME
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: sync-server-secret
+                key: REDIS_PASSWORD
+      volumes:
+        - name: config
+          configMap:
+            # Provide the name of the ConfigMap containing the files you want
+            # to add to the container
+            name: sync-server-config
