@@ -1,15 +1,14 @@
 package request
 
 import (
-	"github.com/didip/tollbooth"
-	"github.com/didip/tollbooth/limiter"
+	"github.com/didip/tollbooth/v7"
+	"github.com/didip/tollbooth/v7/limiter"
 	"github.com/gin-gonic/gin"
 	"time"
 )
 
 var DefaultLimit = tollbooth.NewLimiter(10, &limiter.ExpirableOptions{
 	DefaultExpirationTTL: 1 * time.Second,
-	ExpireJobInterval:    1 * time.Minute,
 })
 
 func LimitHandler(lmt *limiter.Limiter) gin.HandlerFunc {
