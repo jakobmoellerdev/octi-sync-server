@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"fmt"
+	"github.com/gin-contrib/gzip"
 	"net/http"
 	"octi-sync-server/config"
 	"octi-sync-server/middleware/logging"
@@ -18,6 +19,7 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 	router := gin.New()
 
 	router.Use(requestmiddleware.LimitHandler(requestmiddleware.DefaultLimit()))
+	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	// Global Middleware
 	router.Use(
