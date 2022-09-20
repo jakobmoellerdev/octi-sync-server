@@ -12,7 +12,4 @@ redis:
   ping:
     enable: true
 log:
-  level: debug
   format: json
-  request:
-    level: debug
