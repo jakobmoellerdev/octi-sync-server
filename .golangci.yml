@@ -35,6 +35,8 @@ linters-settings:
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
+  fix: true
 run:
   concurrency: 2
   timeout: 3m
+modules-download-mode: readonly

@@ -20,7 +20,7 @@ import (
 
 // Define the suite, and absorb the built-in basic suite
 // functionality from testify - including a T() method which
-// returns the current testing context
+// returns the current testing context.
 type BasicAuthTestSuite struct {
 	suite.Suite
 	devices  service.Devices
@@ -124,7 +124,7 @@ func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 }
 
 // In order for 'go test' to run this suite, we need to create
-// a normal test function and pass our suite to suite.Run
+// a normal test function and pass our suite to suite.Run.
 func TestExampleTestSuite(t *testing.T) {
 	t.Parallel()
 	suite.Run(t, new(BasicAuthTestSuite))
