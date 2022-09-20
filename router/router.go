@@ -2,9 +2,10 @@ package router
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"net/http"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 
@@ -13,11 +14,13 @@ import (
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/router/v1"
 )
 
+const RateLimitRequestsPerSecond = 20
+
 // New generates the router used in the HTTP Server.
 func New(ctx context.Context, config *config.Config) http.Handler {
 	router := echo.New()
 
-	router.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(20)))
+	router.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(RateLimitRequestsPerSecond)))
 
 	router.Use(middleware.RequestID())
 

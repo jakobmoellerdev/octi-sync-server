@@ -1,9 +1,10 @@
 package auth
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"net/http"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
@@ -38,7 +39,7 @@ func DeviceAuth(devices service.Devices, skipper middleware.Skipper) echo.Middle
 
 			device, err := devices.FindByDeviceID(
 				context.Request().Context(),
-				account.(service.Account), deviceID)
+				account, deviceID)
 			if err != nil {
 				// Device not found for Account, we return 401 and abort handlers chain.
 				return echo.ErrUnauthorized

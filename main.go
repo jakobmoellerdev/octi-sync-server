@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/rs/zerolog"
-	baseLogger "github.com/rs/zerolog/log"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+
+	"github.com/rs/zerolog"
+	baseLogger "github.com/rs/zerolog/log"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	"github.com/jakob-moeller-cloud/octi-sync-server/redis"
@@ -37,6 +38,10 @@ func main() {
 	switch cfg.LogSettings.Format {
 	case config.LogSettingsFormatPretty:
 		logger = zerolog.New(zerolog.NewConsoleWriter()).With().Timestamp().Logger()
+	case config.LogSettingsFormatJSON:
+		fallthrough
+	case config.LogSettingsFormatNone:
+		fallthrough
 	default:
 		logger = baseLogger.With().Logger()
 	}

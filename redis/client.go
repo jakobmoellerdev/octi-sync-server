@@ -4,9 +4,10 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
-	"github.com/rs/zerolog"
 	"os"
 	"time"
+
+	"github.com/rs/zerolog"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 
@@ -31,11 +32,9 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 		Str("username", config.Redis.Username).
 		Str("pass", fmt.Sprintf("%x", sha256.Sum256([]byte(config.Redis.Password)))).
 		Logger()
-
 	logger = &detailLogger
 
 	if config.Redis.Ping.Enable {
-
 		ticker := time.NewTicker(config.Redis.Ping.Interval)
 		verify := func() {
 			for {

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"crypto/subtle"
+
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -19,7 +20,7 @@ func BasicAuth(accounts service.Accounts) echo.MiddlewareFunc {
 			// Search user in the slice of allowed credentials
 			user, err := accounts.Find(context.Request().Context(), username)
 			if err != nil {
-				return false, nil
+				return false, nil //nolint:nilerr
 			}
 
 			if subtle.ConstantTimeCompare([]byte(user.HashedPass()), []byte(password)) != 1 {

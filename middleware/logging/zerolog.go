@@ -1,11 +1,12 @@
 package logging
 
 import (
+	"net"
+
 	authmiddleware "github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
-	"net"
 )
 
 func RequestLogging(logger *zerolog.Logger) echo.MiddlewareFunc {
@@ -20,19 +21,19 @@ func RequestLogging(logger *zerolog.Logger) echo.MiddlewareFunc {
 		LogRequestID:     true,
 		LogResponseSize:  true,
 		LogUserAgent:     true,
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+		LogValuesFunc: func(context echo.Context, values middleware.RequestLoggerValues) error {
 			logger.Debug().
-				Str("Method", v.Method).
-				Str("URI", v.URI).
-				Int("status", v.Status).
-				Str("content-length", v.ContentLength).
-				Str("x-request-id", v.RequestID).
-				Str("x-device-id", c.Request().Header.Get(authmiddleware.DeviceIDHeader)).
-				Int64("response-size", v.ResponseSize).
-				Str("user-agent", v.UserAgent).
-				Err(v.Error).
-				Dur("latency", v.Latency).
-				IPAddr("remote-ip", net.ParseIP(v.RemoteIP)).
+				Str("Method", values.Method).
+				Str("URI", values.URI).
+				Int("status", values.Status).
+				Str("content-length", values.ContentLength).
+				Str("x-request-id", values.RequestID).
+				Str("x-device-id", context.Request().Header.Get(authmiddleware.DeviceIDHeader)).
+				Int64("response-size", values.ResponseSize).
+				Str("user-agent", values.UserAgent).
+				Err(values.Error).
+				Dur("latency", values.Latency).
+				IPAddr("remote-ip", net.ParseIP(values.RemoteIP)).
 				Msg("request")
 			return nil
 		},

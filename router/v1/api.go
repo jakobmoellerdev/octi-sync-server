@@ -3,9 +3,10 @@ package v1
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"net/http"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
