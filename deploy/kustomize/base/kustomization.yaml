@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - sync-server.yaml
   - sync-server-service.yaml
+  - sync-server-service-account.yaml
   - redis-service.yaml
   - redis.yaml
 
