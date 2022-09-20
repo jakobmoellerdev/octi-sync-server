@@ -9,7 +9,7 @@ on:
     branches: [ "main" ]
 jobs:
   go-test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         go: [ '1.19', '1.18' ]
