@@ -4,17 +4,30 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/rs/zerolog"
 	"os"
 	"time"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 
 	"github.com/go-redis/redis/v9"
-	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
 var ErrIsADirectory = errors.New("is a directory, not a normal file")
+
+type LogSettingsFormat string
+
+//goland:noinspection ALL
+const (
+	LogSettingsFormatJSON   LogSettingsFormat = "json"
+	LogSettingsFormatPretty LogSettingsFormat = "pretty"
+	LogSettingsFormatNone   LogSettingsFormat = ""
+)
+
+type LogSettings struct {
+	Format LogSettingsFormat `yaml:"format"`
+}
 
 // Config struct for webapp config.
 type Config struct {
@@ -43,7 +56,9 @@ type Config struct {
 			Idle time.Duration `yaml:"idle"`
 		} `yaml:"timeout"`
 
-		MaxRequestBodySize int64 `yaml:"maxRequestBodySize"`
+		// MaxRequestBodySize can be specified as `4x` or `4xB`, where x is one of the multiple from K, M,
+		// G, T or P.
+		MaxRequestBodySize string `yaml:"maxRequestBodySize"`
 	} `yaml:"server"`
 
 	Redis struct {
@@ -55,7 +70,8 @@ type Config struct {
 		} `yaml:"ping"`
 	} `yaml:"redis"`
 
-	Logger *zap.Logger `yaml:"-"`
+	LogSettings `yaml:"log"`
+	Logger      *zerolog.Logger `yaml:"-"`
 
 	Services struct {
 		service.Accounts
@@ -111,8 +127,16 @@ func ParseFlags() (string, error) {
 	// to supply the configuration file
 	flag.StringVar(&configPath, "config", "./config.yml", "path to config file")
 
+	debug := flag.Bool("debug", false, "sets global log level to debug, otherwise defaults to info")
+
 	// Actually parse the flags
 	flag.Parse()
+
+	// Default level for this example is info, unless debug flag is present
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if *debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
 
 	// Validate the path first
 	if err := ValidateConfigPath(configPath); err != nil {

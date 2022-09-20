@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"errors"
+	"github.com/rs/zerolog"
+	baseLogger "github.com/rs/zerolog/log"
 	"log"
 	"net/http"
 	"os"
@@ -14,7 +16,6 @@ import (
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 )
 
 // Func main should be as small as possible and do as little as possible by convention.
@@ -30,18 +31,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logger, err := zap.NewProduction()
-	if err != nil {
-		log.Fatal(err)
+	// UNIX Time is faster and smaller than most timestamps
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	var logger zerolog.Logger
+	switch cfg.LogSettings.Format {
+	case config.LogSettingsFormatPretty:
+		logger = zerolog.New(zerolog.NewConsoleWriter()).With().Timestamp().Logger()
+	default:
+		logger = baseLogger.With().Logger()
 	}
-	defer func(logger *zap.Logger) {
-		err := logger.Sync()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(logger)
-
-	cfg.Logger = logger
+	cfg.Logger = &logger
 
 	uuid.EnableRandPool()
 
@@ -87,16 +86,16 @@ func Run(config *config.Config) {
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
 			// Error from closing listeners, or context timeout:
-			config.Logger.Warn("server shutdown error: " + err.Error())
+			config.Logger.Warn().Msg("server shutdown error: " + err.Error())
 		}
 		close(idleConsClosed)
 	}()
 
 	// service connections
 	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		config.Logger.Fatal("listen: %s" + err.Error())
+		config.Logger.Fatal().Msg("listen: %s" + err.Error())
 	}
 
 	<-idleConsClosed
-	config.Logger.Info("server shut down finished")
+	config.Logger.Info().Msg("server shut down finished")
 }

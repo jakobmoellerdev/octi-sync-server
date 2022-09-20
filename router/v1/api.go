@@ -3,6 +3,8 @@ package v1
 import (
 	"context"
 	"fmt"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
@@ -10,11 +12,13 @@ import (
 
 	authmiddleware "github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-func New(_ context.Context, engine *gin.Engine, config *config.Config) {
+var ErrDeviceIDNotPropagated = echo.NewHTTPError(http.StatusInternalServerError,
+	"device id was not propagated from middleware")
+
+func New(_ context.Context, engine *echo.Echo, config *config.Config) {
 	v1 := engine.Group("/v1") //nolint:varnamelen
 
 	{
@@ -29,7 +33,7 @@ func New(_ context.Context, engine *gin.Engine, config *config.Config) {
 		module := v1.Group("/module")
 		module.Use(
 			authmiddleware.BasicAuth(config.Services.Accounts),
-			authmiddleware.DeviceAuth(config.Services.Devices),
+			authmiddleware.DeviceAuth(config.Services.Devices, middleware.DefaultSkipper),
 		)
 		{
 			module.GET("/:name", getModule(config.Services.Modules))
@@ -38,60 +42,47 @@ func New(_ context.Context, engine *gin.Engine, config *config.Config) {
 	}
 }
 
-type ModuleRequest struct {
-	Name string `uri:"name" binding:"required"`
-}
-
-func createModule(modules service.Modules) gin.HandlerFunc {
-	return func(context *gin.Context) {
-		var request ModuleRequest
-		if err := context.ShouldBindUri(&request); err != nil {
-			context.JSON(http.StatusBadRequest, gin.H{"msg": err})
-			return
+func createModule(modules service.Modules) echo.HandlerFunc {
+	return func(context echo.Context) error {
+		moduleName := context.Param("name")
+		if moduleName == "" {
+			return echo.NewHTTPError(http.StatusBadRequest, "module name is required")
 		}
 
-		deviceID, found := context.Get(authmiddleware.DeviceID)
-		if !found {
-			context.JSON(http.StatusInternalServerError, gin.H{
-				"msg": "device id was not propagated from middleware",
-			})
-			return
+		deviceID, ok := context.Get(authmiddleware.DeviceID).(string)
+		if !ok || deviceID == "" {
+			return ErrDeviceIDNotPropagated
 		}
 
 		err := modules.Set(
-			context.Request.Context(),
-			fmt.Sprintf("%s-%s", deviceID, request.Name),
-			service.RedisModuleFromReader(context.Request.Body, int(context.Request.ContentLength)),
+			context.Request().Context(),
+			fmt.Sprintf("%s-%s", deviceID, moduleName),
+			service.RedisModuleFromReader(context.Request().Body, int(context.Request().ContentLength)),
 		)
 		if err != nil {
-			_ = context.AbortWithError(http.StatusInternalServerError, err)
-			return
+			return err
 		}
-		context.JSON(http.StatusOK, gin.H{})
+
+		return context.JSON(http.StatusOK, nil)
 	}
 }
 
-func getModule(modules service.Modules) gin.HandlerFunc {
-	return func(context *gin.Context) {
-		var request ModuleRequest
-		if err := context.ShouldBindUri(&request); err != nil {
-			context.JSON(http.StatusBadRequest, gin.H{"msg": err})
-			return
+func getModule(modules service.Modules) echo.HandlerFunc {
+	return func(context echo.Context) error {
+		moduleName := context.Param("name")
+		if moduleName == "" {
+			return echo.NewHTTPError(http.StatusBadRequest, "module name is required")
 		}
 
-		deviceID, found := context.Get(authmiddleware.DeviceID)
-		if !found {
-			context.JSON(http.StatusInternalServerError, gin.H{
-				"msg": "device id was not propagated from middleware",
-			})
-			return
+		deviceID, ok := context.Get(authmiddleware.DeviceID).(string)
+		if !ok || deviceID == "" {
+			return ErrDeviceIDNotPropagated
 		}
 
-		module, err := modules.Get(context.Request.Context(),
-			fmt.Sprintf("%s-%s", deviceID, request.Name))
+		module, err := modules.Get(context.Request().Context(),
+			fmt.Sprintf("%s-%s", deviceID, moduleName))
 		if err != nil {
-			_ = context.AbortWithError(http.StatusInternalServerError, err)
-			return
+			return err
 		}
 
 		// context.Stream(func(w io.Writer) bool {
@@ -101,13 +92,7 @@ func getModule(modules service.Modules) gin.HandlerFunc {
 		//	return false
 		// })
 
-		context.DataFromReader(
-			http.StatusOK,
-			int64(module.Size()),
-			"application/octet-stream",
-			module.Raw(),
-			map[string]string{},
-		)
+		return context.Stream(http.StatusOK, "application/octet-stream", module.Raw())
 	}
 }
 
@@ -117,37 +102,33 @@ type RegistrationResponse struct {
 	Password string
 }
 
-func register(accounts service.Accounts, devices service.Devices) gin.HandlerFunc {
-	return func(context *gin.Context) {
+func register(accounts service.Accounts, devices service.Devices) echo.HandlerFunc {
+	return func(context echo.Context) error {
 		accountID, err := uuid.NewRandom()
 		if err != nil {
-			_ = context.AbortWithError(http.StatusInternalServerError, err)
-			return
+			return err
 		}
 
-		deviceID := context.GetHeader(authmiddleware.DeviceIDHeader)
+		deviceID := context.Request().Header.Get(authmiddleware.DeviceIDHeader)
 		if deviceID == "" {
 			deviceUUID, err := uuid.NewRandom()
 			if err != nil {
-				_ = context.AbortWithError(http.StatusInternalServerError, err)
-				return
+				return err
 			}
 			deviceID = deviceUUID.String()
-			context.Header(authmiddleware.DeviceIDHeader, deviceID)
+			context.Response().Header().Set(authmiddleware.DeviceIDHeader, deviceID)
 		}
 
-		acc, password, err := accounts.Register(context.Request.Context(), accountID.String())
+		acc, password, err := accounts.Register(context.Request().Context(), accountID.String())
 		if err != nil {
-			_ = context.AbortWithError(http.StatusInternalServerError, err)
-			return
+			return err
 		}
 
-		if err := devices.Register(context.Request.Context(), acc, deviceID); err != nil {
-			_ = context.AbortWithError(http.StatusInternalServerError, err)
-			return
+		if err := devices.Register(context.Request().Context(), acc, deviceID); err != nil {
+			return err
 		}
 
-		context.JSON(http.StatusOK, &RegistrationResponse{
+		return context.JSON(http.StatusOK, &RegistrationResponse{
 			Username: acc.Username(),
 			DeviceID: deviceID,
 			Password: password,
