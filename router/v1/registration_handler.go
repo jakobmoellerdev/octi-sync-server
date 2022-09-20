@@ -4,9 +4,10 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"github.com/labstack/echo/v4"
 )
 
 type (

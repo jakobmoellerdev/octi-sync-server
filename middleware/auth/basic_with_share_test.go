@@ -7,14 +7,15 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/mem"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/random"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service/mem"
 )
 
 // Define the suite, and absorb the built-in basic suite

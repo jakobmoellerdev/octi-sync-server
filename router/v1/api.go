@@ -4,9 +4,10 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	authmiddleware "github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
-	"github.com/labstack/echo/v4"
 )
 
 var ErrDeviceIDNotPropagated = echo.NewHTTPError(http.StatusInternalServerError,

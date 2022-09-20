@@ -8,7 +8,7 @@ import (
 	"os"
 	"os/signal"
 
-	redis "github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
 
 	"github.com/rs/zerolog"
 	baseLogger "github.com/rs/zerolog/log"

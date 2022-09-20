@@ -7,13 +7,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
-	v1 "github.com/jakob-moeller-cloud/octi-sync-server/router/v1"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/mem"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
+
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
+	v1 "github.com/jakob-moeller-cloud/octi-sync-server/router/v1"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service/mem"
 )
 
 func TestAPIRegister(t *testing.T) {

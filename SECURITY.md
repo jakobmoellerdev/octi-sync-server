@@ -2,16 +2,16 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| >= 1.x.x   | :white_check_mark: |
-| < 1.0.0   | :x:                |
+| Version  | Supported          |
+|----------|--------------------|
+| >= 1.x.x | :white_check_mark: |
+| < 1.0.0  | :x:                |
 
 ## Reporting Security Issues
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please report them to a private disclosure at [contact@jakob-moeller.de](contact@jakob-moeller.de).
+Instead, please report them to a private disclosure at [contact@jakob-moeller.de](mailto:contact@jakob-moeller.de).
 
 You should receive a response within 24 hours. If for some reason you do not, please follow up via email to ensure we received your original message.
 

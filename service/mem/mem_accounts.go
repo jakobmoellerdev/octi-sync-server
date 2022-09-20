@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/util"
 )

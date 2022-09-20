@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
 
 // UserKey is the cookie name for user credential in basic auth.
