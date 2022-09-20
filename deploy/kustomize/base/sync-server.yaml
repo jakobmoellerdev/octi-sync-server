@@ -14,6 +14,7 @@ spec:
       labels:
         app.kubernetes.io/name: sync-server
     spec:
+      serviceAccountName: sync-server
       containers:
       - image: ghcr.io/jakob-moeller-cloud/octi-sync-server:latest
         name: sync-server
