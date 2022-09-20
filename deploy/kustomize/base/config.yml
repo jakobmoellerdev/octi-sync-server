@@ -6,8 +6,10 @@ server:
     read: 15s
     write: 10s
     idle: 5s
-  maxRequestBodySize: 64000
+  maxRequestBodySize: 64KB
 redis:
   db: 0
   ping:
     enable: true
+log:
+  format: json

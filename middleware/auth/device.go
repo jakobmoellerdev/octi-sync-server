@@ -3,9 +3,10 @@ package auth
 import (
 	"net/http"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
-	"github.com/gin-gonic/gin"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
 
 // DeviceID is the cookie name for user credential in basic auth.
@@ -18,35 +19,38 @@ const DeviceIDHeader = "X-Device-ID"
 // the key is the username and the value is the password, as well as the name of the Realm.
 // If the realm is empty, "Authorization Required" will be used by default.
 // (see http://tools.ietf.org/html/rfc2617#section-1.2)
-func DeviceAuth(devices service.Devices) gin.HandlerFunc {
-	return func(context *gin.Context) {
-		account, found := context.Get(UserKey)
-		if !found {
-			// Account not found, we return 401 and abort handlers chain.
-			context.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
+func DeviceAuth(devices service.Devices, skipper middleware.Skipper) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(context echo.Context) error {
+			if skipper(context) {
+				return next(context)
+			}
+			account, ok := context.Get(UserKey).(service.Account)
+			if !ok || account == nil {
+				// Account not found, we return 401 and abort handlers chain.
+				return echo.ErrUnauthorized
+			}
 
-		deviceID := context.GetHeader(DeviceIDHeader)
-		if deviceID == "" {
-			context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"msg": "this endpoint has to be called with the " + DeviceIDHeader + " Header!",
-			})
-			return
-		}
+			deviceID := context.Request().Header.Get(DeviceIDHeader)
+			if deviceID == "" {
+				return echo.NewHTTPError(http.StatusBadRequest,
+					"this endpoint has to be called with the "+DeviceIDHeader+" Header!")
+			}
 
-		device, err := devices.FindByDeviceID(
-			context.Request.Context(),
-			account.(service.Account), deviceID)
-		if err != nil {
-			// Device not found for Account, we return 401 and abort handlers chain.
-			context.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
+			device, err := devices.FindByDeviceID(
+				context.Request().Context(),
+				account, deviceID)
+			if err != nil {
+				// Device not found for Account, we return 401 and abort handlers chain.
+				return echo.ErrUnauthorized
+			}
 
-		// The account credentials was found, set account's id to key DeviceID in this context,
-		// the account's id can be read later using
-		// context.MustGet(auth.DeviceID).
-		context.Set(DeviceID, device)
+			// The account credentials was found, set account's id to key DeviceID in this context,
+			// the account's id can be read later using
+			// context.MustGet(auth.DeviceID).
+			context.Set(DeviceID, device)
+
+			return next(context)
+		}
 	}
 }

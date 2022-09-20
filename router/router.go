@@ -2,60 +2,73 @@ package router
 
 import (
 	"context"
-	"fmt"
 	"net/http"
+	"time"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
-	requestmiddleware "github.com/jakob-moeller-cloud/octi-sync-server/middleware/request"
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/router/v1"
+)
 
-	"github.com/gin-contrib/gzip"
-	ginzap "github.com/gin-contrib/zap"
-	"github.com/gin-gonic/gin"
+const (
+	RateLimitRequestsPerSecond = 20
+	DefaultTimeoutSeconds      = 30
 )
 
 // New generates the router used in the HTTP Server.
 func New(ctx context.Context, config *config.Config) http.Handler {
-	router := gin.New()
+	router := echo.New()
 
-	router.Use(requestmiddleware.LimitHandler(requestmiddleware.DefaultLimit()))
-	router.Use(gzip.Gzip(gzip.DefaultCompression))
+	router.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(RateLimitRequestsPerSecond)))
+
+	router.Use(middleware.RequestID())
+
+	timeoutConfig := middleware.DefaultTimeoutConfig
+	// Default in Middleware is Zero, set to sane default
+	timeoutConfig.Timeout = DefaultTimeoutSeconds * time.Second
+	router.Use(middleware.TimeoutWithConfig(timeoutConfig))
+
+	router.Use(
+		middleware.Gzip(),
+		middleware.Decompress(),
+	)
 
 	// Global Middleware
 	router.Use(
-		ginzap.RecoveryWithZap(config.Logger, true),
+		middleware.Recover(),
 		logging.RequestLogging(config.Logger),
 	)
 
-	router.Use(requestmiddleware.BodySizeLimiter(config.Server.MaxRequestBodySize, gin.H{
-		"msg": fmt.Sprintf("request too large, maximum allowed is %v bytes", config.Server.MaxRequestBodySize),
-	}))
+	router.Use(middleware.BodyLimit(config.Server.MaxRequestBodySize))
 
 	v1.New(ctx, router, config)
 
-	router.GET("/ready", healthCheck(config))
-	router.GET("/health", func(c *gin.Context) {
-		c.Status(http.StatusOK)
-	})
+	router.GET("/ready", ReadyCheck(config))
+	router.GET("/health", HealthCheck)
 
 	return router
 }
 
-func healthCheck(cfg *config.Config) gin.HandlerFunc {
-	return func(context *gin.Context) {
+func ReadyCheck(cfg *config.Config) echo.HandlerFunc {
+	return func(context echo.Context) error {
 		aggregation := service.HealthAggregator([]service.HealthCheck{
 			cfg.Services.Accounts.HealthCheck(),
 			cfg.Services.Devices.HealthCheck(),
 			cfg.Services.Modules.HealthCheck(),
-		}).Check(context.Request.Context())
+		}).Check(context.Request().Context())
 
 		if aggregation.Health == service.HealthUp {
-			context.JSON(http.StatusOK, aggregation)
-		} else {
-			context.JSON(http.StatusServiceUnavailable, aggregation)
+			return context.JSON(http.StatusOK, aggregation)
 		}
+		return context.JSON(http.StatusServiceUnavailable, aggregation)
 	}
+}
+
+func HealthCheck(c echo.Context) error {
+	return c.JSON(http.StatusOK, struct{}{})
 }

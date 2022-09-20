@@ -36,7 +36,7 @@ spec:
             port: http
           initialDelaySeconds: 1
           periodSeconds: 10
-        command: [ "/app", "-config", "/config/config.yml" ]
+        command: [ "/app", "-config", "/config/config.yml", "-debug" ]
         ports:
           - name: http
             protocol: TCP
