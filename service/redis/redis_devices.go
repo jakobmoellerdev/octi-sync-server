@@ -46,8 +46,8 @@ func (r *Devices) FindByDeviceID(ctx context.Context, acc service.Account, devic
 	return nil, service.ErrDeviceNotFound
 }
 
-func (r *Devices) Register(ctx context.Context, acc service.Account, deviceID string) error {
-	return r.client.LPush(ctx, r.deviceKeyForAccount(acc), deviceID).Err()
+func (r *Devices) Register(ctx context.Context, acc service.Account, deviceID string) (service.Device, error) {
+	return &Device{id: deviceID}, r.client.LPush(ctx, r.deviceKeyForAccount(acc), deviceID).Err()
 }
 
 func (r *Devices) HealthCheck() service.HealthCheck {

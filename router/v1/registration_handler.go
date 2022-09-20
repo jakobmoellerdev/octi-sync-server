@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	authmiddleware "github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/labstack/echo/v4"
 )
@@ -28,14 +28,14 @@ func (h *RegistrationHandler) Register(context echo.Context) error {
 		return err
 	}
 
-	deviceID := context.Request().Header.Get(authmiddleware.DeviceIDHeader)
+	deviceID := context.Request().Header.Get(auth.DeviceIDHeader)
 	if deviceID == "" {
 		deviceUUID, err := uuid.NewRandom()
 		if err != nil {
 			return err
 		}
 		deviceID = deviceUUID.String()
-		context.Response().Header().Set(authmiddleware.DeviceIDHeader, deviceID)
+		context.Response().Header().Set(auth.DeviceIDHeader, deviceID)
 	}
 
 	acc, password, err := h.Accounts.Register(context.Request().Context(), accountID.String())
@@ -43,7 +43,7 @@ func (h *RegistrationHandler) Register(context echo.Context) error {
 		return err
 	}
 
-	if err := h.Devices.Register(context.Request().Context(), acc, deviceID); err != nil {
+	if _, err := h.Devices.Register(context.Request().Context(), acc, deviceID); err != nil {
 		return err
 	}
 

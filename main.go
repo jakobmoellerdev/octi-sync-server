@@ -8,13 +8,12 @@ import (
 	"os"
 	"os/signal"
 
-	redis2 "github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
+	redis "github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
 
 	"github.com/rs/zerolog"
 	baseLogger "github.com/rs/zerolog/log"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
-	"github.com/jakob-moeller-cloud/octi-sync-server/redis"
 	"github.com/jakob-moeller-cloud/octi-sync-server/router"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 
@@ -65,9 +64,9 @@ func Run(config *config.Config) {
 		log.Print(err)
 		return
 	}
-	config.Services.Accounts = service.Accounts(redis2.NewAccounts(client))
-	config.Services.Modules = service.Modules(redis2.NewModules(client))
-	config.Services.Devices = service.Devices(redis2.NewDevices(client))
+	config.Services.Accounts = service.Accounts(redis.NewAccounts(client))
+	config.Services.Modules = service.Modules(redis.NewModules(client))
+	config.Services.Devices = service.Devices(redis.NewDevices(client))
 
 	// Define server options
 	srv := &http.Server{

@@ -24,6 +24,8 @@ const (
 func New(ctx context.Context, config *config.Config) http.Handler {
 	router := echo.New()
 
+	router.IPExtractor = echo.ExtractIPFromXFFHeader()
+
 	router.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(RateLimitRequestsPerSecond)))
 
 	router.Use(middleware.RequestID())

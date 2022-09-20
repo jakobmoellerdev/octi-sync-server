@@ -4,11 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	authmiddleware "github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
+	"github.com/labstack/echo/v4"
 )
 
 var ErrDeviceIDNotPropagated = echo.NewHTTPError(http.StatusInternalServerError,
@@ -29,8 +27,7 @@ func New(_ context.Context, engine *echo.Echo, config *config.Config) {
 
 		module := v1.Group("/module")
 		module.Use(
-			authmiddleware.BasicAuth(config.Services.Accounts),
-			authmiddleware.DeviceAuth(config.Services.Devices, middleware.DefaultSkipper),
+			authmiddleware.BasicAuthWithShare(config.Services.Accounts, config.Services.Devices),
 		)
 		moduleHandler := &ModuleHandler{
 			config.Services.Modules,

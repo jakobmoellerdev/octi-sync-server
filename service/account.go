@@ -13,6 +13,12 @@ type Account interface {
 type Accounts interface {
 	Find(ctx context.Context, username string) (Account, error)
 	Register(ctx context.Context, username string) (Account, string, error)
+	Share(ctx context.Context, username string) (string, error)
+
+	ActiveShares(ctx context.Context, username string) ([]string, error)
+	IsShared(ctx context.Context, username string, share string) (bool, error)
+	Revoke(ctx context.Context, username string, shareCode string) error
+
 	HealthCheck() HealthCheck
 }
 
