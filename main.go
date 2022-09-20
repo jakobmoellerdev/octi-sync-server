@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/signal"
 
+	redis2 "github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
+
 	"github.com/rs/zerolog"
 	baseLogger "github.com/rs/zerolog/log"
 
@@ -63,9 +65,9 @@ func Run(config *config.Config) {
 		log.Print(err)
 		return
 	}
-	config.Services.Accounts = service.Accounts(service.NewRedisAccounts(client))
-	config.Services.Modules = service.Modules(service.NewRedisModules(client))
-	config.Services.Devices = service.Devices(service.NewRedisDevices(client))
+	config.Services.Accounts = service.Accounts(redis2.NewAccounts(client))
+	config.Services.Modules = service.Modules(redis2.NewModules(client))
+	config.Services.Devices = service.Devices(redis2.NewDevices(client))
 
 	// Define server options
 	srv := &http.Server{

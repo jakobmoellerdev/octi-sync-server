@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -14,7 +15,10 @@ import (
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/router/v1"
 )
 
-const RateLimitRequestsPerSecond = 20
+const (
+	RateLimitRequestsPerSecond = 20
+	DefaultTimeoutSeconds      = 30
+)
 
 // New generates the router used in the HTTP Server.
 func New(ctx context.Context, config *config.Config) http.Handler {
@@ -23,6 +27,11 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 	router.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(RateLimitRequestsPerSecond)))
 
 	router.Use(middleware.RequestID())
+
+	timeoutConfig := middleware.DefaultTimeoutConfig
+	// Default in Middleware is Zero, set to sane default
+	timeoutConfig.Timeout = DefaultTimeoutSeconds * time.Second
+	router.Use(middleware.TimeoutWithConfig(timeoutConfig))
 
 	router.Use(
 		middleware.Gzip(),
@@ -39,13 +48,13 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 
 	v1.New(ctx, router, config)
 
-	router.GET("/ready", readyCheck(config))
-	router.GET("/health", healthCheck)
+	router.GET("/ready", ReadyCheck(config))
+	router.GET("/health", HealthCheck)
 
 	return router
 }
 
-func readyCheck(cfg *config.Config) echo.HandlerFunc {
+func ReadyCheck(cfg *config.Config) echo.HandlerFunc {
 	return func(context echo.Context) error {
 		aggregation := service.HealthAggregator([]service.HealthCheck{
 			cfg.Services.Accounts.HealthCheck(),
@@ -60,6 +69,6 @@ func readyCheck(cfg *config.Config) echo.HandlerFunc {
 	}
 }
 
-func healthCheck(c echo.Context) error {
+func HealthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, struct{}{})
 }

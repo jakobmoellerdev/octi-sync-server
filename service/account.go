@@ -16,4 +16,7 @@ type Accounts interface {
 	HealthCheck() HealthCheck
 }
 
-var ErrAccountAlreadyExists = errors.New("account already exists")
+var (
+	ErrAccountAlreadyExists = errors.New("account already exists")
+	ErrAccountNotFound      = errors.New("account not found")
+)
