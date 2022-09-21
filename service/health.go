@@ -1,6 +1,9 @@
 package service
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 type HealthAggregation struct {
 	Health     HealthResult                 `yaml:"health"`
@@ -13,6 +16,17 @@ type HealthAggregationComponent struct {
 }
 
 type HealthResult string
+
+func (r HealthResult) ToHTTPStatusCode() int {
+	var status int
+	switch r {
+	case HealthUp:
+		status = http.StatusOK
+	case HealthDown:
+		status = http.StatusServiceUnavailable
+	}
+	return status
+}
 
 const (
 	HealthUp   HealthResult = "Up"

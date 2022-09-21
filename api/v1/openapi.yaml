@@ -1,0 +1,230 @@
+openapi: 3.0.3
+info:
+  title: Octi Sync Server
+  description: |-
+    This is the Octi Sync Server.
+  contact:
+    email: contact@jakob-moeller.de
+  license:
+    name: Apache 2.0
+    url: https://github.com/jakob-moeller-cloud/octi-sync-server/blob/main/LICENSE
+  version: v1
+externalDocs:
+  description: GitHub
+  url: https://github.com/jakob-moeller-cloud/octi-sync-server
+servers:
+  - url: https://grylls.octi.darken.eu/v1
+    description: The official Server!
+  - url: http://localhost:8080/v1
+    description: Run it Locally to try it out!
+tags:
+  - name: auth
+    description: Everything Related to Authentication
+  - name: module
+    description: Access to Sync Modules
+  - name: health
+    description: Access to Healthiness / Readiness Information
+paths:
+  /ready:
+    get:
+      tags:
+        - health
+      operationId: isReady
+      summary: Checks if the Service is Operational
+      description: Performs a Readiness check (with dependencies included)
+      responses:
+        '200':
+          description: Successful Readiness
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthAggregation'
+        '503':
+          description: Failure during Readiness Check
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthAggregation'
+  /health:
+    get:
+      tags:
+        - health
+      operationId: isHealthy
+      summary: Checks if the Service is Available for Processing Request
+      description: Performs a Health check of the HTTP Router
+      responses:
+        '200':
+          description: Successful Healthiness
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthAggregation'
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: Register A Device
+      description: Register a new Device / Account
+      operationId: register
+      parameters:
+        - $ref: '#/components/parameters/XDeviceID'
+      responses:
+        '200':
+          description: Successful Registration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationResponse'
+  /auth/share:
+    post:
+      tags:
+        - auth
+      summary: Share your Account
+      description: Creates temporary Share Codes for sharing your Account
+      operationId: share
+      parameters:
+        - $ref: '#/components/parameters/XDeviceID'
+      responses:
+        '200':
+          description: Share Code Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareResponse'
+      security:
+        - deviceAuth: []
+  /module/{name}:
+    get:
+      tags:
+        - module
+      summary: Get Module Data
+      description: Receive Streamed Module Date
+      operationId: getModule
+      parameters:
+        - $ref: '#/components/parameters/XDeviceID'
+        - $ref: '#/components/parameters/ModuleName'
+        - $ref: '#/components/parameters/ShareCode'
+      responses:
+        '200':
+          $ref: '#/components/responses/ModuleDataResponse'
+      security:
+        - deviceAuth: []
+    post:
+      tags:
+        - module
+      summary: Create/Update Module Data
+      description: Receive Streamed Module Date
+      operationId: createModule
+      parameters:
+        - $ref: '#/components/parameters/XDeviceID'
+        - $ref: '#/components/parameters/ModuleName'
+        - $ref: '#/components/parameters/ShareCode'
+      requestBody:
+        $ref: '#/components/requestBodies/ModuleDataRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/ModuleDataAccepted'
+      security:
+        - deviceAuth: []
+components:
+  parameters:
+    ModuleName:
+      name: name
+      required: true
+      description: "Module Name in Path"
+      in: path
+      allowEmptyValue: false
+      schema:
+        $ref: '#/components/schemas/ModuleName'
+    XDeviceID:
+      name: X-Device-ID
+      in: header
+      required: true
+      description: The Device ID for Registration
+      schema:
+        type: string
+    ShareCode:
+      name: share
+      in: query
+      required: false
+      description: The Share Code for Registration
+      schema:
+        type: string
+  requestBodies:
+    ModuleDataRequest:
+      description: Module Data Stream
+      content:
+        application/octet-stream:
+          schema:
+            $ref: '#/components/schemas/ModuleDataStream'
+  responses:
+    ModuleDataAccepted:
+      description: Module Data got Accepted for Processing
+      content:
+        application/json:
+          schema:
+            description: "An Empty JSON"
+    ModuleDataResponse:
+      description: Module Data Stream
+      content:
+        application/octet-stream:
+          schema:
+            $ref: '#/components/schemas/ModuleDataStream'
+  schemas:
+    HealthAggregationComponent:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "The Name of the Component to be Health Checked"
+        health:
+          $ref: '#/components/schemas/HealthResult'
+      required:
+        - name
+        - health
+    HealthResult:
+      type: string
+      description: "A Health Check Result"
+      enum:
+        - "Up"
+        - "Down"
+    HealthAggregation:
+      type: object
+      properties:
+        health:
+          $ref: '#/components/schemas/HealthResult'
+        components:
+          description: "The different Components of the Server"
+          type: array
+          items:
+            $ref: '#/components/schemas/HealthAggregationComponent'
+      required:
+        - health
+    ModuleDataStream:
+      type: object
+      description: "Module Data Stream"
+    ModuleName:
+      type: string
+      description: "Module Name"
+    ShareResponse:
+      type: object
+      properties:
+        shareCode:
+          type: string
+    RegistrationResponse:
+      type: object
+      properties:
+        deviceID:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - deviceID
+        - username
+        - password
+  securitySchemes:
+    deviceAuth:
+      type: http
+      scheme: basic

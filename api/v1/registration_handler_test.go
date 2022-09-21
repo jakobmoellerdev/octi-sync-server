@@ -7,14 +7,14 @@ import (
 	"strings"
 	"testing"
 
+	jsoniter "github.com/json-iterator/go"
+
+	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service/mem"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v3"
-
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
-	v1 "github.com/jakob-moeller-cloud/octi-sync-server/router/v1"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/mem"
 )
 
 func TestAPIRegister(t *testing.T) {
@@ -27,7 +27,7 @@ func TestAPIRegister(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := api.NewContext(req, rec)
 
-	if assertions.NoError(memoryRegistration().Register(c)) {
+	if assertions.NoError(v1API().Register(c, v1.RegisterParams{XDeviceID: "test"})) {
 		verifyRegistrationResponse(assertions, rec)
 	}
 }
@@ -40,8 +40,8 @@ func SetupAPITest(t *testing.T) (*zerolog.Logger, *assert.Assertions, *echo.Echo
 	return &logger, assert.New(t), api
 }
 
-func memoryRegistration() *v1.RegistrationHandler {
-	return &v1.RegistrationHandler{
+func v1API() *v1.API {
+	return &v1.API{
 		Accounts: mem.NewAccounts(),
 		Devices:  mem.NewDevices(),
 	}
@@ -50,7 +50,7 @@ func memoryRegistration() *v1.RegistrationHandler {
 func verifyRegistrationResponse(assertions *assert.Assertions, rec *httptest.ResponseRecorder) {
 	assertions.Equal(http.StatusOK, rec.Code)
 	res := v1.RegistrationResponse{}
-	assertions.NoError(yaml.NewDecoder(rec.Body).Decode(&res))
+	assertions.NoError(jsoniter.NewDecoder(rec.Body).Decode(&res))
 	assertions.NotEmpty(res.DeviceID)
 	assertions.NotEmpty(res.Username)
 	assertions.NotEmpty(res.Password)

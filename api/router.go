@@ -1,4 +1,4 @@
-package router
+package api
 
 import (
 	"context"
@@ -8,11 +8,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-
+	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
-	v1 "github.com/jakob-moeller-cloud/octi-sync-server/router/v1"
 )
 
 const (
@@ -20,9 +18,14 @@ const (
 	DefaultTimeoutSeconds      = 30
 )
 
-// New generates the router used in the HTTP Server.
+// New generates the api used in the HTTP Server.
 func New(ctx context.Context, config *config.Config) http.Handler {
 	router := echo.New()
+
+	router.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: config.Server.CORS.AllowOrigins,
+		AllowHeaders: config.Server.CORS.AllowHeaders,
+	}))
 
 	router.IPExtractor = echo.ExtractIPFromXFFHeader()
 
@@ -50,27 +53,5 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 
 	v1.New(ctx, router, config)
 
-	router.GET("/ready", ReadyCheck(config))
-	router.GET("/health", HealthCheck)
-
 	return router
-}
-
-func ReadyCheck(cfg *config.Config) echo.HandlerFunc {
-	return func(context echo.Context) error {
-		aggregation := service.HealthAggregator([]service.HealthCheck{
-			cfg.Services.Accounts.HealthCheck(),
-			cfg.Services.Devices.HealthCheck(),
-			cfg.Services.Modules.HealthCheck(),
-		}).Check(context.Request().Context())
-
-		if aggregation.Health == service.HealthUp {
-			return context.JSON(http.StatusOK, aggregation)
-		}
-		return context.JSON(http.StatusServiceUnavailable, aggregation)
-	}
-}
-
-func HealthCheck(c echo.Context) error {
-	return c.JSON(http.StatusOK, struct{}{})
 }

@@ -1,0 +1,44 @@
+name: OpenAPI
+
+on:
+  push:
+    branches: [ "main" ]
+    # Publish semver tags as releases.
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  openapi:
+    runs-on: ubuntu-latest  # windows-latest | macos-latest
+    strategy:
+      matrix:
+        version: [ 'v1' ]
+    name: Verify ${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.19'
+          cache: true
+      - name: Install Open API Code Generator
+        run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
+
+      - name: Generate ${{ matrix.version }}
+        run: oapi-codegen --config api/${{ matrix.version }}/openapi.codegen.yaml api/${{ matrix.version }}/openapi.yaml > api/${{ matrix.version }}/api.gen.go
+
+      - name: Check Changed files in OpenAPI Spec for ${{ matrix.version }}
+        uses: tj-actions/verify-changed-files@v11.1
+        id: verify-changed-files
+        with:
+          files: |
+            api/${{ matrix.version }}/api.gen.go
+
+      - name: Fail if ${{ matrix.version }} OpenAPI spec changed after running code-generation with oapi-codegen.
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        run: |
+          echo "Changed OpenAPI Spec: ${{ steps.verify-changed-files.outputs.changed_files }}"
+          echo "Run oapi-codegen --config api/${{ matrix.version }}/openapi.codegen.yaml api/${{ matrix.version }}/openapi.yaml > api/${{ matrix.version }}/api.gen.go and commit your changes!"
+          run: exit 1
