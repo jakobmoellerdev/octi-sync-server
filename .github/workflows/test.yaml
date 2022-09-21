@@ -34,7 +34,7 @@ jobs:
         with:
           github-token: ${{ secrets.github_token }}
           path-to-lcov: coverage.lcov
-          flag-name: run-${{ matrix.test_number }}
+          flag-name: run-${{ matrix.go }}
           parallel: true
   collect-coverage:
     needs: go-test
