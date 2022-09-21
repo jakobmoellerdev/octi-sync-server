@@ -7,11 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	jsoniter "github.com/json-iterator/go"
-
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/mem"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
@@ -19,11 +18,14 @@ import (
 
 func TestAPIRegister(t *testing.T) {
 	t.Parallel()
+
 	_, assertions, api := SetupAPITest(t)
 
 	req := httptest.NewRequest(http.MethodPost, "/",
 		strings.NewReader(make(url.Values).Encode()))
+
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
 	rec := httptest.NewRecorder()
 	c := api.NewContext(req, rec)
 
@@ -37,6 +39,7 @@ func SetupAPITest(t *testing.T) (*zerolog.Logger, *assert.Assertions, *echo.Echo
 	logger := zerolog.New(zerolog.NewTestWriter(t))
 	api := echo.New()
 	api.Use(logging.RequestLogging(&logger))
+
 	return &logger, assert.New(t), api
 }
 
@@ -49,7 +52,9 @@ func v1API() *v1.API {
 
 func verifyRegistrationResponse(assertions *assert.Assertions, rec *httptest.ResponseRecorder) {
 	assertions.Equal(http.StatusOK, rec.Code)
+
 	res := v1.RegistrationResponse{}
+
 	assertions.NoError(jsoniter.NewDecoder(rec.Body).Decode(&res))
 	assertions.NotEmpty(res.DeviceID)
 	assertions.NotEmpty(res.Username)

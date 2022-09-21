@@ -7,11 +7,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/rs/zerolog"
-
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-
 	"github.com/go-redis/redis/v9"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"github.com/rs/zerolog"
 	"gopkg.in/yaml.v3"
 )
 
@@ -95,7 +93,7 @@ func NewConfig(configPath string) (*Config, error) {
 	// Open config file
 	file, err := os.Open(configPath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("config cannot be opened: %w", err)
 	}
 	defer file.Close()
 
@@ -104,7 +102,7 @@ func NewConfig(configPath string) (*Config, error) {
 
 	// Start YAML decoding from file
 	if err := d.Decode(&config); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("config cannot be decoded: %w", err)
 	}
 
 	return config, nil
@@ -115,11 +113,13 @@ func NewConfig(configPath string) (*Config, error) {
 func ValidateConfigPath(path string) error {
 	s, err := os.Stat(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("config path invalid: %w", err)
 	}
+
 	if s.IsDir() {
 		return fmt.Errorf("'%s':%w", path, ErrIsADirectory)
 	}
+
 	return nil
 }
 
@@ -140,6 +140,7 @@ func ParseFlags() (string, error) {
 
 	// Default level for this example is info, unless debug flag is present
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+
 	if *debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}

@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-
 	"github.com/go-redis/redis/v9"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
 
 const DeviceKeySpace = "octi:devices"
@@ -26,28 +25,36 @@ func (r *Devices) deviceKeyForAccount(acc service.Account) string {
 func (r *Devices) FindByAccount(ctx context.Context, acc service.Account) ([]service.Device, error) {
 	res, err := r.client.LRange(ctx, r.deviceKeyForAccount(acc), 0, -1).Result()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not find devices by account: %w", err)
 	}
+
 	devices := make([]service.Device, len(res))
 	for i, deviceID := range res {
 		devices[i] = DeviceFromID(deviceID)
 	}
+
 	return devices, nil
 }
 
 func (r *Devices) FindByDeviceID(ctx context.Context, acc service.Account, deviceID string) (service.Device, error) {
 	res, err := r.client.LPos(ctx, r.deviceKeyForAccount(acc), deviceID, redis.LPosArgs{}).Result()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not find devices by id: %w", err)
 	}
+
 	if res >= 0 {
 		return DeviceFromID(deviceID), nil
 	}
+
 	return nil, service.ErrDeviceNotFound
 }
 
 func (r *Devices) Register(ctx context.Context, acc service.Account, deviceID string) (service.Device, error) {
-	return &Device{id: deviceID}, r.client.LPush(ctx, r.deviceKeyForAccount(acc), deviceID).Err()
+	if err := r.client.LPush(ctx, r.deviceKeyForAccount(acc), deviceID).Err(); err != nil {
+		return nil, fmt.Errorf("could not push device id for registration: %w", err)
+	}
+
+	return &Device{id: deviceID}, nil
 }
 
 func (r *Devices) HealthCheck() service.HealthCheck {

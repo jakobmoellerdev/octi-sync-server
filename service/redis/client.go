@@ -7,11 +7,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/rs/zerolog"
-
-	"github.com/jakob-moeller-cloud/octi-sync-server/config"
-
 	"github.com/go-redis/redis/v9"
+	"github.com/jakob-moeller-cloud/octi-sync-server/config"
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -36,11 +34,13 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 
 	if config.Redis.Ping.Enable {
 		ticker := time.NewTicker(config.Redis.Ping.Interval)
+
 		verify := func() {
 			for {
 				select {
 				case <-ctx.Done():
 					ticker.Stop()
+
 					return
 				case <-ticker.C:
 					if err := VerifyConnection(ctx, client, config.Redis.Ping.Timeout); err != nil {
@@ -51,6 +51,7 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 				}
 			}
 		}
+
 		go verify()
 	}
 
@@ -69,25 +70,27 @@ func applyDefaultConfiguration(logger *zerolog.Logger, config *config.Config) {
 	}
 
 	if config.Redis.Addr == "localhost:6379" {
-		addrFromEnv, found := os.LookupEnv(EnvRedisAddr)
-		if found {
+		if addrFromEnv, found := os.LookupEnv(EnvRedisAddr); found {
 			logger.Info().Msg("config does not contain address, defaulting redis addr to " + EnvRedisAddr)
+
 			config.Redis.Addr = addrFromEnv
 		} else {
 			logger.Info().Msg("connecting against localhost instead of connecting remotely")
 		}
 	}
+
 	if config.Redis.Username == "" {
-		usernameFromEnv, found := os.LookupEnv(EnvRedisUsername)
-		if found {
+		if usernameFromEnv, found := os.LookupEnv(EnvRedisUsername); found {
 			logger.Info().Msg("config does not contain username, defaulting to " + EnvRedisUsername)
+
 			config.Redis.Username = usernameFromEnv
 		}
 	}
+
 	if config.Redis.Password == "" {
-		passwordFromEnv, found := os.LookupEnv(EnvRedisPassword)
-		if found {
+		if passwordFromEnv, found := os.LookupEnv(EnvRedisPassword); found {
 			logger.Info().Msg("config does not contain password, defaulting to " + EnvRedisPassword)
+
 			config.Redis.Password = passwordFromEnv
 		}
 	}
@@ -96,6 +99,8 @@ func applyDefaultConfiguration(logger *zerolog.Logger, config *config.Config) {
 func VerifyConnection(ctx context.Context, client *redis.Client, timeout time.Duration) error {
 	pingCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
+
 	_, err := client.Ping(pingCtx).Result()
-	return err
+
+	return fmt.Errorf("error while verifying connection with ping: %w", err)
 }

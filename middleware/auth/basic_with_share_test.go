@@ -7,15 +7,14 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/random"
-	"github.com/rs/zerolog"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/mem"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/random"
+	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/suite"
 )
 
 // Define the suite, and absorb the built-in basic suite
@@ -50,31 +49,46 @@ func (suite *BasicAuthTestSuite) ResetRequest() {
 
 func (suite *BasicAuthTestSuite) registerAndSetAuthorizationHeader(user string) service.Account {
 	acc, pass, err := suite.accounts.Register(context.Background(), user)
+
 	suite.NoError(err)
 	suite.req.SetBasicAuth(user, pass)
+
 	return acc
 }
 
 func (suite *BasicAuthTestSuite) registerAndSetDeviceHeader(acc service.Account, deviceID string) service.Device {
 	dev, err := suite.devices.Register(context.Background(), acc, deviceID)
+
 	suite.NoError(err)
 	suite.req.Header.Set(auth.DeviceIDHeader, deviceID)
+
 	return dev
 }
 
 func (suite *BasicAuthTestSuite) randomUsername() string { return "test-user-" + random.String(5) }
 func (suite *BasicAuthTestSuite) randomDeviceID() string { return "device-" + random.String(5) }
 
+//goland:noinspection SpellCheckingInspection
+func (suite *BasicAuthTestSuite) asHTTPError(err error) *echo.HTTPError {
+	httpError, ok := err.(*echo.HTTPError) //nolint:errorlint
+
+	suite.True(ok, "When using Middleware Error Assertion the err has to be *echo.HTTPError")
+
+	return httpError
+}
+
 // All methods that begin with "Test" are run as tests within a
 // suite.
 func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 	testMiddleware := auth.BasicAuthWithShare(suite.accounts, suite.devices)(http200)
 
-	var acc service.Account
-	var dev service.Device
+	var (
+		acc service.Account
+		dev service.Device
+	)
 
 	// No Token
-	suite.Equal(http.StatusUnauthorized, testMiddleware(suite).(*echo.HTTPError).Code) //nolint:errorlint
+	suite.Equal(http.StatusUnauthorized, suite.asHTTPError(testMiddleware(suite)).Code)
 
 	// Valid Token
 	acc = suite.registerAndSetAuthorizationHeader(suite.randomUsername())
@@ -84,7 +98,7 @@ func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 
 	// Trying to access account from random other device
 	suite.req.Header.Set(auth.DeviceIDHeader, suite.randomDeviceID())
-	suite.Equal(http.StatusForbidden, testMiddleware(suite).(*echo.HTTPError).Code) //nolint:errorlint
+	suite.Equal(http.StatusForbidden, suite.asHTTPError(testMiddleware(suite)).Code)
 	suite.ResetRequest()
 
 	// switching back to normal device should be okay
@@ -95,7 +109,7 @@ func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 	// using a random authorization header with a registered device is blocked immediately, as
 	// there is no account
 	suite.req.Header.Set(echo.HeaderAuthorization, "")
-	suite.Equal(http.StatusUnauthorized, testMiddleware(suite).(*echo.HTTPError).Code) //nolint:errorlint
+	suite.Equal(http.StatusUnauthorized, suite.asHTTPError(testMiddleware(suite)).Code)
 	suite.ResetRequest()
 
 	// Valid Token with both params reset should work fine
@@ -109,12 +123,12 @@ func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 	suite.NoError(err)
 	// at first the device is not shared, the call should be forbidden
 	suite.req.Header.Set(auth.DeviceIDHeader, suite.randomDeviceID())
-	suite.Equal(http.StatusForbidden, testMiddleware(suite).(*echo.HTTPError).Code) //nolint:errorlint
+	suite.Equal(http.StatusForbidden, suite.asHTTPError(testMiddleware(suite)).Code)
 	suite.ResetRequest()
 
 	// now it should still be invalid even though we provide a share code (that was not okay)
 	setQuery(suite.req.URL, auth.ShareQueryParamName, url.QueryEscape("invalid"))
-	suite.Equal(http.StatusForbidden, testMiddleware(suite).(*echo.HTTPError).Code) //nolint:errorlint
+	suite.Equal(http.StatusForbidden, suite.asHTTPError(testMiddleware(suite)).Code)
 	suite.ResetRequest()
 
 	// now it should be valid as we provide a valid share code
@@ -135,5 +149,5 @@ func setQuery(u *url.URL, key string, values ...string) {
 }
 
 func http200(context echo.Context) error {
-	return context.String(http.StatusOK, "test")
+	return context.String(http.StatusOK, "test") //nolint:wrapcheck
 }

@@ -3,11 +3,10 @@ package logging
 import (
 	"net"
 
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
-
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
 )
 
 func RequestLogging(logger *zerolog.Logger) echo.MiddlewareFunc {
@@ -36,6 +35,7 @@ func RequestLogging(logger *zerolog.Logger) echo.MiddlewareFunc {
 				Dur("latency", values.Latency).
 				IPAddr("remote-ip", net.ParseIP(values.RemoteIP)).
 				Msg("request")
+
 			return nil
 		},
 	})

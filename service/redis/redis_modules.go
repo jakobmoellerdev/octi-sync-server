@@ -7,9 +7,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-
 	"github.com/go-redis/redis/v9"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
 
 func NewModules(client *redis.Client) *Modules {
@@ -26,9 +25,11 @@ func (r *Modules) Set(ctx context.Context, name string, module service.Module) e
 		NoExpiry := time.Duration(-1)
 		err = r.client.Set(ctx, name, moduleData, NoExpiry).Err()
 	}
+
 	if err != nil {
 		return fmt.Errorf("persisting %s failed: %w", name, service.ErrWritingModuleFailed)
 	}
+
 	return nil
 }
 
