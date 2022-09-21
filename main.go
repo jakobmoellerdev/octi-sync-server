@@ -13,8 +13,8 @@ import (
 	"github.com/rs/zerolog"
 	baseLogger "github.com/rs/zerolog/log"
 
+	"github.com/jakob-moeller-cloud/octi-sync-server/api"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
-	"github.com/jakob-moeller-cloud/octi-sync-server/router"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 
 	"github.com/google/uuid"
@@ -71,7 +71,7 @@ func Run(config *config.Config) {
 	// Define server options
 	srv := &http.Server{
 		Addr:              config.Server.Host + ":" + config.Server.Port,
-		Handler:           router.New(startUpContext, config),
+		Handler:           api.New(startUpContext, config),
 		ReadTimeout:       config.Server.Timeout.Read,
 		ReadHeaderTimeout: config.Server.Timeout.Read,
 		WriteTimeout:      config.Server.Timeout.Write,

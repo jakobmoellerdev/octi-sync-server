@@ -12,3 +12,73 @@
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjakob-moeller-cloud%2Focti-sync-server.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjakob-moeller-cloud%2Focti-sync-server?ref=badge_large)
+
+
+## Developing and Operating the Server
+
+### Running the Server
+
+#### In Kubernetes
+
+Pre-Requisites:
+- Kustomize
+- A Kubernetes Cluster
+
+Please see `deploy/kustomize` for a `kustomization.yaml` that you can use to deploy the Application.
+
+By default, the Deployment creates a Redis to join the Server which is not bound to any PV.
+This makes it *not ready for productive use* out of the box
+
+#### From Docker
+
+Pre-Requisites:
+- Docker
+
+```shell
+docker run ghcr.io/jakob-moeller-cloud/octi-sync-server:latest
+```
+
+Make sure to open Port `8080` if you want the server to be reachable.
+Also, you might want to bind in `config.yml` via volume to override configuration values.
+
+#### From Source
+
+```shell
+go run .
+```
+
+Adjust configuration parameters in `config.yml` where necessary!
+
+### Inspecting and Recreating The OpenAPI Definitions
+
+#### V1
+
+You can access the active JSON-Formatted OpenAPI Definition under
+
+`http://localhost:8080/v1/openapi`.
+
+You can introspect the API with `Swagger-UI` using a static Path or from the hosted Server. 
+For ease of development, you can introspect locally with 
+
+```shell
+# URL is where the server is hosted, 
+# remember that by default it will be blocked by CORS!
+docker run -it --rm \
+    -p 80:8080 \
+    -e URL=http://localhost:8080/v1/openapi \
+    -v $(pwd)/api/v1:/v1 swaggerapi/swagger-ui
+```
+and then opening your browser on [http://localhost:80](http://localhost:80) while running the server.
+
+You can recreate the Definition with
+
+```shell
+go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
+oapi-codegen --config api/v1/openapi.codegen.yaml api/v1/openapi.yaml > api/v1/api.gen.go
+```
+
+### Running Tests
+
+```shell
+go test ./...
+```

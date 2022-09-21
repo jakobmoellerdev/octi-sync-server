@@ -60,6 +60,11 @@ type Config struct {
 		// MaxRequestBodySize can be specified as `4x` or `4xB`, where x is one of the multiple from K, M,
 		// G, T or P.
 		MaxRequestBodySize string `yaml:"maxRequestBodySize"`
+
+		CORS struct {
+			AllowOrigins []string `yaml:"allowOrigins"`
+			AllowHeaders []string `yaml:"allowHeaders"`
+		} `yaml:"cors"`
 	} `yaml:"server"`
 
 	Redis struct {
