@@ -26,10 +26,9 @@ func TestAPIRegister(t *testing.T) {
 
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
-	rec := httptest.NewRecorder()
-	c := api.NewContext(req, rec)
-
-	if assertions.NoError(v1API().Register(c, v1.RegisterParams{XDeviceID: "test"})) {
+	if rec := httptest.NewRecorder(); assertions.NoError(
+		v1API().Register(api.NewContext(req, rec), v1.RegisterParams{XDeviceID: "test"}),
+	) {
 		verifyRegistrationResponse(assertions, rec)
 	}
 }

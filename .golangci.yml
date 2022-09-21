@@ -8,8 +8,17 @@ linters:
     - bugs
     - unused
     - format
+    - complexity
+    - import
+    - performance
+    - style
+    - comment
+    - module
+    - test
   disable:
     - scopelint
+    - ifshort
+    - nosnakecase
 
 linters-settings:
   ireturn:
@@ -31,4 +40,3 @@ issues:
   fix: true
 run:
   timeout: 3m
-modules-download-mode: readonly
