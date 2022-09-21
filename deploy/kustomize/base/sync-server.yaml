@@ -27,13 +27,13 @@ spec:
             cpu: "500m"
         startupProbe:
           httpGet:
-            path: /health
+            path: /v1/health
             port: http
           failureThreshold: 5
           periodSeconds: 3
         readinessProbe:
           httpGet:
-            path: /ready
+            path: /v1/ready
             port: http
           initialDelaySeconds: 1
           periodSeconds: 10
