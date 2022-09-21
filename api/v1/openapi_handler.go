@@ -28,7 +28,7 @@ func (h *OpenAPIHandler) ServeOpenAPI(ctx echo.Context) error {
 	case echo.MIMEApplicationJSONCharsetUTF8:
 		err = ctx.JSONBlob(http.StatusOK, h.swaggerJSON)
 	default:
-		err = ctx.Blob(http.StatusOK, "application/yaml", openAPI)
+		err = ctx.Blob(http.StatusOK, "text/yaml", openAPI)
 	}
 
 	if err != nil {
