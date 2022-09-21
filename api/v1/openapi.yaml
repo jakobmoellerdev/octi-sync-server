@@ -103,6 +103,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/XDeviceID'
         - $ref: '#/components/parameters/ModuleName'
+        - $ref: '#/components/parameters/ShareCode'
       responses:
         '200':
           $ref: '#/components/responses/ModuleDataResponse'
@@ -117,6 +118,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/XDeviceID'
         - $ref: '#/components/parameters/ModuleName'
+        - $ref: '#/components/parameters/ShareCode'
       requestBody:
         $ref: '#/components/requestBodies/ModuleDataRequest'
       responses:

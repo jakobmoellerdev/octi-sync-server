@@ -67,6 +67,9 @@ type ShareResponse struct {
 	ShareCode *string `json:"shareCode,omitempty"`
 }
 
+// ShareCode defines model for ShareCode.
+type ShareCode = string
+
 // XDeviceID defines model for XDeviceID.
 type XDeviceID = string
 
@@ -87,12 +90,18 @@ type ShareParams struct {
 
 // GetModuleParams defines parameters for GetModule.
 type GetModuleParams struct {
+	// The Share Code for Registration
+	Share *ShareCode `form:"share,omitempty" json:"share,omitempty"`
+
 	// The Device ID for Registration
 	XDeviceID XDeviceID `json:"X-Device-ID"`
 }
 
 // CreateModuleParams defines parameters for CreateModule.
 type CreateModuleParams struct {
+	// The Share Code for Registration
+	Share *ShareCode `form:"share,omitempty" json:"share,omitempty"`
+
 	// The Device ID for Registration
 	XDeviceID XDeviceID `json:"X-Device-ID"`
 }
@@ -212,6 +221,12 @@ func (w *ServerInterfaceWrapper) GetModule(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetModuleParams
+	// ------------- Optional query parameter "share" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "share", ctx.QueryParams(), &params.Share)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter share: %s", err))
+	}
 
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Device-ID" -------------
@@ -252,6 +267,12 @@ func (w *ServerInterfaceWrapper) CreateModule(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params CreateModuleParams
+	// ------------- Optional query parameter "share" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "share", ctx.QueryParams(), &params.Share)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter share: %s", err))
+	}
 
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Device-ID" -------------
@@ -326,29 +347,29 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8xYb48atxP+Kv751xetBCxNVCniVelxTajS5AQXKVLEC+MdWCdee2t7ua4ivns1tvcP",
-	"7HLkGrXNqwM8Hj9+ZuaZ8X2mXOeFVqCcpbPPtGCG5eDA+G+/67SU8IblgN9SsNyIwgmt6CyuEVwkQpE7",
-	"5jI6ogKXivBZ+X3hz4ga+KMUBlI6c6aEEbU8g5yh3+8M7OiM/j9poSRh1SYdBMfjiL5fwEFwWC76eO4z",
-	"IGGVLBdkpw1ZwV5YZ5g3iNAyYCmYFtz7cdgzXi4exeiqAs2tM0Lt6RGxoDFY94tOBXTYWjDHVmEJf+Ra",
-	"OVD+IysKKbiHk2juwI2tM8ByXHsKG3jCOuz0QAbjgkaksUK0ttDKniOdcw6FwxtfhPrRot8uxNMD54rc",
-	"5oWryG/rt2+uIdprR+ozfZDujOZgrWd1dEJhwPstcRhd4AmvgEmXzfd7A/uQYFg8RhdgXEyH08LqJ2sq",
-	"djswoBy5aSyJ3hGXAVmDOfg0FQ5ye+1KPTCNQ+Q0pi4zhlX4PfPWX+ZzBbaUjtbpHmrjQ+1i0zjX24/A",
-	"/WmPYOkx9HeQ1JU7xKjXoshgcyxxmmyBBC/kJgP+CVI66lX06Q2jaF29aITVL4qTA0k0G1FQZY7+3xV0",
-	"RBf6QXV811C6ZbBusvtqhg5g/EL9pgMQuuLZrcXTCKYdOe65KJi1D9qkg4ulBVNH8vFQNGd0NnWcD8Vm",
-	"nTEDl1FbXL7R6YXDz9xh4QMvjXDVGlOye/N5GfLX5ypu2jIreMtn5lwRBAb+dIhdLjQf0IOXwr0qt3hD",
-	"I+M2O0uSvXBZuZ1wnScf2Se9HecapAQz5lKXKQqgGNtK8bENenHELrfTtWYy7jMTcibQa/zp5xNXkxRo",
-	"T//uM2GJsL6Q3nInyLpSPIrShI6oFBwis7GPzgvGMyDPJtOvvUSylXqb5Eyo5PXy5vbN+taLmHASzzlH",
-	"Q0f0AMYG2Icf0VQXoFgh6Iw+n0wnz32uuMyTnrDSZYnxqQ3GJ4a2A9W7ihaEEQUP9ViRYOfSpcI6xnTy",
-	"tbFMO/b+rHaA+jAsbK1J0s4zx81Zj342nT6pKT8moYPFPND31iXHZrwr5enw5GugzHNmqi4788gM5jvb",
-	"44UpEkw3aB+49qV2megbA8yBJQ7yQhtmKuJLl2BxWj8foAOh9qTSpbnIv9/0rZJ/KkZDrDdXJh2zVnX8",
-	"Xbp682GDgNuABAdnDA1EpO23exgIxh2YnTa5JaxuXtw3r9hRX93f35GVLkOenwZgacOOiv6DRPZnrsdT",
-	"ONgLBdaeZbBvypaIdtjC+haWzA9MSLaVcDabknqib3mtRwPPbO6bafIZ1fB4keAVcBAHiA0bUtJ2cehR",
-	"+hJcWP6avB5dNe4+sC5UwZCHxi4ZGNmflLwvwXV4YB2GA6l0g6PEBZl+Ap9Bav4TSut3YnWZzc5TMum/",
-	"I4+9wDx7SmCaR96TAhMIS94VKXNwLURYBAZYuOI1dVkBS31ZRoH5/kG4jKRQgEpBcQGWCMVlmUL6w4DU",
-	"rPw535DQNPfBQP00ff7vAvmVCVkaIGlpglLV5HqV+1Lle1uTzOSgyPnMwYnLxsQ5f3zp3U5wwWQczP7X",
-	"nwNNJaWd4Lw3SZn5BGoCZeJntl5hl4oIR15rzqSs8AXnTIW/6NKdOp4liUSrTFs3ezF9MfUON80Nzj3f",
-	"HsBU2BSQKMkcpOgdCwCUi0Fq/zvke2cf3txHHjf6STSUhm23xap4bGOnN5GkE7OlwiI5gxGjcNwc/woA",
-	"AP//cEvRG68TAAA=",
+	"H4sIAAAAAAAC/8xY0Y8atxP+V/zzrw+tBCxNVCniqfS4JlRpcoKLFCniwXgH1smuvbG9XFcR/3s1tpc1",
+	"7HIcjVrd0wEejz9/M/PN+L5RropSSZDW0Mk3WjLNCrCg3bc/VVrl8I4VgN9SMFyL0gol6SSsEVwkQpI7",
+	"ZjM6oAKXSv9Zun3+z4Bq+FoJDSmdWF3BgBqeQcHQ7w8aNnRC/5+0UBK/apIIwX4/oMuMabhRaQ+e+wyI",
+	"Wya4TjZKkwVshbGaOYuA7WsFum7BGdxBYzS2Lt2C1UJu3aEfZ7ATHOaz/kP9KpnPzp6ZAUtBt4d+HPo9",
+	"w/nsUWJOoey9MRj7m0oFRCGaMcsWfgl/5EpakO4jK8tccAcnUdyCHRqrgRW4dk0I8ISl3+mA9CYDGpGD",
+	"FaI1pZLmFOmUcygt3vgs1M8G/cYQjw+cSnJblLYmfyzfv7uEaKssac50QbrTioMxjtXBEYUe73PiMLjA",
+	"E94Ay2023W41bH2CYcVqVYK2IR2Oq7mbrKnYbECDtOTmYEnUhlisHtA7l6bCQmEuXakD5uAQOQ2py7Rm",
+	"NX7PnPXTfC7AVLmlTbr72vjUuFgdnKv1Z+DutEewdBj6J0iayu1j1AlgYPBwLLGKrIF4L+QmA/4FUjro",
+	"EZf4hkEpL140wOoWxdGBJJgNKMiqQP8fSjqgM/UgI98NlLgMlofsvpihPRif2DRoD4RYPONaPI5gGslx",
+	"x0XJjHlQOu1drAzoJpKPh+JwRrQpct4XG9d8zqM2cevqHn7iDgsfeKWFrZeYkvHNp5XPX5eruGnNjOAt",
+	"n5m1pRcY+Msi9nymeI8evBb2TbXGG+o8bDOTJNkKm1XrEVdF8pl9UethoSDPQQ95rqoUBVAMTS350Hi9",
+	"2GOX26hGMxl3mQkFE+g1/PTrkatRCrSjf/eZMEQYV0jvuRVkWUseRGlEBzQXHAKzoY9OS8YzIC9G4++9",
+	"RLLO1TopmJDJ2/nN7bvlrRMxYXM85xQNHdAdaONh735GU1WCZKWgE/pyNB69dLliM0d6wiqbJdqlNmiX",
+	"GMr0VO8iWBBGJDw0Y0WCnUtVEusY08nVxjyN7N1Z7dT2qV/YWpOknWf2q5Me/WI8vqopPyahvcXc0/eW",
+	"FcdmvKny4+HJ1UBVFEzXMTvTwAzmO9vihSkSTFdo77n2Q91Zom80MAuGWChKpZmuo7nRuPkAHQi5JbWq",
+	"9Fn+l2F0fJbkH4tRH+vtqByZtarj7hLrzacVAm4D4h2cMNQTkbbfbqEnGHegN0oXhrCmeXHXvEJHfXN/",
+	"f0cWqvJ5fhyAufE7avovEtmduR5PYW8vJBhzksGuKRsi2mEL61sYMt0xkbN1DiezKWkm+pbXZjRwzBau",
+	"mSbfUA33ZwleAAexg9CwISVtF4cOpa/B+uXvyevBReP4VXfZun30nSuZPgcHu6Rnvr8q01+DjUhjUTh8",
+	"BOgK544zmn4F+V6Xnj//zQu0Pk999EhNui/UfSeKL66J4uH5eFUUPbvJhzJlFi7FE8tLA/NXvKRbC2Cp",
+	"K/ggXT8+CJuRFEqQKUguwBAheV6lkP7UI2ILd84zkrDDfTBQv4xf/rdAfmcirzSQtNJeAxtynX4+VVPf",
+	"NySzvFc+XebgLGdC4pw+69RmI7hgeRj5/tedMHWd52aEk+QoZfoLyBFUiZsGOypQSSIseas4y/Ma34ZW",
+	"1/iLquyx40mS5GiVKWMnr8avxs7h6nCDU8+3O9A1thskKmcWUvSOBQDShiC1/3dyXbkLb+oijxvdjOtL",
+	"w7TbQlU8tjHqeiSJYjaXWCQnMEIU9qv93wEAAP///BH1un4UAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
