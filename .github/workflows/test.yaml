@@ -22,7 +22,11 @@ jobs:
           go-version: ${{ matrix.go }}
           cache: true
       - name: Unit tests
-        run: go test ./... -covermode=atomic -coverprofile=coverage.out
+        run: go test ./... -covermode=atomic -coverprofile=coverage.out.tmp
+      - name: Exclude Generated files based on *.gen.go
+        run: |
+          cat coverage.out.tmp | grep -v ".gen.go" > coverage.out
+          go tool cover -func coverage.out
       - name: Convert coverage.out to coverage.lcov
         uses: jandelgado/gcov2lcov-action@v1
       - name: Coveralls
@@ -30,3 +34,14 @@ jobs:
         with:
           github-token: ${{ secrets.github_token }}
           path-to-lcov: coverage.lcov
+          flag-name: run-${{ matrix.test_number }}
+          parallel: true
+  collect-coverage:
+    needs: go-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel-finished: true
