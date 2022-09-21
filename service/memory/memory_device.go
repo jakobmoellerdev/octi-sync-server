@@ -1,4 +1,4 @@
-package mem
+package memory
 
 type Device struct {
 	id string

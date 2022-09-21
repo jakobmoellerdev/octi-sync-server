@@ -82,3 +82,9 @@ oapi-codegen --config api/v1/openapi.codegen.yaml api/v1/openapi.yaml > api/v1/a
 ```shell
 go test ./...
 ```
+
+### Linting
+
+```shell
+docker run --rm -v $(pwd):/app -w /app golangci/golangci-lint:v1.49.0 golangci-lint run
+```

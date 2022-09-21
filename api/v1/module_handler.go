@@ -18,7 +18,7 @@ func (api *API) CreateModule(ctx echo.Context, name ModuleName, params CreateMod
 		return fmt.Errorf("could not create/update module: %w", err)
 	}
 
-	if err := ctx.JSON(http.StatusOK, nil); err != nil {
+	if err := ctx.JSON(http.StatusAccepted, nil); err != nil {
 		return fmt.Errorf("could not acknowledge module creation: %w", err)
 	}
 

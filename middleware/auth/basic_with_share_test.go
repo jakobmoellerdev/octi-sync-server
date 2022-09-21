@@ -10,7 +10,7 @@ import (
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/mem"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/random"
 	"github.com/rs/zerolog"
@@ -35,7 +35,7 @@ func (suite *BasicAuthTestSuite) SetupSuite() {
 	api.Use(logging.RequestLogging(&logger))
 	suite.api = api
 
-	suite.accounts, suite.devices = mem.NewAccounts(), mem.NewDevices()
+	suite.accounts, suite.devices = memory.NewAccounts(), memory.NewDevices()
 }
 
 func (suite *BasicAuthTestSuite) SetupTest() {
