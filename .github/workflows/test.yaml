@@ -22,7 +22,7 @@ jobs:
           go-version: ${{ matrix.go }}
           cache: true
       - name: Unit tests
-        run: go test ./... -covermode=atomic -coverprofile=coverage.out.tmp
+        run: go test ./... -covermode=atomic -coverprofile=coverage.out.tmp --race --parallel
       - name: Exclude Generated files based on *.gen.go
         run: |
           cat coverage.out.tmp | grep -v ".gen.go" > coverage.out
