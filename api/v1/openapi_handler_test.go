@@ -10,12 +10,13 @@ import (
 )
 
 func TestOpenAPIHandler_ServeOpenAPI(t *testing.T) {
+	t.Parallel()
 	log, assertions, api := SetupAPITest(t)
 	swagger, err := v1.GetSwagger()
 
 	assertions.NoError(err)
 
-	handler := v1.NewOpenAPIHandler(swagger, log)
+	handler := v1.NewOpenAPIHandler(swagger, &log)
 	req := emptyRequest(http.MethodGet)
 	rec := httptest.NewRecorder()
 	ctx := api.NewContext(req, rec)

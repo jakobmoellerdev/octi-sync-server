@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/go-redis/redis/v9"
@@ -123,25 +124,21 @@ func ValidateConfigPath(path string) error {
 	return nil
 }
 
+// Safety for calling ParseFlags from multiple goroutines.
+var parseMutex = sync.Mutex{} //nolint:gochecknoglobals
+
 // ParseFlags will create and parse the CLI flags
 // and return the path to be used elsewhere.
 func ParseFlags() (string, error) {
-	// String that contains the configured configuration path
-	var configPath string
-
-	// Set up a CLI flag called "-config" to allow users
-	// to supply the configuration file
-	flag.StringVar(&configPath, "config", "./config.yml", "path to config file")
-
-	debug := flag.Bool("debug", false, "sets global log level to debug, otherwise defaults to info")
-
+	parseMutex.Lock()
+	defer parseMutex.Unlock()
 	// Actually parse the flags
 	flag.Parse()
 
 	// Default level for this example is info, unless debug flag is present
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
-	if *debug {
+	if debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 

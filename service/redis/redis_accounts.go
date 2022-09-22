@@ -32,7 +32,7 @@ func (r *Accounts) Find(ctx context.Context, username string) (service.Account, 
 		return nil, fmt.Errorf("error while looking up user: %w", err)
 	}
 
-	return AccountFromUsername(username, res), nil
+	return AccountFromUserAndHashedPass(username, res), nil
 }
 
 func (r *Accounts) Register(ctx context.Context, username string) (service.Account, string, error) {
@@ -48,7 +48,7 @@ func (r *Accounts) Register(ctx context.Context, username string) (service.Accou
 		return nil, "", fmt.Errorf("error while setting user in account key space: %w", err)
 	}
 
-	return AccountFromUsername(username, hashedPass), pass, nil
+	return AccountFromUserAndHashedPass(username, hashedPass), pass, nil
 }
 
 func (r *Accounts) HealthCheck() service.HealthCheck {

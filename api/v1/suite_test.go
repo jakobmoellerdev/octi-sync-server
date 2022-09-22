@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
 	"testing"
 
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
@@ -15,13 +16,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func SetupAPITest(t *testing.T) (*zerolog.Logger, *assert.Assertions, *echo.Echo) {
+// Lock to avoid race when creating Log Writers.
+var apiSetup = sync.Mutex{} //nolint:gochecknoglobals
+
+func SetupAPITest(t *testing.T) (zerolog.Logger, *assert.Assertions, *echo.Echo) {
+	apiSetup.Lock()
+	defer apiSetup.Unlock()
 	t.Helper()
-	logger := zerolog.New(zerolog.NewTestWriter(t))
+	logger := zerolog.New(zerolog.NewConsoleWriter(zerolog.ConsoleTestWriter(t)))
 	api := echo.New()
 	api.Use(logging.RequestLogging(&logger))
 
-	return &logger, assert.New(t), api
+	return logger, assert.New(t), api
 }
 
 func API() *v1.API {

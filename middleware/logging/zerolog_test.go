@@ -17,12 +17,16 @@ import (
 )
 
 func TestRequestLogging(t *testing.T) {
+	t.Parallel()
+
 	logBuf := bytes.NewBufferString("")
 	log := zerolog.New(zerolog.New(logBuf))
 	rec := httptest.NewRecorder()
 	req := emptyRequest(http.MethodGet)
+
 	req.Header.Set("x-request-id", "test")
 	req.Header.Set(auth.DeviceIDHeader, "test")
+
 	ctx := echo.New().NewContext(req, rec)
 	assertions := assert.New(t)
 

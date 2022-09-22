@@ -13,6 +13,6 @@ func (r *Account) HashedPass() string {
 	return r.hashedPass
 }
 
-func AccountFromUsername(username, hashedPass string) *Account {
+func AccountFromUserAndHashedPass(username, hashedPass string) *Account {
 	return &Account{username, hashedPass}
 }
