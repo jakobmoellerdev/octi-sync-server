@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"time"
 
 	goredis "github.com/go-redis/redis/v9"
@@ -16,6 +18,13 @@ import (
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
 	"github.com/rs/zerolog"
 	baseLogger "github.com/rs/zerolog/log"
+)
+
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+	builtBy = "unknown"
 )
 
 // Func main should be as small as possible and do as little as possible by convention.
@@ -46,6 +55,11 @@ func main() {
 		fallthrough
 	default:
 		logger = baseLogger.With().Logger()
+	}
+
+	if info, ok := debug.ReadBuildInfo(); ok {
+		logger = logger.With().Str("build", info.Main.Version).Logger()
+		logger.Info().Msg(fmt.Sprintf("Welcome to Octi: %s, commit %s, built at %s by %s", version, commit, date, builtBy))
 	}
 
 	cfg.Logger = &logger
