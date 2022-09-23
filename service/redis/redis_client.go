@@ -20,18 +20,18 @@ const (
 type (
 	Clients        map[string]goredis.Cmdable
 	ClientMutators map[string]ClientMutator
-	ClientMutator  func(client *goredis.Client) *goredis.Client
+	ClientMutator  func(client goredis.UniversalClient) goredis.UniversalClient
 )
 
 //go:generate mockgen -package mock -destination mock/redis.go github.com/go-redis/redis/v9 Cmdable
 func NewClientsWithRegularPing(ctx context.Context, config *config.Config, mutators ClientMutators) (Clients, error) {
-	client := goredis.NewClient(&config.Redis.Options)
 	logger := config.Logger
-
 	applyDefaultConfiguration(logger, config)
 
+	client := goredis.NewUniversalClient(&config.Redis.UniversalOptions)
+
 	detailLogger := logger.With().
-		Str("client", client.String()).
+		Str("client", client.ClientID(ctx).String()).
 		Str("username", config.Redis.Username).
 		Str("pass", fmt.Sprintf("%x", sha256.Sum256([]byte(config.Redis.Password)))).
 		Logger()

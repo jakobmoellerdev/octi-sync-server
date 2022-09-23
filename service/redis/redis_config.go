@@ -19,11 +19,11 @@ func applyDefaultConfiguration(logger *zerolog.Logger, config *config.Config) {
 		logger.Info().Msg("defaulting redis ping timeout to " + config.Redis.Ping.Timeout.String())
 	}
 
-	if config.Redis.Addr == "localhost:6379" {
+	if config.Redis.Addrs[0] == "localhost:6379" {
 		if addrFromEnv, found := os.LookupEnv(EnvRedisAddr); found {
 			logger.Info().Msg("config does not contain address, defaulting redis addr to " + EnvRedisAddr)
 
-			config.Redis.Addr = addrFromEnv
+			config.Redis.Addrs[0] = addrFromEnv
 		} else {
 			logger.Info().Msg("connecting against localhost instead of connecting remotely")
 		}

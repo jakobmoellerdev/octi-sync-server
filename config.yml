@@ -17,7 +17,8 @@ server:
       - "Authorization"
       - "X-Device-ID"
 redis:
-  addr: localhost:6379
+  addrs:
+  - localhost:6379
   db: 0
   ping:
     enable: true

@@ -13,7 +13,7 @@ import (
 func StartPingingRedis(
 	ctx context.Context,
 	interval time.Duration,
-	client *redis.Client,
+	client redis.Cmdable,
 	logger *zerolog.Logger,
 ) {
 	ping := func(ctx context.Context) {
@@ -27,11 +27,14 @@ func StartPingingRedis(
 	go util.NewIntervalTickerPinger(interval, ping).Start(ctx)
 }
 
-func VerifyConnection(ctx context.Context, client *redis.Client, timeout time.Duration) error {
+func VerifyConnection(ctx context.Context, client redis.Cmdable, timeout time.Duration) error {
 	pingCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	_, err := client.Ping(pingCtx).Result()
+	if err != nil {
+		return fmt.Errorf("error while verifying connection with ping: %w", err)
+	}
 
-	return fmt.Errorf("error while verifying connection with ping: %w", err)
+	return nil
 }

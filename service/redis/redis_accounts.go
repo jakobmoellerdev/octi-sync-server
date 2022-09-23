@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
@@ -18,8 +19,7 @@ const (
 )
 
 type Accounts struct {
-	Client      redis.Cmdable
-	ShareClient redis.Cmdable
+	Client redis.Cmdable
 }
 
 func (r *Accounts) Find(ctx context.Context, username string) (service.Account, error) {
@@ -60,8 +60,12 @@ func (r *Accounts) Share(ctx context.Context, username string) (string, error) {
 	}
 
 	shareCode := shareID.String()
-	if err := r.ShareClient.LPush(ctx, r.shareKey(username), shareCode).Err(); err != nil {
+	if err := r.Client.LPush(ctx, r.shareKey(username), shareCode).Err(); err != nil {
 		return "", fmt.Errorf("error while pushing shareCode: %w", err)
+	}
+
+	if err := r.Client.Expire(ctx, r.shareKey(username), time.Hour).Err(); err != nil {
+		return "", fmt.Errorf("error while setting expiry: %w", err)
 	}
 
 	return shareCode, nil

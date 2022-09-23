@@ -9,9 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime/debug"
-	"time"
 
-	goredis "github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
 	"github.com/jakob-moeller-cloud/octi-sync-server/api"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
@@ -21,7 +19,7 @@ import (
 )
 
 var (
-	version = "dev"     //nolint:gochecknoglobals
+	version = "dev"
 	commit  = "none"    //nolint:gochecknoglobals
 	date    = "unknown" //nolint:gochecknoglobals
 	builtBy = "unknown" //nolint:gochecknoglobals
@@ -77,9 +75,6 @@ func Run(config *config.Config) {
 
 	clients, err := redis.NewClientsWithRegularPing(startUpContext, config, redis.ClientMutators{
 		"default": nil,
-		"shareClient": func(client *goredis.Client) *goredis.Client {
-			return client.WithTimeout(1 * time.Hour)
-		},
 	})
 	if err != nil {
 		log.Print(err)
@@ -87,7 +82,7 @@ func Run(config *config.Config) {
 		return
 	}
 
-	config.Services.Accounts = &redis.Accounts{Client: clients["default"], ShareClient: clients["shareClient"]}
+	config.Services.Accounts = &redis.Accounts{Client: clients["default"]}
 	config.Services.Modules = &redis.Modules{Client: clients["default"]}
 	config.Services.Devices = &redis.Devices{Client: clients["default"]}
 

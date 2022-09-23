@@ -67,8 +67,8 @@ type Config struct {
 	} `yaml:"server"`
 
 	Redis struct {
-		redis.Options `yaml:",inline"`
-		Ping          struct {
+		redis.UniversalOptions `yaml:",inline"`
+		Ping                   struct {
 			Enable   bool          `yaml:"enable"`
 			Timeout  time.Duration `yaml:"timeout"`
 			Interval time.Duration `yaml:"interval"`
