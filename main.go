@@ -21,10 +21,10 @@ import (
 )
 
 var (
-	version = "dev"
-	commit  = "none"
-	date    = "unknown"
-	builtBy = "unknown"
+	version = "dev"     //nolint:gochecknoglobals
+	commit  = "none"    //nolint:gochecknoglobals
+	date    = "unknown" //nolint:gochecknoglobals
+	builtBy = "unknown" //nolint:gochecknoglobals
 )
 
 // Func main should be as small as possible and do as little as possible by convention.
