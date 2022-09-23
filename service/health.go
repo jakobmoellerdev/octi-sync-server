@@ -35,6 +35,8 @@ const (
 	HealthDown HealthResult = "Down"
 )
 
+//nolint:lll
+//go:generate mockgen -package mock -destination mock/health.go github.com/jakob-moeller-cloud/octi-sync-server/service Health
 type Health interface {
 	Check(ctx context.Context) HealthAggregation
 }

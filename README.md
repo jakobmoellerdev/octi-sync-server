@@ -49,7 +49,7 @@ go run .
 
 Adjust configuration parameters in `config.yml` where necessary!
 
-### Inspecting and Recreating The OpenAPI Definitions
+### Inspecting and Recreating The OpenAPI Definitions and Mocks
 
 #### V1
 
@@ -70,11 +70,10 @@ docker run -it --rm \
 ```
 and then opening your browser on [http://localhost:80](http://localhost:80) while running the server.
 
-You can recreate the Definition with
+You can recreate the Definitions and Mocks with
 
 ```shell
-go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
-oapi-codegen --config api/v1/openapi.codegen.yaml api/v1/openapi.yaml > api/v1/api.gen.go
+go generate ./...
 ```
 
 ### Running Tests

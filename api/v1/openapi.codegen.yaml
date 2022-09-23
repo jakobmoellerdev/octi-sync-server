@@ -1,5 +1,0 @@
-package: v1
-generate:
-  echo-server: true
-  models: true
-  embedded-spec: true

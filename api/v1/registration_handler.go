@@ -5,11 +5,12 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
 	"github.com/labstack/echo/v4"
 )
 
-func (api *API) Register(ctx echo.Context, params RegisterParams) error {
+func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 	accountID, err := uuid.NewRandom()
 	if err != nil {
 		return fmt.Errorf("generating an account id for registration failed: %w", err)
@@ -36,7 +37,7 @@ func (api *API) Register(ctx echo.Context, params RegisterParams) error {
 		return fmt.Errorf("device could not be registered under account: %w", err)
 	}
 
-	if err := ctx.JSON(http.StatusOK, &RegistrationResponse{
+	if err := ctx.JSON(http.StatusOK, &REST.RegistrationResponse{
 		Username: acc.Username(),
 		DeviceID: deviceID,
 		Password: password,

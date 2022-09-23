@@ -1,0 +1,5 @@
+package: REST
+generate:
+  embedded-spec: true
+output:
+  REST/spec.go

@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
+	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
@@ -23,14 +23,14 @@ func TestAPI_Share(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	assertions.Error(echo.ErrForbidden,
-		apiImpl.Share(api.NewContext(req, rec), v1.ShareParams{XDeviceID: "test"}))
+		apiImpl.Share(api.NewContext(req, rec), REST.ShareParams{XDeviceID: "test"}))
 
 	user := "test-user"
 	ctx := api.NewContext(req, rec)
 
 	ctx.Set(auth.UserKey, user)
 
-	if assertions.NoError(apiImpl.Share(ctx, v1.ShareParams{XDeviceID: "test"})) {
+	if assertions.NoError(apiImpl.Share(ctx, REST.ShareParams{XDeviceID: "test"})) {
 		verifyShare(assertions, rec)
 	}
 }
@@ -38,7 +38,7 @@ func TestAPI_Share(t *testing.T) {
 func verifyShare(assert *assert.Assertions, rec *httptest.ResponseRecorder) {
 	assert.Equal(http.StatusOK, rec.Code)
 
-	res := v1.ShareResponse{}
+	res := REST.ShareResponse{}
 
 	assert.NoError(json.NewDecoder(rec.Body).Decode(&res))
 	assert.NotEmpty(res.ShareCode)

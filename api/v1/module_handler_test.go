@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
+	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
@@ -23,7 +23,7 @@ func TestAPI_CreateModule(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	if rec := httptest.NewRecorder(); assertions.NoError(
-		API().CreateModule(api.NewContext(req, rec), "test", v1.CreateModuleParams{XDeviceID: "test"}),
+		API().CreateModule(api.NewContext(req, rec), "test", REST.CreateModuleParams{XDeviceID: "test"}),
 	) {
 		verifyCreateModuleResponse(assertions, rec)
 	}
@@ -53,7 +53,7 @@ func TestAPI_GetModule(t *testing.T) {
 	)
 
 	if rec := httptest.NewRecorder(); assertions.NoError(
-		apiImpl.GetModule(api.NewContext(req, rec), moduleName, v1.GetModuleParams{XDeviceID: deviceName}),
+		apiImpl.GetModule(api.NewContext(req, rec), moduleName, REST.GetModuleParams{XDeviceID: deviceName}),
 	) {
 		verifyGetModuleResponse(assertions, rec)
 	}
@@ -62,7 +62,7 @@ func TestAPI_GetModule(t *testing.T) {
 func verifyGetModuleResponse(assert *assert.Assertions, rec *httptest.ResponseRecorder) {
 	assert.Equal(http.StatusOK, rec.Code)
 
-	body := string(rec.Body.Bytes())
+	body := rec.Body.String()
 	assert.NotEmpty(body)
 
 	assert.Equal("test", body)

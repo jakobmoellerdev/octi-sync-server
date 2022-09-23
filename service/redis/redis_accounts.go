@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
@@ -18,16 +17,13 @@ const (
 	ShareKeySpace   = "octi:accounts:share"
 )
 
-func NewAccounts(client *redis.Client) *Accounts {
-	return &Accounts{client}
-}
-
 type Accounts struct {
-	client *redis.Client
+	Client      redis.Cmdable
+	ShareClient redis.Cmdable
 }
 
 func (r *Accounts) Find(ctx context.Context, username string) (service.Account, error) {
-	res, err := r.client.HGet(ctx, AccountKeySpace, username).Result()
+	res, err := r.Client.HGet(ctx, AccountKeySpace, username).Result()
 	if err != nil {
 		return nil, fmt.Errorf("error while looking up user: %w", err)
 	}
@@ -44,7 +40,7 @@ func (r *Accounts) Register(ctx context.Context, username string) (service.Accou
 	pass := util.NewInPlacePasswordGenerator().Generate(passLength, minSpecial, minNum, minUpper)
 	hashedPass := fmt.Sprintf("%x", sha256.Sum256([]byte(pass)))
 
-	if err := r.client.HSet(ctx, AccountKeySpace, username, hashedPass).Err(); err != nil {
+	if err := r.Client.HSet(ctx, AccountKeySpace, username, hashedPass).Err(); err != nil {
 		return nil, "", fmt.Errorf("error while setting user in account key space: %w", err)
 	}
 
@@ -53,7 +49,7 @@ func (r *Accounts) Register(ctx context.Context, username string) (service.Accou
 
 func (r *Accounts) HealthCheck() service.HealthCheck {
 	return func(ctx context.Context) (string, bool) {
-		return "redis-accounts", r.client.Ping(ctx).Err() == nil
+		return "redis-accounts", r.Client.Ping(ctx).Err() == nil
 	}
 }
 
@@ -64,7 +60,7 @@ func (r *Accounts) Share(ctx context.Context, username string) (string, error) {
 	}
 
 	shareCode := shareID.String()
-	if err := r.client.WithTimeout(1*time.Hour).LPush(ctx, r.shareKey(username), shareCode).Err(); err != nil {
+	if err := r.ShareClient.LPush(ctx, r.shareKey(username), shareCode).Err(); err != nil {
 		return "", fmt.Errorf("error while pushing shareCode: %w", err)
 	}
 
@@ -72,7 +68,7 @@ func (r *Accounts) Share(ctx context.Context, username string) (string, error) {
 }
 
 func (r *Accounts) ActiveShares(ctx context.Context, username string) ([]string, error) {
-	shareCodes, err := r.client.LRange(ctx, r.shareKey(username), 0, -1).Result()
+	shareCodes, err := r.Client.LRange(ctx, r.shareKey(username), 0, -1).Result()
 	if err != nil {
 		return []string{}, fmt.Errorf("could not determine active sharecode list: %w", err)
 	}
@@ -81,7 +77,7 @@ func (r *Accounts) ActiveShares(ctx context.Context, username string) ([]string,
 }
 
 func (r *Accounts) IsShared(ctx context.Context, username string, share string) (bool, error) {
-	err := r.client.LPos(ctx, r.shareKey(username), share, redis.LPosArgs{}).Err()
+	err := r.Client.LPos(ctx, r.shareKey(username), share, redis.LPosArgs{}).Err()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return false, nil
@@ -94,7 +90,7 @@ func (r *Accounts) IsShared(ctx context.Context, username string, share string) 
 }
 
 func (r *Accounts) Revoke(ctx context.Context, username string, shareCode string) error {
-	if err := r.client.LRem(ctx, r.shareKey(username), 0, shareCode).Err(); err != nil {
+	if err := r.Client.LRem(ctx, r.shareKey(username), 0, shareCode).Err(); err != nil {
 		return fmt.Errorf("error while revoking user: %w", err)
 	}
 

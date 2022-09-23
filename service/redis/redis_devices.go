@@ -10,12 +10,8 @@ import (
 
 const DeviceKeySpace = "octi:devices"
 
-func NewDevices(client *redis.Client) *Devices {
-	return &Devices{client}
-}
-
 type Devices struct {
-	client *redis.Client
+	Client redis.Cmdable
 }
 
 func (r *Devices) deviceKeyForAccount(acc service.Account) string {
@@ -23,7 +19,7 @@ func (r *Devices) deviceKeyForAccount(acc service.Account) string {
 }
 
 func (r *Devices) FindByAccount(ctx context.Context, acc service.Account) ([]service.Device, error) {
-	res, err := r.client.LRange(ctx, r.deviceKeyForAccount(acc), 0, -1).Result()
+	res, err := r.Client.LRange(ctx, r.deviceKeyForAccount(acc), 0, -1).Result()
 	if err != nil {
 		return nil, fmt.Errorf("could not find devices by account: %w", err)
 	}
@@ -37,7 +33,7 @@ func (r *Devices) FindByAccount(ctx context.Context, acc service.Account) ([]ser
 }
 
 func (r *Devices) FindByDeviceID(ctx context.Context, acc service.Account, deviceID string) (service.Device, error) {
-	res, err := r.client.LPos(ctx, r.deviceKeyForAccount(acc), deviceID, redis.LPosArgs{}).Result()
+	res, err := r.Client.LPos(ctx, r.deviceKeyForAccount(acc), deviceID, redis.LPosArgs{}).Result()
 	if err != nil {
 		return nil, fmt.Errorf("could not find devices by id: %w", err)
 	}
@@ -50,7 +46,7 @@ func (r *Devices) FindByDeviceID(ctx context.Context, acc service.Account, devic
 }
 
 func (r *Devices) Register(ctx context.Context, acc service.Account, deviceID string) (service.Device, error) {
-	if err := r.client.LPush(ctx, r.deviceKeyForAccount(acc), deviceID).Err(); err != nil {
+	if err := r.Client.LPush(ctx, r.deviceKeyForAccount(acc), deviceID).Err(); err != nil {
 		return nil, fmt.Errorf("could not push device id for registration: %w", err)
 	}
 
@@ -59,6 +55,6 @@ func (r *Devices) Register(ctx context.Context, acc service.Account, deviceID st
 
 func (r *Devices) HealthCheck() service.HealthCheck {
 	return func(ctx context.Context) (string, bool) {
-		return "redis-devices", r.client.Ping(ctx).Err() == nil
+		return "redis-devices", r.Client.Ping(ctx).Err() == nil
 	}
 }

@@ -6,13 +6,14 @@ import (
 	"testing"
 
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
+	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/labstack/echo/v4"
 )
 
 func TestOpenAPIHandler_ServeOpenAPI(t *testing.T) {
 	t.Parallel()
 	log, assertions, api := SetupAPITest(t)
-	swagger, err := v1.GetSwagger()
+	swagger, err := REST.GetSwagger()
 
 	assertions.NoError(err)
 

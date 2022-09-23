@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
+	REST "github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -24,10 +24,10 @@ func TestAPI_IsHealthy(t *testing.T) {
 func verifyIsHealthy(assert *assert.Assertions, rec *httptest.ResponseRecorder) {
 	assert.Equal(http.StatusOK, rec.Code)
 
-	res := v1.HealthAggregation{}
+	res := REST.HealthAggregation{}
 
 	assert.NoError(json.NewDecoder(rec.Body).Decode(&res))
 	assert.NotEmpty(res.Health)
-	assert.Equal(v1.Up, res.Health)
+	assert.Equal(REST.Up, res.Health)
 	assert.Empty(res.Components)
 }

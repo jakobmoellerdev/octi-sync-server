@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-//go:embed openapi.yaml
+//go:embed REST/openapi.yaml
 var openAPI []byte
 
 type OpenAPIHandler struct {

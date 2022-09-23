@@ -22,11 +22,7 @@ jobs:
           go-version: ${{ matrix.go }}
           cache: true
       - name: Unit tests
-        run: go test ./... -covermode=atomic -coverprofile=coverage.out.tmp --race
-      - name: Exclude Generated files based on *.gen.go
-        run: |
-          cat coverage.out.tmp | grep -v ".gen.go" > coverage.out
-          go tool cover -func coverage.out
+        run: go test ./... -covermode=atomic -coverprofile=coverage.out --race
       - name: Convert coverage.out to coverage.lcov
         uses: jandelgado/gcov2lcov-action@v1
       - name: Coveralls

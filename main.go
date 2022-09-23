@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
+	goredis "github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
 	"github.com/jakob-moeller-cloud/octi-sync-server/api"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
 	"github.com/rs/zerolog"
 	baseLogger "github.com/rs/zerolog/log"
@@ -60,16 +61,21 @@ func Run(config *config.Config) {
 	startUpContext, cancelStartUpContext := context.WithCancel(context.Background())
 	defer cancelStartUpContext()
 
-	client, err := redis.NewClientWithRegularPing(startUpContext, config)
+	clients, err := redis.NewClientsWithRegularPing(startUpContext, config, redis.ClientMutators{
+		"default": nil,
+		"shareClient": func(client *goredis.Client) *goredis.Client {
+			return client.WithTimeout(1 * time.Hour)
+		},
+	})
 	if err != nil {
 		log.Print(err)
 
 		return
 	}
 
-	config.Services.Accounts = service.Accounts(redis.NewAccounts(client))
-	config.Services.Modules = service.Modules(redis.NewModules(client))
-	config.Services.Devices = service.Devices(redis.NewDevices(client))
+	config.Services.Accounts = &redis.Accounts{Client: clients["default"], ShareClient: clients["shareClient"]}
+	config.Services.Modules = &redis.Modules{Client: clients["default"]}
+	config.Services.Devices = &redis.Devices{Client: clients["default"]}
 
 	// Define server options
 	srv := &http.Server{

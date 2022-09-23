@@ -1,23 +1,12 @@
 package service
 
 import (
-	"context"
-	"errors"
 	"io"
 )
 
+//nolint:lll
+//go:generate mockgen -package mock -destination mock/module.go github.com/jakob-moeller-cloud/octi-sync-server/service Module
 type Module interface {
 	Raw() io.Reader
 	Size() int
 }
-
-type Modules interface {
-	Set(ctx context.Context, name string, module Module) error
-	Get(ctx context.Context, name string) (Module, error)
-	HealthCheck() HealthCheck
-}
-
-var (
-	ErrWritingModuleFailed = errors.New("module write failed")
-	ErrReadingModule       = errors.New("module read failed")
-)

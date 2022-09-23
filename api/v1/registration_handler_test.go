@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
+	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +23,7 @@ func TestAPIRegister(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	if rec := httptest.NewRecorder(); assertions.NoError(
-		API().Register(api.NewContext(req, rec), v1.RegisterParams{XDeviceID: "test"}),
+		API().Register(api.NewContext(req, rec), REST.RegisterParams{XDeviceID: "test"}),
 	) {
 		verifyRegistrationResponse(assertions, rec)
 	}
@@ -32,7 +32,7 @@ func TestAPIRegister(t *testing.T) {
 func verifyRegistrationResponse(assert *assert.Assertions, rec *httptest.ResponseRecorder) {
 	assert.Equal(http.StatusOK, rec.Code)
 
-	res := v1.RegistrationResponse{}
+	res := REST.RegistrationResponse{}
 
 	assert.NoError(json.NewDecoder(rec.Body).Decode(&res))
 	assert.NotEmpty(res.DeviceID)

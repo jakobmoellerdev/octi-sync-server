@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 
-	"github.com/go-redis/redis/v9"
+	goredis "github.com/go-redis/redis/v9"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 )
 
@@ -17,8 +17,15 @@ const (
 	DefaultTimeoutSeconds  = 5
 )
 
-func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redis.Client, error) {
-	client := redis.NewClient(&config.Redis.Options)
+type (
+	Clients        map[string]goredis.Cmdable
+	ClientMutators map[string]ClientMutator
+	ClientMutator  func(client *goredis.Client) *goredis.Client
+)
+
+//go:generate mockgen -package mock -destination mock/redis.go github.com/go-redis/redis/v9 Cmdable
+func NewClientsWithRegularPing(ctx context.Context, config *config.Config, mutators ClientMutators) (Clients, error) {
+	client := goredis.NewClient(&config.Redis.Options)
 	logger := config.Logger
 
 	applyDefaultConfiguration(logger, config)
@@ -35,5 +42,15 @@ func NewClientWithRegularPing(ctx context.Context, config *config.Config) (*redi
 		StartPingingRedis(ctx, config.Redis.Ping.Interval, client, logger)
 	}
 
-	return client, nil
+	clients := Clients{}
+
+	for mutatorName, mutator := range mutators {
+		if mutator == nil {
+			clients[mutatorName] = client
+		} else {
+			clients[mutatorName] = mutator(client)
+		}
+	}
+
+	return clients, nil
 }
