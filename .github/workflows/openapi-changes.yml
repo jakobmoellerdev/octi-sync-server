@@ -24,17 +24,21 @@ jobs:
           go-version: '1.19'
           cache: true
       - name: Install Open API Code Generator
-        run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
+        run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.11.0
 
-      - name: Generate ${{ matrix.version }}
-        run: oapi-codegen --config api/${{ matrix.version }}/openapi.codegen.yaml api/${{ matrix.version }}/openapi.yaml > api/${{ matrix.version }}/api.gen.go
+      - name: Generate ${{ matrix.version }} Spec
+        run: oapi-codegen --config api/${{ matrix.version }}/codegen/spec.yaml api/${{ matrix.version }}/REST/openapi.yaml
+      - name: Generate ${{ matrix.version }} Models
+        run: oapi-codegen --config api/${{ matrix.version }}/codegen/models.yaml api/${{ matrix.version }}/REST/openapi.yaml
+      - name: Generate ${{ matrix.version }} API
+        run: oapi-codegen --config api/${{ matrix.version }}/codegen/api.yaml api/${{ matrix.version }}/REST/openapi.yaml
 
       - name: Check Changed files in OpenAPI Spec for ${{ matrix.version }}
         uses: tj-actions/verify-changed-files@v11.1
         id: verify-changed-files
         with:
           files: |
-            api/${{ matrix.version }}/api.gen.go
+            api/${{ matrix.version }}/REST/*
 
       - name: Fail if ${{ matrix.version }} OpenAPI spec changed after running code-generation with oapi-codegen.
         if: steps.verify-changed-files.outputs.files_changed == 'true'
