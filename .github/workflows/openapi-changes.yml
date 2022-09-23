@@ -24,6 +24,12 @@ jobs:
           go-version: '1.19'
           cache: true
 
+      - name: Install Open API Generator
+        run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.11.0
+
+      - name: Install Mock Generator
+        run: go install github.com/golang/mock/mockgen@v1.6.0
+
       - name: Generate ${{ matrix.version }}
         run: go generate ./...
 
