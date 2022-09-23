@@ -1,5 +1,0 @@
-package: REST
-generate:
-  echo-server: true
-output:
-  REST/server.go

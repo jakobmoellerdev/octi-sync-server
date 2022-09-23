@@ -1,5 +1,0 @@
-package: REST
-generate:
-  models: true
-output:
-  REST/models.go

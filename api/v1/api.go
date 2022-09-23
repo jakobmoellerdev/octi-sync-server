@@ -10,9 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-//go:generate oapi-codegen --config ./codegen/api.yaml ./openapi.yaml
-//go:generate oapi-codegen --config ./codegen/models.yaml ./openapi.yaml
-//go:generate oapi-codegen --config ./codegen/spec.yaml ./openapi.yaml
+//go:generate oapi-codegen --config REST/oapi-codegen.yaml REST/openapi.yaml
 type API struct {
 	service.Accounts
 	service.Devices

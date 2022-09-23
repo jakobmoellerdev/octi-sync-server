@@ -4,12 +4,107 @@
 package REST
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"fmt"
 	"net/http"
+	"net/url"
+	"path"
+	"strings"
 
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
 )
+
+const (
+	DeviceAuthScopes = "deviceAuth.Scopes"
+)
+
+// Defines values for HealthResult.
+const (
+	Down HealthResult = "Down"
+	Up   HealthResult = "Up"
+)
+
+// HealthAggregation defines model for HealthAggregation.
+type HealthAggregation struct {
+	// The different Components of the Server
+	Components *[]HealthAggregationComponent `json:"components,omitempty"`
+
+	// A Health Check Result
+	Health HealthResult `json:"health"`
+}
+
+// HealthAggregationComponent defines model for HealthAggregationComponent.
+type HealthAggregationComponent struct {
+	// A Health Check Result
+	Health HealthResult `json:"health"`
+
+	// The Name of the Component to be Health Checked
+	Name string `json:"name"`
+}
+
+// A Health Check Result
+type HealthResult string
+
+// Module Data Stream
+type ModuleDataStream = map[string]interface{}
+
+// Module Name
+type ModuleName = string
+
+// RegistrationResponse defines model for RegistrationResponse.
+type RegistrationResponse struct {
+	DeviceID string `json:"deviceID"`
+	Password string `json:"password"`
+	Username string `json:"username"`
+}
+
+// ShareResponse defines model for ShareResponse.
+type ShareResponse struct {
+	ShareCode *string `json:"shareCode,omitempty"`
+}
+
+// ShareCode defines model for ShareCode.
+type ShareCode = string
+
+// XDeviceID defines model for XDeviceID.
+type XDeviceID = string
+
+// An Empty JSON
+type ModuleDataAccepted = interface{}
+
+// RegisterParams defines parameters for Register.
+type RegisterParams struct {
+	// The Device ID for Registration
+	XDeviceID XDeviceID `json:"X-Device-ID"`
+}
+
+// ShareParams defines parameters for Share.
+type ShareParams struct {
+	// The Device ID for Registration
+	XDeviceID XDeviceID `json:"X-Device-ID"`
+}
+
+// GetModuleParams defines parameters for GetModule.
+type GetModuleParams struct {
+	// The Share Code for Registration
+	Share *ShareCode `form:"share,omitempty" json:"share,omitempty"`
+
+	// The Device ID for Registration
+	XDeviceID XDeviceID `json:"X-Device-ID"`
+}
+
+// CreateModuleParams defines parameters for CreateModule.
+type CreateModuleParams struct {
+	// The Share Code for Registration
+	Share *ShareCode `form:"share,omitempty" json:"share,omitempty"`
+
+	// The Device ID for Registration
+	XDeviceID XDeviceID `json:"X-Device-ID"`
+}
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -247,4 +342,104 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/module/:name", wrapper.CreateModule)
 	router.GET(baseURL+"/ready", wrapper.IsReady)
 
+}
+
+// Base64 encoded, gzipped, json marshaled Swagger object
+var swaggerSpec = []string{
+
+	"H4sIAAAAAAAC/8xY0Y8atxP+V/zzrw+tBCxNVCniqfS4JlRpcoKLFCniwXgH1smuvbG9XFcR/3s1tpc1",
+	"7HIcjVrd0wEejz9/M/PN+L5RropSSZDW0Mk3WjLNCrCg3bc/VVrl8I4VgN9SMFyL0gol6SSsEVwkQpI7",
+	"ZjM6oAKXSv9Zun3+z4Bq+FoJDSmdWF3BgBqeQcHQ7w8aNnRC/5+0UBK/apIIwX4/oMuMabhRaQ+e+wyI",
+	"Wya4TjZKkwVshbGaOYuA7WsFum7BGdxBYzS2Lt2C1UJu3aEfZ7ATHOaz/kP9KpnPzp6ZAUtBt4d+HPo9",
+	"w/nsUWJOoey9MRj7m0oFRCGaMcsWfgl/5EpakO4jK8tccAcnUdyCHRqrgRW4dk0I8ISl3+mA9CYDGpGD",
+	"FaI1pZLmFOmUcygt3vgs1M8G/cYQjw+cSnJblLYmfyzfv7uEaKssac50QbrTioMxjtXBEYUe73PiMLjA",
+	"E94Ay2023W41bH2CYcVqVYK2IR2Oq7mbrKnYbECDtOTmYEnUhlisHtA7l6bCQmEuXakD5uAQOQ2py7Rm",
+	"NX7PnPXTfC7AVLmlTbr72vjUuFgdnKv1Z+DutEewdBj6J0iayu1j1AlgYPBwLLGKrIF4L+QmA/4FUjro",
+	"EZf4hkEpL140wOoWxdGBJJgNKMiqQP8fSjqgM/UgI98NlLgMlofsvpihPRif2DRoD4RYPONaPI5gGslx",
+	"x0XJjHlQOu1drAzoJpKPh+JwRrQpct4XG9d8zqM2cevqHn7iDgsfeKWFrZeYkvHNp5XPX5eruGnNjOAt",
+	"n5m1pRcY+Msi9nymeI8evBb2TbXGG+o8bDOTJNkKm1XrEVdF8pl9UethoSDPQQ95rqoUBVAMTS350Hi9",
+	"2GOX26hGMxl3mQkFE+g1/PTrkatRCrSjf/eZMEQYV0jvuRVkWUseRGlEBzQXHAKzoY9OS8YzIC9G4++9",
+	"RLLO1TopmJDJ2/nN7bvlrRMxYXM85xQNHdAdaONh735GU1WCZKWgE/pyNB69dLliM0d6wiqbJdqlNmiX",
+	"GMr0VO8iWBBGJDw0Y0WCnUtVEusY08nVxjyN7N1Z7dT2qV/YWpOknWf2q5Me/WI8vqopPyahvcXc0/eW",
+	"FcdmvKny4+HJ1UBVFEzXMTvTwAzmO9vihSkSTFdo77n2Q91Zom80MAuGWChKpZmuo7nRuPkAHQi5JbWq",
+	"9Fn+l2F0fJbkH4tRH+vtqByZtarj7hLrzacVAm4D4h2cMNQTkbbfbqEnGHegN0oXhrCmeXHXvEJHfXN/",
+	"f0cWqvJ5fhyAufE7avovEtmduR5PYW8vJBhzksGuKRsi2mEL61sYMt0xkbN1DiezKWkm+pbXZjRwzBau",
+	"mSbfUA33ZwleAAexg9CwISVtF4cOpa/B+uXvyevBReP4VXfZun30nSuZPgcHu6Rnvr8q01+DjUhjUTh8",
+	"BOgK544zmn4F+V6Xnj//zQu0Pk999EhNui/UfSeKL66J4uH5eFUUPbvJhzJlFi7FE8tLA/NXvKRbC2Cp",
+	"K/ggXT8+CJuRFEqQKUguwBAheV6lkP7UI2ILd84zkrDDfTBQv4xf/rdAfmcirzSQtNJeAxtynX4+VVPf",
+	"NySzvFc+XebgLGdC4pw+69RmI7hgeRj5/tedMHWd52aEk+QoZfoLyBFUiZsGOypQSSIseas4y/Ma34ZW",
+	"1/iLquyx40mS5GiVKWMnr8avxs7h6nCDU8+3O9A1thskKmcWUvSOBQDShiC1/3dyXbkLb+oijxvdjOtL",
+	"w7TbQlU8tjHqeiSJYjaXWCQnMEIU9qv93wEAAP///BH1un4UAAA=",
+}
+
+// GetSwagger returns the content of the embedded swagger specification file
+// or error if failed to decode
+func decodeSpec() ([]byte, error) {
+	zipped, err := base64.StdEncoding.DecodeString(strings.Join(swaggerSpec, ""))
+	if err != nil {
+		return nil, fmt.Errorf("error base64 decoding spec: %s", err)
+	}
+	zr, err := gzip.NewReader(bytes.NewReader(zipped))
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %s", err)
+	}
+	var buf bytes.Buffer
+	_, err = buf.ReadFrom(zr)
+	if err != nil {
+		return nil, fmt.Errorf("error decompressing spec: %s", err)
+	}
+
+	return buf.Bytes(), nil
+}
+
+var rawSpec = decodeSpecCached()
+
+// a naive cached of a decoded swagger spec
+func decodeSpecCached() func() ([]byte, error) {
+	data, err := decodeSpec()
+	return func() ([]byte, error) {
+		return data, err
+	}
+}
+
+// Constructs a synthetic filesystem for resolving external references when loading openapi specifications.
+func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
+	var res = make(map[string]func() ([]byte, error))
+	if len(pathToFile) > 0 {
+		res[pathToFile] = rawSpec
+	}
+
+	return res
+}
+
+// GetSwagger returns the Swagger specification corresponding to the generated code
+// in this file. The external references of Swagger specification are resolved.
+// The logic of resolving external references is tightly connected to "import-mapping" feature.
+// Externally referenced files must be embedded in the corresponding golang packages.
+// Urls can be supported but this task was out of the scope.
+func GetSwagger() (swagger *openapi3.T, err error) {
+	var resolvePath = PathToRawSpec("")
+
+	loader := openapi3.NewLoader()
+	loader.IsExternalRefsAllowed = true
+	loader.ReadFromURIFunc = func(loader *openapi3.Loader, url *url.URL) ([]byte, error) {
+		var pathToFile = url.String()
+		pathToFile = path.Clean(pathToFile)
+		getSpec, ok := resolvePath[pathToFile]
+		if !ok {
+			err1 := fmt.Errorf("path not found: %s", pathToFile)
+			return nil, err1
+		}
+		return getSpec()
+	}
+	var specData []byte
+	specData, err = rawSpec()
+	if err != nil {
+		return
+	}
+	swagger, err = loader.LoadFromData(specData)
+	if err != nil {
+		return
+	}
+	return
 }
