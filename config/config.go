@@ -9,9 +9,10 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v9"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/rs/zerolog"
 	"gopkg.in/yaml.v3"
+
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
 
 var ErrIsADirectory = errors.New("is a directory, not a normal file")

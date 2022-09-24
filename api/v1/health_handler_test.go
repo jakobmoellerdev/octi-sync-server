@@ -5,10 +5,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	REST "github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 )
 
 func TestAPI_IsHealthy(t *testing.T) {

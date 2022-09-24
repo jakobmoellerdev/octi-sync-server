@@ -1,4 +1,4 @@
-package auth
+package basic
 
 import (
 	"crypto/sha256"
@@ -24,9 +24,9 @@ const DeviceIDHeader = "X-Device-ID"
 // ShareQueryParamName holds Device Share Codes.
 const ShareQueryParamName = "share"
 
-// BasicAuthWithShare returns a Basic HTTP Authorization Handler. It takes as argument a map[string]string where
+// AuthWithShare returns a Basic HTTP Authorization Handler. It takes as argument a map[string]string where
 // the key is the username and the value is the password.
-func BasicAuthWithShare(accounts service.Accounts, devices service.Devices) echo.MiddlewareFunc {
+func AuthWithShare(accounts service.Accounts, devices service.Devices) echo.MiddlewareFunc {
 	return middleware.BasicAuthWithConfig(middleware.BasicAuthConfig{
 		Skipper: middleware.DefaultSkipper,
 		Validator: func(username, password string, context echo.Context) (bool, error) {

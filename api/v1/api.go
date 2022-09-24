@@ -5,7 +5,7 @@ import (
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/labstack/echo/v4"
 )
@@ -29,13 +29,24 @@ func New(_ context.Context, engine *echo.Echo, config *config.Config) {
 
 	api.GET("/openapi", NewOpenAPIHandler(swagger, config.Logger).ServeOpenAPI)
 
-	middleware := auth.BasicAuthWithShare(config.Services.Accounts, config.Services.Devices)
-	api.Group("/auth/share").Use(middleware)
-	api.Group("/module").Use(middleware)
+	basicAuthWithShare := basic.AuthWithShare(config.Services.Accounts, config.Services.Devices)
 
-	REST.RegisterHandlers(api, &API{
-		config.Services.Accounts,
-		config.Services.Devices,
-		config.Services.Modules,
-	})
+	wrapper := REST.ServerInterfaceWrapper{
+		Handler: &API{
+			config.Services.Accounts,
+			config.Services.Devices,
+			config.Services.Modules,
+		},
+	}
+
+	auth := api.Group("/auth")
+	auth.POST("/register", wrapper.Register)
+	auth.POST("/share", wrapper.Share, basicAuthWithShare)
+
+	module := api.Group("/module", basicAuthWithShare)
+	module.GET("/:name", wrapper.GetModule)
+	module.POST("/:name", wrapper.CreateModule)
+
+	api.GET("/health", wrapper.IsHealthy)
+	api.GET("/ready", wrapper.IsReady)
 }

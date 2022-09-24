@@ -2,10 +2,9 @@ package redis
 
 import (
 	"context"
-	"crypto/sha256"
-	"fmt"
 
 	goredis "github.com/go-redis/redis/v9"
+
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 )
 
@@ -32,7 +31,6 @@ func NewClientsWithRegularPing(ctx context.Context, config *config.Config, mutat
 
 	detailLogger := logger.With().
 		Str("username", config.Redis.Username).
-		Str("pass", fmt.Sprintf("%x", sha256.Sum256([]byte(config.Redis.Password)))).
 		Logger()
 
 	logger = &detailLogger

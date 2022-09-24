@@ -1,4 +1,4 @@
-package auth_test
+package basic_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
+	auth "github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
@@ -80,7 +80,7 @@ func (suite *BasicAuthTestSuite) asHTTPError(err error) *echo.HTTPError {
 // All methods that begin with "Test" are run as tests within a
 // suite.
 func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
-	testMiddleware := auth.BasicAuthWithShare(suite.accounts, suite.devices)(http200)
+	testMiddleware := auth.AuthWithShare(suite.accounts, suite.devices)(http200)
 
 	var (
 		acc service.Account

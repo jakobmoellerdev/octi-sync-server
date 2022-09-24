@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,7 +25,7 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 
 		deviceID = deviceUUID.String()
 
-		ctx.Response().Header().Set(auth.DeviceIDHeader, deviceID)
+		ctx.Response().Header().Set(basic.DeviceIDHeader, deviceID)
 	}
 
 	acc, password, err := api.Accounts.Register(ctx.Request().Context(), accountID.String())

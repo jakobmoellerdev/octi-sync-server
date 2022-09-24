@@ -3,9 +3,10 @@ package v1
 import (
 	"fmt"
 
+	"github.com/labstack/echo/v4"
+
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"github.com/labstack/echo/v4"
 )
 
 func (api *API) IsReady(ctx echo.Context) error {
