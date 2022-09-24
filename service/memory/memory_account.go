@@ -12,3 +12,7 @@ func (m *Account) Username() string {
 func (m *Account) HashedPass() string {
 	return m.hashedPass
 }
+
+func NewAccount(username string, hashedPass string) *Account {
+	return &Account{username: username, hashedPass: hashedPass}
+}

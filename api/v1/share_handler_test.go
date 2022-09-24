@@ -7,6 +7,7 @@ import (
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +29,7 @@ func TestAPI_Share(t *testing.T) {
 	user := "test-user"
 	ctx := api.NewContext(req, rec)
 
-	ctx.Set(auth.UserKey, user)
+	ctx.Set(auth.UserKey, memory.NewAccount(user, ""))
 
 	if assertions.NoError(apiImpl.Share(ctx, REST.ShareParams{XDeviceID: "test"})) {
 		verifyShare(assertions, rec)
