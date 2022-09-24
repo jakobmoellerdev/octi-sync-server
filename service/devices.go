@@ -5,7 +5,6 @@ import (
 	"errors"
 )
 
-//nolint:lll
 //go:generate mockgen -source devices.go -package mock -destination mock/devices.go Devices
 type Devices interface {
 	FindByAccount(ctx context.Context, acc Account) ([]Device, error)

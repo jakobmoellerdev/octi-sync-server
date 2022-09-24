@@ -5,7 +5,6 @@ import (
 	"errors"
 )
 
-//nolint:lll
 //go:generate mockgen -source accounts.go -package mock -destination mock/accounts.go Accounts
 type Accounts interface {
 	Find(ctx context.Context, username string) (Account, error)

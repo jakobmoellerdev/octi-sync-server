@@ -5,7 +5,6 @@ import (
 	"errors"
 )
 
-//nolint:lll
 //go:generate mockgen -source modules.go -package mock -destination mock/modules.go Modules
 type Modules interface {
 	Set(ctx context.Context, name string, module Module) error

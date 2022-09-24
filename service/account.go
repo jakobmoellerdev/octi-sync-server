@@ -1,6 +1,5 @@
 package service
 
-//nolint:lll
 //go:generate mockgen -source account.go -package mock -destination mock/account.go Account
 type Account interface {
 	Username() string

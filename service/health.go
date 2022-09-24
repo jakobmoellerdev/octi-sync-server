@@ -35,7 +35,6 @@ const (
 	HealthDown HealthResult = "Down"
 )
 
-//nolint:lll
 //go:generate mockgen -source health.go -package mock -destination mock/health.go Health
 type Health interface {
 	Check(ctx context.Context) HealthAggregation

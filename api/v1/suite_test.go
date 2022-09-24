@@ -64,7 +64,10 @@ func testAPI(
 
 func RandomUUID(t *testing.T) uuid.UUID {
 	t.Helper()
+
 	newUUID, err := uuid.NewRandom()
+
 	assert.NoError(t, err)
+
 	return newUUID
 }

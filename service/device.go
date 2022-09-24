@@ -2,7 +2,6 @@ package service
 
 import "github.com/google/uuid"
 
-//nolint:lll
 //go:generate mockgen -source device.go -package mock -destination mock/device.go Device
 type Device interface {
 	ID() DeviceID
