@@ -31,7 +31,6 @@ func NewClientsWithRegularPing(ctx context.Context, config *config.Config, mutat
 	client := goredis.NewUniversalClient(&config.Redis.UniversalOptions)
 
 	detailLogger := logger.With().
-		Str("client", client.ClientID(ctx).String()).
 		Str("username", config.Redis.Username).
 		Str("pass", fmt.Sprintf("%x", sha256.Sum256([]byte(config.Redis.Password)))).
 		Logger()
