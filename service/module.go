@@ -4,8 +4,7 @@ import (
 	"io"
 )
 
-//nolint:lll
-//go:generate mockgen -package mock -destination mock/module.go github.com/jakob-moeller-cloud/octi-sync-server/service Module
+//go:generate mockgen -source module.go -package mock -destination mock/module.go Module
 type Module interface {
 	Raw() io.Reader
 	Size() int

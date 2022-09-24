@@ -3,7 +3,7 @@ package logging
 import (
 	"net"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/auth"
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
@@ -28,7 +28,7 @@ func RequestLogging(logger *zerolog.Logger) echo.MiddlewareFunc {
 				Int("status", values.Status).
 				Str("content-length", values.ContentLength).
 				Str("x-request-id", values.RequestID).
-				Str("x-device-id", context.Request().Header.Get(auth.DeviceIDHeader)).
+				Str("x-device-id", context.Request().Header.Get(basic.DeviceIDHeader)).
 				Int64("response-size", values.ResponseSize).
 				Str("user-agent", values.UserAgent).
 				Err(values.Error).

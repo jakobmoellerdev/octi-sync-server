@@ -76,27 +76,32 @@ var flagSync = sync.Mutex{} //nolint:gochecknoglobals
 func Test_ParseFlags(t *testing.T) {
 	t.Parallel()
 
+	assertions := assert.New(t)
+
 	flagSync.Lock()
 	defer flagSync.Unlock()
-	flag.Set("config", "test_config.yaml")
 
-	_, err := config.ParseFlags()
+	err := flag.Set("config", "test_config.yaml")
 
-	assertions := assert.New(t)
+	assertions.NoError(err)
+
+	_, err = config.ParseFlags()
 
 	assertions.NoError(err)
 }
 
 func Test_ParseFlags_Invalid(t *testing.T) {
 	t.Parallel()
+	assertions := assert.New(t)
 
 	flagSync.Lock()
 	defer flagSync.Unlock()
-	flag.Set("config", "xxx")
 
-	_, err := config.ParseFlags()
+	err := flag.Set("config", "xxx")
 
-	assertions := assert.New(t)
+	assertions.NoError(err)
+
+	_, err = config.ParseFlags()
 
 	assertions.Error(err)
 }

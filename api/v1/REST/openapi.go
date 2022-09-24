@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/deepmap/oapi-codegen/pkg/runtime"
+	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
 )
@@ -27,6 +28,24 @@ const (
 	Down HealthResult = "Down"
 	Up   HealthResult = "Up"
 )
+
+// a device
+type Device struct {
+	// Device ID is the unique identifier for a remote device
+	Id DeviceID `json:"id"`
+}
+
+// Device ID is the unique identifier for a remote device
+type DeviceID = openapi_types.UUID
+
+// list of devices
+type DeviceList struct {
+	// Amount of Items contained in List
+	Count ListItemCount `json:"count"`
+
+	// array of devices, it will always at least contain the device of the authenticated user
+	Items []Device `json:"items"`
+}
 
 // HealthAggregation defines model for HealthAggregation.
 type HealthAggregation struct {
@@ -49,17 +68,21 @@ type HealthAggregationComponent struct {
 // A Health Check Result
 type HealthResult string
 
+// Amount of Items contained in List
+type ListItemCount = int
+
 // Module Data Stream
-type ModuleDataStream = map[string]interface{}
+type ModuleDataStream = string
 
 // Module Name
 type ModuleName = string
 
 // RegistrationResponse defines model for RegistrationResponse.
 type RegistrationResponse struct {
-	DeviceID string `json:"deviceID"`
-	Password string `json:"password"`
-	Username string `json:"username"`
+	// Device ID is the unique identifier for a remote device
+	DeviceID DeviceID `json:"deviceID"`
+	Password string   `json:"password"`
+	Username string   `json:"username"`
 }
 
 // ShareResponse defines model for ShareResponse.
@@ -70,39 +93,59 @@ type ShareResponse struct {
 // ShareCode defines model for ShareCode.
 type ShareCode = string
 
-// XDeviceID defines model for XDeviceID.
-type XDeviceID = string
+// Device ID is the unique identifier for a remote device
+type XDeviceID = DeviceID
+
+// list of devices
+type DeviceListResponse = DeviceList
 
 // An Empty JSON
 type ModuleDataAccepted = interface{}
 
 // RegisterParams defines parameters for Register.
 type RegisterParams struct {
-	// The Device ID for Registration
+	// Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
+	// to be properly authenticated.
 	XDeviceID XDeviceID `json:"X-Device-ID"`
 }
 
 // ShareParams defines parameters for Share.
 type ShareParams struct {
-	// The Device ID for Registration
+	// Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
+	// to be properly authenticated.
+	XDeviceID XDeviceID `json:"X-Device-ID"`
+}
+
+// GetDevicesParams defines parameters for GetDevices.
+type GetDevicesParams struct {
+	// The Share Code from the Share API. If presented in combination with a new Device ID,
+	// it can be used to add new devices to an account.
+	Share *ShareCode `form:"share,omitempty" json:"share,omitempty"`
+
+	// Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
+	// to be properly authenticated.
 	XDeviceID XDeviceID `json:"X-Device-ID"`
 }
 
 // GetModuleParams defines parameters for GetModule.
 type GetModuleParams struct {
-	// The Share Code for Registration
+	// The Share Code from the Share API. If presented in combination with a new Device ID,
+	// it can be used to add new devices to an account.
 	Share *ShareCode `form:"share,omitempty" json:"share,omitempty"`
 
-	// The Device ID for Registration
+	// Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
+	// to be properly authenticated.
 	XDeviceID XDeviceID `json:"X-Device-ID"`
 }
 
 // CreateModuleParams defines parameters for CreateModule.
 type CreateModuleParams struct {
-	// The Share Code for Registration
+	// The Share Code from the Share API. If presented in combination with a new Device ID,
+	// it can be used to add new devices to an account.
 	Share *ShareCode `form:"share,omitempty" json:"share,omitempty"`
 
-	// The Device ID for Registration
+	// Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
+	// to be properly authenticated.
 	XDeviceID XDeviceID `json:"X-Device-ID"`
 }
 
@@ -114,14 +157,17 @@ type ServerInterface interface {
 	// Share your Account
 	// (POST /auth/share)
 	Share(ctx echo.Context, params ShareParams) error
+	// Get All registered Devices for your Account
+	// (GET /devices)
+	GetDevices(ctx echo.Context, params GetDevicesParams) error
 	// Checks if the Service is Available for Processing Request
 	// (GET /health)
 	IsHealthy(ctx echo.Context) error
 	// Get Module Data
-	// (GET /module/{name})
+	// (GET /modules/{name})
 	GetModule(ctx echo.Context, name ModuleName, params GetModuleParams) error
 	// Create/Update Module Data
-	// (POST /module/{name})
+	// (POST /modules/{name})
 	CreateModule(ctx echo.Context, name ModuleName, params CreateModuleParams) error
 	// Checks if the Service is Operational
 	// (GET /ready)
@@ -194,6 +240,45 @@ func (w *ServerInterfaceWrapper) Share(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.Share(ctx, params)
+	return err
+}
+
+// GetDevices converts echo context to params.
+func (w *ServerInterfaceWrapper) GetDevices(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(DeviceAuthScopes, []string{""})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetDevicesParams
+	// ------------- Optional query parameter "share" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "share", ctx.QueryParams(), &params.Share)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter share: %s", err))
+	}
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Device-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-ID")]; found {
+		var XDeviceID XDeviceID
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-ID, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Device-ID", runtime.ParamLocationHeader, valueList[0], &XDeviceID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-ID: %s", err))
+		}
+
+		params.XDeviceID = XDeviceID
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-ID is required, but not found"))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.GetDevices(ctx, params)
 	return err
 }
 
@@ -337,9 +422,10 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.POST(baseURL+"/auth/register", wrapper.Register)
 	router.POST(baseURL+"/auth/share", wrapper.Share)
+	router.GET(baseURL+"/devices", wrapper.GetDevices)
 	router.GET(baseURL+"/health", wrapper.IsHealthy)
-	router.GET(baseURL+"/module/:name", wrapper.GetModule)
-	router.POST(baseURL+"/module/:name", wrapper.CreateModule)
+	router.GET(baseURL+"/modules/:name", wrapper.GetModule)
+	router.POST(baseURL+"/modules/:name", wrapper.CreateModule)
 	router.GET(baseURL+"/ready", wrapper.IsReady)
 
 }
@@ -347,29 +433,36 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/8xZXW8buxH9KyzbhxZYa30TFLjQU1U7TVTkJoaVABfI9QNFjiQmXHJDztoVDP33Ysj9",
+	"knZlWWkT5CnxkhzOnBmeOaQeuXRF6SxYDHz6yEvhRQEIPv71m1OVgXeiAPpLQZBel6id5VO+QK8lsrkC",
+	"i3qlwbOV80ywtIZnXNOsUuCGZ9xGE+mfjHv4WmkPik/RV5DxIDdQCNriLx5WfMr/nHde5Wk05D1ndruM",
+	"LzbCw5VTI6592ACLw4zG2cq7gmH7bXYzn7D5ipUeAlgExbRl0hVLbQUZYA8aN0wwCw/sGu61BDa/ztgf",
+	"ViOTwrIlsCqAYuiYUCpOU3FaiJ8sE1K6yuKkweBrBX7bgRDIC96PGrdlHECv7ToG93vaeH49DO6j1V8r",
+	"6OPuVjE6KYzRdl37HENsPwkUDKwqnbYYMlZUASmOPQicV+D/sOjSiCvBmy0TFW5oJykQVBvSBoQC38X0",
+	"+0Xa9WJ+/c35bUPeEQJkAwL+0ykNvVqkSG7TEH2UziLY+F9Rloa81M7mTiLgRUAPoqCxcwqMdlikldGR",
+	"ffTTnARoO4u8DaWzIXmaAnmrA97Wn59w9XMgu49nYUSmx5yrq5WGGW0ntKXsF5VBXZLXqUz5LuuhOZMS",
+	"SqRkneHj/r4zy14VJW7Zvxfv351Cbe2QNXtGyrjxTkIIsfSzvTSfBO+H57k20WV5CIao2YBnPB0irAtY",
+	"qzNOQP8QfaKld1lDE275GSQSVsdJouUtpkMkhyqxhj5kaw+FQ+hcXjlfCORTXlVa8eyQmrJecQ93NVR4",
+	"btXQ4QCBSIunQCDTc4TiKk7eZVwjFGEEZ+/FtrdbxjSyB20ME+ZBbAMTyAyI7ihEHNLkhjL3yI1YnSit",
+	"3e90qsi9Qtt5WvFLC1f0jWc8oV4PExceJjYh0uw5luM3IAxuZuu1h7VIoT8OYO138GErVHq1Ag8W2VU7",
+	"s0FgAf7++VEPnGkNkqt7we8yahIGN8+zeQuhMjgo/NrEs4DpfBkg9C2eNL1tDFESIQ2C7bYsdc5khV1t",
+	"QH6BkSN0EGEtiU4GWrs15N69DVk9LeNgq4Lsfyx5xq/dg+3Z7k7z/mEbGi/oO0Uaa7g5SUkvRA5obWqL",
+	"sAa/T+GLlplPsmuPekiIRcE0cPcpPVrbfJfwHCy9hbUO6GOl9DvLfqGoHqM+j6kzXooQHpxXI0ou48Qp",
+	"TR09XQjt1r1FPeNjlRH17PFgQl8hDzc/MEfdDWTlNW4XFGUfkFmVTk8MnxYtRdCyg3mDWKYuCv9B8t1c",
+	"OznCRq81vqmWFKE39bIwzfO1xk21nEhX5J/FF7e8KBwYA/5CGlcp6vL6ImytvAiJragp2JVrhIGQsXSh",
+	"EJqs1p/+sWdqoiJZHx5lHZoG+V6iZoutlTUlktQ1WkKNbK1zZ6WQG2AvJpf/axD50rhlXght87fzq1fv",
+	"Fq8ihWo0tM+hNzzj9+BDcvv+F5rqSrCi1HzKX04uJy9jreAmgp5TX8t9rHjwsTDcWL++rWfsX3Zykmd1",
+	"X6Jyikdmrnrz417dPfHT+FnppuTddWZ3dyCWX1xe/t/U8egZHxF3i0qS4lxVhvWXpDNQFQWxTw+dWY0M",
+	"1btYU8CcAOZ3ND9hne50R4G+8iCQ7odQlM4Lv+1dT0NUYmSAtPrWVf4o/ov65vhTgr9PRmOodzfy3rSO",
+	"dWIsfb75dEcOdwlJBg4QGslIIz+nj3wNo2UvQd8316HUhaIaNqa9yWv7dCpeA153Kvdb85GdnNy9chxL",
+	"3piBdl4+chc9C/PXgGxmDGvIBFRzi4yQHUlGk4GUj059jabjBjy1/sBEI2VklDK1vnrz4cMNu3VV4p39",
+	"LMxDWrHl37Gwhwr8aUpJ87WFEA4YJUq0wHQnvan+dGCze6GNWBo4uBCz5qmjg7YRihHZImqekD9Se9qd",
+	"LPgktUCxnv4aq+z2Ce87Fnb/Ne/7H4ORV4Wzj8E+aE0+6hTwO1KCR7rsGeinTvHzJ6B5nNsex773fpcP",
+	"H+92gzS+OCeN7avVWWlM6OYfSyUQTiaUTpgHkWI8RV23IFQ88zV7/TW+IisowSqwUseeIk2lQP1thMdu",
+	"4z4/EYu18VCm/n758sc68i+hTeWBqconGmzAjRT6XFp934AszCiDxtIheR3qyjm857vVSkstTK3C/zQU",
+	"/X5rTJiQuJ8o4b+AnUCVR4E+oIHKMo3srZPCmC1Dx9Bv6YurcN/wNM8Nzdq4gNNfL3+9jAbv2ggOLb+6",
+	"B7+ljkNAmfiUhY7NurctmtY+1UehNHRvFjNPC+O147f6FLTLmmMxXDm3CF5ITL+b9IRC71eRqBNEqxNq",
+	"m6p9jz7uTa+bsrxXCHOb3gv2YqtTu7vb/TcAAP//JfbBktgaAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

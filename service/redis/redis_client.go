@@ -2,8 +2,6 @@ package redis
 
 import (
 	"context"
-	"crypto/sha256"
-	"fmt"
 
 	goredis "github.com/go-redis/redis/v9"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
@@ -23,7 +21,7 @@ type (
 	ClientMutator  func(client goredis.UniversalClient) goredis.UniversalClient
 )
 
-//go:generate mockgen -package mock -destination mock/redis.go github.com/go-redis/redis/v9 Cmdable
+//go:generate mockgen -package mock -destination mock/redis.go github.com/go-redis/redis/v9 UniversalClient
 func NewClientsWithRegularPing(ctx context.Context, config *config.Config, mutators ClientMutators) (Clients, error) {
 	logger := config.Logger
 	applyDefaultConfiguration(logger, config)
@@ -32,7 +30,6 @@ func NewClientsWithRegularPing(ctx context.Context, config *config.Config, mutat
 
 	detailLogger := logger.With().
 		Str("username", config.Redis.Username).
-		Str("pass", fmt.Sprintf("%x", sha256.Sum256([]byte(config.Redis.Password)))).
 		Logger()
 
 	logger = &detailLogger

@@ -31,7 +31,7 @@ func (m *Accounts) Find(_ context.Context, username string) (service.Account, er
 
 	for user, pass := range m.accounts {
 		if user == username {
-			return &Account{username: username, hashedPass: pass}, nil
+			return service.NewBaseAccount(user, pass), nil
 		}
 	}
 
@@ -48,7 +48,7 @@ func (m *Accounts) Register(_ context.Context, username string) (service.Account
 
 	m.accounts[username] = fmt.Sprintf("%x", sha256.Sum256([]byte(pass)))
 
-	return &Account{username: username, hashedPass: hashedPass}, pass, nil
+	return service.NewBaseAccount(username, hashedPass), pass, nil
 }
 
 func (m *Accounts) HealthCheck() service.HealthCheck {
