@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/google/uuid"
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
@@ -59,4 +60,11 @@ func testAPI(
 	) {
 		verify(assertions, rec)
 	}
+}
+
+func RandomUUID(t *testing.T) uuid.UUID {
+	t.Helper()
+	newUUID, err := uuid.NewRandom()
+	assert.NoError(t, err)
+	return newUUID
 }

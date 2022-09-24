@@ -21,7 +21,7 @@ type (
 	ClientMutator  func(client goredis.UniversalClient) goredis.UniversalClient
 )
 
-//go:generate mockgen -package mock -destination mock/redis.go github.com/go-redis/redis/v9 Cmdable
+//go:generate mockgen -package mock -destination mock/redis.go github.com/go-redis/redis/v9 UniversalClient
 func NewClientsWithRegularPing(ctx context.Context, config *config.Config, mutators ClientMutators) (Clients, error) {
 	logger := config.Logger
 	applyDefaultConfiguration(logger, config)

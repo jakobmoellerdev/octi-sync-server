@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -10,10 +11,13 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+var ErrNoDeviceAccessWithoutAccount = echo.NewHTTPError(http.StatusForbidden,
+	errors.New("devices cannot be accessed without an account"))
+
 func (api *API) GetDevices(ctx echo.Context, _ REST.GetDevicesParams) error {
 	account, found := ctx.Get(basic.AccountKey).(service.Account)
 	if !found {
-		return echo.ErrForbidden
+		return ErrNoDeviceAccessWithoutAccount
 	}
 
 	devicesFromAccount, err := api.Devices.FindByAccount(
@@ -21,7 +25,8 @@ func (api *API) GetDevices(ctx echo.Context, _ REST.GetDevicesParams) error {
 		account,
 	)
 	if err != nil {
-		return fmt.Errorf("could not fetch devicesFromAccount: %w", err)
+		return echo.NewHTTPError(http.StatusInternalServerError,
+			fmt.Errorf("could not fetch devices from account: %w", err))
 	}
 
 	devices := make([]REST.Device, len(devicesFromAccount))

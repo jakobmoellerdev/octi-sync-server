@@ -33,7 +33,7 @@ func (r *Devices) FindByAccount(ctx context.Context, acc service.Account) ([]ser
 			return devices, fmt.Errorf("device id could not be parsed: %w", err)
 		}
 
-		devices[i] = DeviceFromID(service.DeviceID(deviceId))
+		devices[i] = service.DeviceFromID(service.DeviceID(deviceId))
 	}
 
 	return devices, nil
@@ -50,7 +50,7 @@ func (r *Devices) FindByDeviceID(
 	}
 
 	if res >= 0 {
-		return DeviceFromID(deviceID), nil
+		return service.DeviceFromID(deviceID), nil
 	}
 
 	return nil, service.ErrDeviceNotFound
@@ -65,7 +65,7 @@ func (r *Devices) Register(
 		return nil, fmt.Errorf("could not push device id for registration: %w", err)
 	}
 
-	return &Device{id: deviceID}, nil
+	return service.DeviceFromID(deviceID), nil
 }
 
 func (r *Devices) HealthCheck() service.HealthCheck {

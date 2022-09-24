@@ -6,7 +6,7 @@ import (
 )
 
 //nolint:lll
-//go:generate mockgen -package mock -destination mock/accounts.go github.com/jakob-moeller-cloud/octi-sync-server/service Accounts
+//go:generate mockgen -source accounts.go -package mock -destination mock/accounts.go Accounts
 type Accounts interface {
 	Find(ctx context.Context, username string) (Account, error)
 	Register(ctx context.Context, username string) (Account, string, error)

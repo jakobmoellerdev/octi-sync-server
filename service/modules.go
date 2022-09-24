@@ -6,7 +6,7 @@ import (
 )
 
 //nolint:lll
-//go:generate mockgen -package mock -destination mock/modules.go github.com/jakob-moeller-cloud/octi-sync-server/service Modules
+//go:generate mockgen -source modules.go -package mock -destination mock/modules.go Modules
 type Modules interface {
 	Set(ctx context.Context, name string, module Module) error
 	Get(ctx context.Context, name string) (Module, error)
