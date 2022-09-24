@@ -99,5 +99,5 @@ MOCKGEN_VERSION ?= v1.6.0
 MOCKGEN = $(LOCALBIN)/mockgen
 .PHONY: mockgen
 mockgen: $(MOCKGEN) ## Download mockgen locally if necessary.
-$(GOLANG_CI_LINT): $(LOCALBIN)
-	GOBIN=$(LOCALBIN) go install github.com/golang/mock/mockgen@$(GOLANG_CI_LINT_VERSION)
+$(MOCKGEN): $(LOCALBIN)
+	GOBIN=$(LOCALBIN) go install github.com/golang/mock/mockgen@$(MOCKGEN_VERSION)

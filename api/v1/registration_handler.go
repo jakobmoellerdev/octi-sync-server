@@ -5,11 +5,10 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
-
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"github.com/labstack/echo/v4"
 )
 
 func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {

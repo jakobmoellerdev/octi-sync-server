@@ -8,15 +8,14 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/random"
-	"github.com/rs/zerolog"
-	"github.com/stretchr/testify/suite"
-
 	auth "github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/random"
+	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/suite"
 )
 
 // Define the suite, and absorb the built-in basic suite
@@ -58,7 +57,10 @@ func (suite *BasicAuthTestSuite) registerAndSetAuthorizationHeader(user string) 
 	return acc
 }
 
-func (suite *BasicAuthTestSuite) registerAndSetDeviceHeader(acc service.Account, deviceID service.DeviceID) service.Device {
+func (suite *BasicAuthTestSuite) registerAndSetDeviceHeader(
+	acc service.Account,
+	deviceID service.DeviceID,
+) service.Device {
 	dev, err := suite.devices.Register(context.Background(), acc, deviceID)
 
 	suite.NoError(err)
@@ -71,6 +73,7 @@ func (suite *BasicAuthTestSuite) randomUsername() string { return "test-user-" +
 func (suite *BasicAuthTestSuite) randomDeviceID() service.DeviceID {
 	id, err := uuid.NewRandom()
 	suite.NoError(err)
+
 	return service.DeviceID(id)
 }
 

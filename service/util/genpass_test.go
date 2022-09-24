@@ -3,9 +3,8 @@ package util_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/util"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGenPass(t *testing.T) {

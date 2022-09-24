@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
-
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"github.com/labstack/echo/v4"
 )
 
 func (api *API) GetDevices(ctx echo.Context, _ REST.GetDevicesParams) error {

@@ -11,12 +11,11 @@ import (
 	"runtime/debug"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog"
-	baseLogger "github.com/rs/zerolog/log"
-
 	"github.com/jakob-moeller-cloud/octi-sync-server/api"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
+	"github.com/rs/zerolog"
+	baseLogger "github.com/rs/zerolog/log"
 )
 
 var (

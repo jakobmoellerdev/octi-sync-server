@@ -8,12 +8,11 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
 )
 
 func TestAPI_CreateModule(t *testing.T) {

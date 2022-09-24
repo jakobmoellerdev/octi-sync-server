@@ -4,11 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog"
-
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
+	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog"
 )
 
 func TestNew(t *testing.T) {

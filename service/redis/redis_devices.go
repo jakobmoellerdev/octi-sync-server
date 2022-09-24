@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
-
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
 
@@ -27,10 +26,11 @@ func (r *Devices) FindByAccount(ctx context.Context, acc service.Account) ([]ser
 	}
 
 	devices := make([]service.Device, len(res))
+
 	for i, id := range res {
 		deviceId, err := uuid.Parse(id)
 		if err != nil {
-			return devices, err
+			return devices, fmt.Errorf("device id could not be parsed: %w", err)
 		}
 
 		devices[i] = DeviceFromID(service.DeviceID(deviceId))
@@ -39,7 +39,11 @@ func (r *Devices) FindByAccount(ctx context.Context, acc service.Account) ([]ser
 	return devices, nil
 }
 
-func (r *Devices) FindByDeviceID(ctx context.Context, acc service.Account, deviceID service.DeviceID) (service.Device, error) {
+func (r *Devices) FindByDeviceID(
+	ctx context.Context,
+	acc service.Account,
+	deviceID service.DeviceID,
+) (service.Device, error) {
 	res, err := r.Client.LPos(ctx, r.deviceKeyForAccount(acc), deviceID.String(), redis.LPosArgs{}).Result()
 	if err != nil {
 		return nil, fmt.Errorf("could not find devices by id: %w", err)
@@ -52,7 +56,11 @@ func (r *Devices) FindByDeviceID(ctx context.Context, acc service.Account, devic
 	return nil, service.ErrDeviceNotFound
 }
 
-func (r *Devices) Register(ctx context.Context, acc service.Account, deviceID service.DeviceID) (service.Device, error) {
+func (r *Devices) Register(
+	ctx context.Context,
+	acc service.Account,
+	deviceID service.DeviceID,
+) (service.Device, error) {
 	if err := r.Client.LPush(ctx, r.deviceKeyForAccount(acc), deviceID.String()).Err(); err != nil {
 		return nil, fmt.Errorf("could not push device id for registration: %w", err)
 	}

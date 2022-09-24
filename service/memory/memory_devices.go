@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
-
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
 
@@ -32,7 +31,11 @@ func (m *Devices) FindByAccount(_ context.Context, acc service.Account) ([]servi
 	return devices, nil
 }
 
-func (m *Devices) FindByDeviceID(_ context.Context, acc service.Account, deviceID service.DeviceID) (service.Device, error) {
+func (m *Devices) FindByDeviceID(
+	_ context.Context,
+	acc service.Account,
+	deviceID service.DeviceID,
+) (service.Device, error) {
 	m.sync.RLock()
 	defer m.sync.RUnlock()
 
@@ -50,7 +53,11 @@ func (m *Devices) FindByDeviceID(_ context.Context, acc service.Account, deviceI
 	return nil, service.ErrDeviceNotFound
 }
 
-func (m *Devices) Register(_ context.Context, acc service.Account, deviceID service.DeviceID) (service.Device, error) {
+func (m *Devices) Register(
+	_ context.Context,
+	acc service.Account,
+	deviceID service.DeviceID,
+) (service.Device, error) {
 	m.sync.Lock()
 	defer m.sync.Unlock()
 

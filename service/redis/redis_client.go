@@ -4,7 +4,6 @@ import (
 	"context"
 
 	goredis "github.com/go-redis/redis/v9"
-
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 )
 
