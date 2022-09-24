@@ -8,6 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	service "github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
 
 // MockDevice is a mock of Device interface.
@@ -34,10 +35,10 @@ func (m *MockDevice) EXPECT() *MockDeviceMockRecorder {
 }
 
 // ID mocks base method.
-func (m *MockDevice) ID() string {
+func (m *MockDevice) ID() service.DeviceID {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ID")
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(service.DeviceID)
 	return ret0
 }
 

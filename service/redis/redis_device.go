@@ -1,13 +1,15 @@
 package redis
 
+import "github.com/jakob-moeller-cloud/octi-sync-server/service"
+
 type Device struct {
-	id string
+	id service.DeviceID
 }
 
-func (r *Device) ID() string {
+func (r *Device) ID() service.DeviceID {
 	return r.id
 }
 
-func DeviceFromID(deviceID string) *Device {
-	return &Device{deviceID}
+func DeviceFromID(deviceId service.DeviceID) *Device {
+	return &Device{deviceId}
 }

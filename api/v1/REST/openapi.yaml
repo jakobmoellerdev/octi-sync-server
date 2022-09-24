@@ -20,8 +20,10 @@ servers:
 tags:
   - name: auth
     description: Everything Related to Authentication
-  - name: module
+  - name: modules
     description: Access to Sync Modules
+  - name: devices
+    description: Interact with registered devices to your account
   - name: health
     description: Access to Healthiness / Readiness Information
 paths:
@@ -93,12 +95,27 @@ paths:
                 $ref: '#/components/schemas/ShareResponse'
       security:
         - deviceAuth: []
-  /module/{name}:
+  /devices:
     get:
       tags:
-        - module
+        - devices
+      summary: Get All registered Devices for your Account
+      description: Receive Device Data for all devices in your Account
+      operationId: getDevices
+      parameters:
+        - $ref: '#/components/parameters/XDeviceID'
+        - $ref: '#/components/parameters/ShareCode'
+      responses:
+        '200':
+          $ref: '#/components/responses/DeviceListResponse'
+      security:
+        - deviceAuth: []
+  /modules/{name}:
+    get:
+      tags:
+        - modules
       summary: Get Module Data
-      description: Receive Streamed Module Date
+      description: Receive Streamed Module Data
       operationId: getModule
       parameters:
         - $ref: '#/components/parameters/XDeviceID'
@@ -111,9 +128,9 @@ paths:
         - deviceAuth: []
     post:
       tags:
-        - module
+        - modules
       summary: Create/Update Module Data
-      description: Receive Streamed Module Date
+      description: Receive Streamed Module Data
       operationId: createModule
       parameters:
         - $ref: '#/components/parameters/XDeviceID'
@@ -131,7 +148,7 @@ components:
     ModuleName:
       name: name
       required: true
-      description: "Module Name in Path"
+      description: "Strict Identifier for a Module"
       in: path
       allowEmptyValue: false
       schema:
@@ -140,14 +157,18 @@ components:
       name: X-Device-ID
       in: header
       required: true
-      description: The Device ID for Registration
+      description: |-
+        Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
+        to be properly authenticated.
       schema:
-        type: string
+        $ref: '#/components/schemas/DeviceID'
     ShareCode:
       name: share
       in: query
       required: false
-      description: The Share Code for Registration
+      description: |-
+        The Share Code from the Share API. If presented in combination with a new Device ID, 
+        it can be used to add new devices to an account.
       schema:
         type: string
   requestBodies:
@@ -158,6 +179,12 @@ components:
           schema:
             $ref: '#/components/schemas/ModuleDataStream'
   responses:
+    DeviceListResponse:
+      description: Device List containing multiple Devices
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeviceList'
     ModuleDataAccepted:
       description: Module Data got Accepted for Processing
       content:
@@ -171,6 +198,10 @@ components:
           schema:
             $ref: '#/components/schemas/ModuleDataStream'
   schemas:
+    DeviceID:
+      type: string
+      description: "Device ID is the unique identifier for a remote device"
+      format: uuid
     HealthAggregationComponent:
       type: object
       properties:
@@ -200,8 +231,36 @@ components:
             $ref: '#/components/schemas/HealthAggregationComponent'
       required:
         - health
-    ModuleDataStream:
+    ListItemCount:
+      type: integer
+      description: "Amount of Items contained in List"
+    Device:
       type: object
+      description: "a device"
+      properties:
+        id:
+          $ref: '#/components/schemas/DeviceID'
+      required:
+        - id
+    DeviceList:
+      type: object
+      description: "list of devices"
+      properties:
+        count:
+          $ref: "#/components/schemas/ListItemCount"
+        items:
+          description: "array of devices, it will always at least contain the device of the authenticated user"
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Device'
+      required:
+        - count
+        - items
+    ModuleDataStream:
+      type: string
+      format: binary
       description: "Module Data Stream"
     ModuleName:
       type: string
@@ -215,7 +274,7 @@ components:
       type: object
       properties:
         deviceID:
-          type: string
+          $ref: '#/components/schemas/DeviceID'
         username:
           type: string
         password:

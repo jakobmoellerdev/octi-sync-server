@@ -7,13 +7,15 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
 
-// UserKey is the cookie name for user credential in basic auth.
-const UserKey = "user"
+// AccountKey is the cookie name for user credential in basic auth.
+const AccountKey = "user"
 
 // DeviceID is the cookie name for user credential in basic auth.
 const DeviceID = "device"
@@ -45,21 +47,26 @@ func AuthWithShare(accounts service.Accounts, devices service.Devices) echo.Midd
 			// The user credentials was found, set user's id to key DeviceID in this context,
 			// the user's id can be read later using
 			// context.MustGet(auth.DeviceID).
-			context.Set(UserKey, user)
+			context.Set(AccountKey, user)
 
-			deviceID := context.Request().Header.Get(DeviceIDHeader)
-			if deviceID == "" {
+			deviceIDFromHeader := context.Request().Header.Get(DeviceIDHeader)
+			if deviceIDFromHeader == "" {
 				return false, echo.NewHTTPError(http.StatusBadRequest,
 					"this endpoint has to be called with the "+DeviceIDHeader+" Header!")
 			}
+			deviceID, err := uuid.Parse(deviceIDFromHeader)
+			if err != nil {
+				return false, echo.NewHTTPError(http.StatusBadRequest,
+					DeviceIDHeader+" has to be a valid UUID!")
+			}
 
-			device, err := devices.FindByDeviceID(ctx, user, deviceID)
+			device, err := devices.FindByDeviceID(ctx, user, service.DeviceID(deviceID))
 			if err != nil {
 				if err = checkShare(context, accounts, user); err != nil {
 					return false, err
 				}
 
-				device, err = devices.Register(ctx, user, deviceID)
+				device, err = devices.Register(ctx, user, service.DeviceID(deviceID))
 
 				if err != nil {
 					return false, fmt.Errorf("device registration error: %w", err)

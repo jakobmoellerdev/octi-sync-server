@@ -7,14 +7,16 @@ import (
 	"net/url"
 	"testing"
 
-	auth "github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/random"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
+
+	auth "github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
 )
 
 // Define the suite, and absorb the built-in basic suite
@@ -56,17 +58,21 @@ func (suite *BasicAuthTestSuite) registerAndSetAuthorizationHeader(user string) 
 	return acc
 }
 
-func (suite *BasicAuthTestSuite) registerAndSetDeviceHeader(acc service.Account, deviceID string) service.Device {
+func (suite *BasicAuthTestSuite) registerAndSetDeviceHeader(acc service.Account, deviceID service.DeviceID) service.Device {
 	dev, err := suite.devices.Register(context.Background(), acc, deviceID)
 
 	suite.NoError(err)
-	suite.req.Header.Set(auth.DeviceIDHeader, deviceID)
+	suite.req.Header.Set(auth.DeviceIDHeader, deviceID.String())
 
 	return dev
 }
 
 func (suite *BasicAuthTestSuite) randomUsername() string { return "test-user-" + random.String(5) }
-func (suite *BasicAuthTestSuite) randomDeviceID() string { return "device-" + random.String(5) }
+func (suite *BasicAuthTestSuite) randomDeviceID() service.DeviceID {
+	id, err := uuid.NewRandom()
+	suite.NoError(err)
+	return service.DeviceID(id)
+}
 
 //goland:noinspection SpellCheckingInspection
 func (suite *BasicAuthTestSuite) asHTTPError(err error) *echo.HTTPError {
@@ -97,12 +103,12 @@ func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 	suite.ResetRequest()
 
 	// Trying to access account from random other device
-	suite.req.Header.Set(auth.DeviceIDHeader, suite.randomDeviceID())
+	suite.req.Header.Set(auth.DeviceIDHeader, suite.randomDeviceID().String())
 	suite.Equal(http.StatusForbidden, suite.asHTTPError(testMiddleware(suite)).Code)
 	suite.ResetRequest()
 
 	// switching back to normal device should be okay
-	suite.req.Header.Set(auth.DeviceIDHeader, dev.ID())
+	suite.req.Header.Set(auth.DeviceIDHeader, dev.ID().String())
 	suite.NoError(testMiddleware(suite))
 	suite.ResetRequest()
 
@@ -122,7 +128,7 @@ func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 	share, err := suite.accounts.Share(context.Background(), acc.Username())
 	suite.NoError(err)
 	// at first the device is not shared, the call should be forbidden
-	suite.req.Header.Set(auth.DeviceIDHeader, suite.randomDeviceID())
+	suite.req.Header.Set(auth.DeviceIDHeader, suite.randomDeviceID().String())
 	suite.Equal(http.StatusForbidden, suite.asHTTPError(testMiddleware(suite)).Code)
 	suite.ResetRequest()
 

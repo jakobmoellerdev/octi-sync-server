@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -23,8 +24,11 @@ func TestAPIRegister(t *testing.T) {
 
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
+	deviceID, err := uuid.NewRandom()
+	assertions.NoError(err)
+
 	if rec := httptest.NewRecorder(); assertions.NoError(
-		API().Register(api.NewContext(req, rec), REST.RegisterParams{XDeviceID: "test"}),
+		API().Register(api.NewContext(req, rec), REST.RegisterParams{XDeviceID: deviceID}),
 	) {
 		verifyRegistrationResponse(assertions, rec)
 	}

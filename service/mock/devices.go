@@ -51,7 +51,7 @@ func (mr *MockDevicesMockRecorder) FindByAccount(arg0, arg1 interface{}) *gomock
 }
 
 // FindByDeviceID mocks base method.
-func (m *MockDevices) FindByDeviceID(arg0 context.Context, arg1 service.Account, arg2 string) (service.Device, error) {
+func (m *MockDevices) FindByDeviceID(arg0 context.Context, arg1 service.Account, arg2 service.DeviceID) (service.Device, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByDeviceID", arg0, arg1, arg2)
 	ret0, _ := ret[0].(service.Device)
@@ -80,7 +80,7 @@ func (mr *MockDevicesMockRecorder) HealthCheck() *gomock.Call {
 }
 
 // Register mocks base method.
-func (m *MockDevices) Register(arg0 context.Context, arg1 service.Account, arg2 string) (service.Device, error) {
+func (m *MockDevices) Register(arg0 context.Context, arg1 service.Account, arg2 service.DeviceID) (service.Device, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Register", arg0, arg1, arg2)
 	ret0, _ := ret[0].(service.Device)

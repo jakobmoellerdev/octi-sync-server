@@ -1,3 +1,7 @@
+ifeq ($(OS),Windows_NT)
+    $(error This Makefile does not support windows)
+endif
+
 # Image URL to use all building/pushing image targets
 IMG := ghcr.io/jakob-moeller-cloud/octi-sync-server:latest
 
@@ -49,11 +53,11 @@ lint: golangci-lint ## Run golangci-lint against code.
 	$(LOCALBIN)/golangci-lint run
 
 .PHONY: run
-run: generate ## Run a controller from your host.
+run: ## Run a controller from your host.
 	go run ./main.go
 
 .PHONY: generate
-generate: ## Generate code
+generate: mockgen ## Generate code
 	go generate ./...
 
 .PHONY: docker-build
@@ -75,7 +79,7 @@ LOCALBIN ?= $(shell pwd)/bin
 $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
 
-## Tool Binaries
+##@ Tool Binaries
 
 KUSTOMIZE_VERSION ?= v4.5.6
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
@@ -90,3 +94,10 @@ GOLANG_CI_LINT = $(LOCALBIN)/golangci-lint
 golangci-lint: $(GOLANG_CI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANG_CI_LINT): $(LOCALBIN)
 	GOBIN=$(LOCALBIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANG_CI_LINT_VERSION)
+
+MOCKGEN_VERSION ?= v1.6.0
+MOCKGEN = $(LOCALBIN)/mockgen
+.PHONY: mockgen
+mockgen: $(MOCKGEN) ## Download mockgen locally if necessary.
+$(GOLANG_CI_LINT): $(LOCALBIN)
+	GOBIN=$(LOCALBIN) go install github.com/golang/mock/mockgen@$(GOLANG_CI_LINT_VERSION)

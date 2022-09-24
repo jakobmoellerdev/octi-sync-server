@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -23,8 +24,11 @@ func TestAPI_CreateModule(t *testing.T) {
 
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
+	deviceID, err := uuid.NewRandom()
+	assertions.NoError(err)
+
 	if rec := httptest.NewRecorder(); assertions.NoError(
-		API().CreateModule(api.NewContext(req, rec), "test", REST.CreateModuleParams{XDeviceID: "test"}),
+		API().CreateModule(api.NewContext(req, rec), "test", REST.CreateModuleParams{XDeviceID: deviceID}),
 	) {
 		verifyCreateModuleResponse(assertions, rec)
 	}
@@ -44,17 +48,18 @@ func TestAPI_GetModule(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
 	moduleName := "test"
-	deviceName := "test"
+	deviceID, err := uuid.NewRandom()
+	assertions.NoError(err)
 
 	apiImpl := API()
 
 	assertions.NoError(apiImpl.Modules.Set(
-		context.Background(), fmt.Sprintf("%s-%s", deviceName, moduleName),
+		context.Background(), fmt.Sprintf("%s-%s", deviceID.String(), moduleName),
 		memory.ModuleFromBytes([]byte("test"))),
 	)
 
 	if rec := httptest.NewRecorder(); assertions.NoError(
-		apiImpl.GetModule(api.NewContext(req, rec), moduleName, REST.GetModuleParams{XDeviceID: deviceName}),
+		apiImpl.GetModule(api.NewContext(req, rec), moduleName, REST.GetModuleParams{XDeviceID: deviceID}),
 	) {
 		verifyGetModuleResponse(assertions, rec)
 	}
