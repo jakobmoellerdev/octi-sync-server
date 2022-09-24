@@ -47,6 +47,8 @@ func New(_ context.Context, engine *echo.Echo, config *config.Config) {
 	module.GET("/:name", wrapper.GetModule)
 	module.POST("/:name", wrapper.CreateModule)
 
+	api.GET("/devices", wrapper.GetDevices, basicAuthWithShare)
+
 	api.GET("/health", wrapper.IsHealthy)
 	api.GET("/ready", wrapper.IsReady)
 }
