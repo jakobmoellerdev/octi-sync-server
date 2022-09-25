@@ -29,19 +29,13 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 
 	if err == basic.ErrNoCredentialsInHeader {
 		// if no credentials are present through Basic header, generate username and password
-		if username, password, err = api.newCredentials(); err != nil {
+		if account, err = api.registerNewAccount(ctx); err != nil {
 			return err
-		}
-
-		if account, err = api.Accounts.Register(ctx.Request().Context(), username, password); err != nil {
-			return fmt.Errorf("account could not be registered (username: %s): %w", username, err)
 		}
 	} else {
 		// for present credentials, verify the Basic header
-		if account, err = api.Accounts.Find(ctx.Request().Context(), username); err != nil {
+		if account, err = api.verifyExistingAccount(ctx, username, password); err != nil {
 			return echo.NewHTTPError(http.StatusForbidden).SetInternal(err)
-		} else if !account.Verify(password) {
-			return echo.NewHTTPError(http.StatusForbidden).SetInternal(ErrPasswordMismatch)
 		}
 	}
 
@@ -75,7 +69,7 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 	return nil
 }
 
-func (api *API) newCredentials() (string, string, error) {
+func (api *API) registerNewAccount(ctx echo.Context) (service.Account, error) {
 	var passLength, minSpecial, minNum = 32, 6, 6
 
 	var username, password string
@@ -83,16 +77,35 @@ func (api *API) newCredentials() (string, string, error) {
 	username, err := api.UsernameGenerator.Generate()
 
 	if err != nil {
-		return "", "", fmt.Errorf("generating a username for registration failed: %w", err)
+		return nil, fmt.Errorf("generating a username for registration failed: %w", err)
 	}
 
 	password, err = api.PasswordGenerator.Generate(passLength, minNum, minSpecial, false, false)
 
 	if err != nil {
-		return "", "", fmt.Errorf("generating a password for registration failed: %w", err)
+		return nil, fmt.Errorf("generating a password for registration failed: %w", err)
 	}
 
-	return username, password, nil
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := api.Accounts.Register(ctx.Request().Context(), username, password)
+	if err != nil {
+		return nil, fmt.Errorf("account could not be registered (username: %s): %w", username, err)
+	}
+
+	return account, nil
+}
+
+func (api *API) verifyExistingAccount(ctx echo.Context, username, password string) (service.Account, error) {
+	account, err := api.Accounts.Find(ctx.Request().Context(), username)
+	if err != nil {
+		return nil, err
+	} else if !account.Verify(password) {
+		return nil, ErrPasswordMismatch
+	}
+	return account, nil
 }
 
 func (api *API) verifyShareCode(ctx echo.Context, account service.Account, share REST.ShareCode) error {
