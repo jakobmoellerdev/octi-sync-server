@@ -108,9 +108,13 @@ func (api *API) verifyExistingAccount(ctx echo.Context, username, password strin
 
 func (api *API) verifyShareCode(ctx echo.Context, account service.Account, share REST.ShareCode) error {
 	// check that if the device code is present, it is actually for the account
-	if err := api.Accounts.IsShared(ctx.Request().Context(), account.Username(), share); err == service.ErrShareCodeInvalid {
+	err := api.Accounts.IsShared(ctx.Request().Context(), account.Username(), share)
+
+	if err == service.ErrShareCodeInvalid {
 		return fmt.Errorf("share %s is invalid (not shared) for %s: %w", share, account.Username(), err)
-	} else if err != nil {
+	}
+
+	if err != nil {
 		return fmt.Errorf("cannot verify share %s is valid for %s: %w", share, account.Username(), err)
 	}
 
