@@ -15,6 +15,7 @@ import (
 const (
 	RateLimitRequestsPerSecond = 20
 	DefaultTimeoutSeconds      = 20
+	DefaultMaxRequestBodySize  = "64KB"
 )
 
 // New generates the api used in the HTTP Server.
@@ -22,10 +23,14 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 	router := echo.New()
 
 	// CORS Configuration based on config
-	router.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: config.Server.CORS.AllowOrigins,
-		AllowHeaders: config.Server.CORS.AllowHeaders,
-	}))
+	router.Use(
+		middleware.CORSWithConfig(
+			middleware.CORSConfig{
+				AllowOrigins: config.Server.CORS.AllowOrigins,
+				AllowHeaders: config.Server.CORS.AllowHeaders,
+			},
+		),
+	)
 
 	// XFF Handling for Reverse Proxy Support
 	router.IPExtractor = echo.ExtractIPFromXFFHeader()
@@ -52,6 +57,9 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 		logging.RequestLogging(config.Logger),
 	)
 
+	if config.Server.MaxRequestBodySize == "" {
+		config.Server.MaxRequestBodySize = DefaultMaxRequestBodySize
+	}
 	// Body Size Limitation to avoid Request DOS
 	router.Use(middleware.BodyLimit(config.Server.MaxRequestBodySize))
 

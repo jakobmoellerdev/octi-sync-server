@@ -15,7 +15,7 @@ COPY go.mod go.mod
 COPY go.sum go.sum
 RUN go mod download
 
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /go/bin/app
+RUN CGO_ENABLED=0 go build -ldflags="-s -w -X 'main.builtBy=multi-stage-docker'" -o /go/bin/app
 
 # Now copy it into our base image.
 FROM gcr.io/distroless/static-debian11

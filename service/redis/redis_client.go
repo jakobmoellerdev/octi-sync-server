@@ -21,12 +21,19 @@ type (
 	ClientMutator  func(client goredis.UniversalClient) goredis.UniversalClient
 )
 
+type ClientProvider func(config *config.Config) goredis.UniversalClient
+
 //go:generate mockgen -package mock -destination mock/redis.go github.com/go-redis/redis/v9 UniversalClient
-func NewClientsWithRegularPing(ctx context.Context, config *config.Config, mutators ClientMutators) (Clients, error) {
+func NewClientsWithRegularPing(
+	ctx context.Context,
+	config *config.Config,
+	provider ClientProvider,
+	mutators ClientMutators,
+) (Clients, error) {
 	logger := config.Logger
 	applyDefaultConfiguration(logger, config)
 
-	client := goredis.NewUniversalClient(&config.Redis.UniversalOptions)
+	client := provider(config)
 
 	detailLogger := logger.With().Logger()
 
@@ -48,6 +55,10 @@ func NewClientsWithRegularPing(ctx context.Context, config *config.Config, mutat
 		} else {
 			clients[mutatorName] = mutator(client)
 		}
+	}
+
+	if len(mutators) == 0 {
+		clients[""] = client
 	}
 
 	return clients, nil
