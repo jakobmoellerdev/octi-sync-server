@@ -60,3 +60,17 @@ func (mr *MockAccountMockRecorder) Username() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Username", reflect.TypeOf((*MockAccount)(nil).Username))
 }
+
+// Verify mocks base method.
+func (m *MockAccount) Verify(password string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Verify", password)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Verify indicates an expected call of Verify.
+func (mr *MockAccountMockRecorder) Verify(password interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockAccount)(nil).Verify), password)
+}
