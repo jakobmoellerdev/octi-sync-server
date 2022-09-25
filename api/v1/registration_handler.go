@@ -22,7 +22,9 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 
 	deviceID := service.DeviceID(params.XDeviceID)
 
-	if username, password, err = basic.CredentialsFromAuthorizationHeader(ctx); err != nil && err != basic.ErrNoCredentialsInHeader {
+	username, password, err = basic.CredentialsFromAuthorizationHeader(ctx)
+
+	if err != nil && err != basic.ErrNoCredentialsInHeader {
 		return echo.NewHTTPError(http.StatusBadRequest,
 			"invalid basic auth header cannot be used for registration").SetInternal(err)
 	}
@@ -70,12 +72,11 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 }
 
 func (api *API) registerNewAccount(ctx echo.Context) (service.Account, error) {
-	var passLength, minSpecial, minNum = 32, 6, 6
+	passLength, minSpecial, minNum := 32, 6, 6
 
 	var username, password string
 
 	username, err := api.UsernameGenerator.Generate()
-
 	if err != nil {
 		return nil, fmt.Errorf("generating a username for registration failed: %w", err)
 	}
@@ -97,7 +98,7 @@ func (api *API) registerNewAccount(ctx echo.Context) (service.Account, error) {
 func (api *API) verifyExistingAccount(ctx echo.Context, username, password string) (service.Account, error) {
 	account, err := api.Accounts.Find(ctx.Request().Context(), username)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not fetch account to verify it: %w", err)
 	} else if !account.Verify(password) {
 		return nil, ErrPasswordMismatch
 	}
