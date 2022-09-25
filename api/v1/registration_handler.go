@@ -15,7 +15,9 @@ var ErrPasswordMismatch = errors.New("passwords do not match")
 
 func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 	var err error
+
 	var username, password string
+
 	var account service.Account
 
 	deviceID := service.DeviceID(params.XDeviceID)
@@ -74,6 +76,7 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 
 func (api *API) newCredentials() (string, string, error) {
 	var passLength, minSpecial, minNum = 32, 6, 6
+
 	var username, password string
 
 	username, err := api.UsernameGenerator.Generate()

@@ -35,6 +35,7 @@ func (r *Accounts) Register(ctx context.Context, username, password string) (ser
 		return nil, service.ErrAccountAlreadyExists
 	}
 	hashedPass := fmt.Sprintf("%x", sha256.Sum256([]byte(password)))
+
 	if err := r.Client.HSet(ctx, AccountKeySpace, username, hashedPass).Err(); err != nil {
 		return nil, fmt.Errorf("error while setting user in account key space: %w", err)
 	}

@@ -49,7 +49,6 @@ func (suite *BasicAuthTestSuite) ResetRequest() {
 }
 
 func (suite *BasicAuthTestSuite) registerAndSetAuthorizationHeader(user string) service.Account {
-
 	var passLength, minSpecial, minNum = 32, 6, 6
 
 	pass := password.MustGenerate(passLength, minNum, minSpecial, false, false)

@@ -28,11 +28,14 @@ func TestAPIRegister(t *testing.T) {
 	user := "test-user"
 	pass := "test-pass"
 	deviceID := service.DeviceID(uuid.Must(uuid.NewRandom()))
-	share := REST.ShareCode("test")
+	share := "test"
 
 	var ctrl *gomock.Controller
+
 	var devices *mock.MockDevices
+
 	var accounts *mock.MockAccounts
+
 	var api *v1.API
 
 	for _, testCase := range []struct {
@@ -160,7 +163,8 @@ func TestAPIRegister(t *testing.T) {
 			},
 		},
 		{
-			"200 as device is not in account and share code is provided and valid and device registration succeeds",
+			"200 as device is not in account and share code is provided and valid and device registration " +
+				"succeeds",
 			func(assert *assertions.Assertions, ctx echo.Context, rec *httptest.ResponseRecorder) {
 				acc := service.NewBaseAccount(user, HashedPassword(pass))
 				ctx.Request().SetBasicAuth(user, pass)
@@ -180,7 +184,8 @@ func TestAPIRegister(t *testing.T) {
 			},
 		},
 		{
-			"200 as device is not in account and share code is provided and valid and device registration succeeds with basic auth header",
+			"200 as device is not in account and share code is provided and valid and device registration " +
+				"succeeds with basic auth header",
 			func(assert *assertions.Assertions, ctx echo.Context, rec *httptest.ResponseRecorder) {
 				acc := service.NewBaseAccount(user, HashedPassword(pass))
 				ctx.Request().SetBasicAuth(user, pass)
@@ -200,7 +205,8 @@ func TestAPIRegister(t *testing.T) {
 			},
 		},
 		{
-			"200 as device is not in account and share code is provided and valid and device registration succeeds with generated credentials",
+			"200 as device is not in account and share code is provided and valid and device registration " +
+				"succeeds with generated credentials",
 			func(assert *assertions.Assertions, ctx echo.Context, rec *httptest.ResponseRecorder) {
 				acc := service.NewBaseAccount(user, HashedPassword(pass))
 				accounts.EXPECT().Register(ctx.Request().Context(), user, pass).Times(1).

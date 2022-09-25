@@ -65,11 +65,15 @@ func RequestContextTimeout(timeout time.Duration) echo.MiddlewareFunc {
 	if timeout == 0 {
 		timeout = DefaultTimeoutSeconds * time.Second
 	}
+
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			timeoutCtx, cancel := context.WithTimeout(c.Request().Context(), timeout)
+
 			c.SetRequest(c.Request().WithContext(timeoutCtx))
+
 			defer cancel()
+
 			return next(c)
 		}
 	}
@@ -78,7 +82,6 @@ func RequestContextTimeout(timeout time.Duration) echo.MiddlewareFunc {
 func MapRequestTimeoutToResponseCode(targetCode int) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
-
 			doneCh := make(chan error)
 
 			run := func(ctx echo.Context) {
@@ -92,11 +95,13 @@ func MapRequestTimeoutToResponseCode(targetCode int) echo.MiddlewareFunc {
 				if err != nil {
 					return err
 				}
+
 				return nil
 			case <-ctx.Request().Context().Done():
 				if ctx.Request().Context().Err() == context.DeadlineExceeded {
 					return echo.NewHTTPError(targetCode).SetInternal(ctx.Request().Context().Err())
 				}
+
 				return ctx.Request().Context().Err()
 			}
 		}

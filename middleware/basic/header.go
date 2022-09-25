@@ -21,9 +21,11 @@ func CredentialsFromAuthorizationHeader(ctx echo.Context) (string, string, error
 		// instead should be treated as invalid client input
 		b, err := base64.StdEncoding.DecodeString(auth[lengthBasic+1:])
 		cred := strings.Split(string(b), ":")
+
 		if err != nil || len(cred) != 2 {
 			return "", "", echo.ErrBadRequest.SetInternal(err)
 		}
+
 		// use user and pass from Basic header if present
 		return cred[0], cred[1], nil
 	}
