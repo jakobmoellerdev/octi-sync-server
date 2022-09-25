@@ -24,7 +24,7 @@ func (m *Devices) FindByAccount(_ context.Context, acc service.Account) ([]servi
 
 	devices := make([]service.Device, len(deviceIDs))
 	for i := range devices {
-		devices[i] = service.DeviceFromID(deviceIDs[i])
+		devices[i] = service.NewBaseDevice(deviceIDs[i])
 	}
 
 	return devices, nil
@@ -45,7 +45,7 @@ func (m *Devices) FindByDeviceID(
 
 	for i := range devices {
 		if devices[i] == deviceID {
-			return service.DeviceFromID(deviceID), nil
+			return service.NewBaseDevice(deviceID), nil
 		}
 	}
 
@@ -63,7 +63,7 @@ func (m *Devices) Register(
 	devices := m.devices[acc.Username()]
 	m.devices[acc.Username()] = append(devices, deviceID)
 
-	return service.DeviceFromID(deviceID), nil
+	return service.NewBaseDevice(deviceID), nil
 }
 
 func (m *Devices) HealthCheck() service.HealthCheck {

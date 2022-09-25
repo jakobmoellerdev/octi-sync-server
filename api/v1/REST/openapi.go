@@ -77,12 +77,10 @@ type ModuleDataStream = string
 // Module Name
 type ModuleName = string
 
-// RegistrationResponse defines model for RegistrationResponse.
-type RegistrationResponse struct {
-	// Device ID is the unique identifier for a remote device
-	DeviceID DeviceID `json:"deviceID"`
-	Password string   `json:"password"`
-	Username string   `json:"username"`
+// RegistrationResult defines model for RegistrationResult.
+type RegistrationResult struct {
+	Password string `json:"password"`
+	Username string `json:"username"`
 }
 
 // ShareResponse defines model for ShareResponse.
@@ -104,6 +102,10 @@ type ModuleDataAccepted = interface{}
 
 // RegisterParams defines parameters for Register.
 type RegisterParams struct {
+	// The Share Code from the Share API. If presented in combination with a new Device ID,
+	// it can be used to add new devices to an account.
+	Share *ShareCode `form:"share,omitempty" json:"share,omitempty"`
+
 	// Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
 	// to be properly authenticated.
 	XDeviceID XDeviceID `json:"X-Device-ID"`
@@ -118,10 +120,6 @@ type ShareParams struct {
 
 // GetDevicesParams defines parameters for GetDevices.
 type GetDevicesParams struct {
-	// The Share Code from the Share API. If presented in combination with a new Device ID,
-	// it can be used to add new devices to an account.
-	Share *ShareCode `form:"share,omitempty" json:"share,omitempty"`
-
 	// Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
 	// to be properly authenticated.
 	XDeviceID XDeviceID `json:"X-Device-ID"`
@@ -129,10 +127,6 @@ type GetDevicesParams struct {
 
 // GetModuleParams defines parameters for GetModule.
 type GetModuleParams struct {
-	// The Share Code from the Share API. If presented in combination with a new Device ID,
-	// it can be used to add new devices to an account.
-	Share *ShareCode `form:"share,omitempty" json:"share,omitempty"`
-
 	// Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
 	// to be properly authenticated.
 	XDeviceID XDeviceID `json:"X-Device-ID"`
@@ -140,10 +134,6 @@ type GetModuleParams struct {
 
 // CreateModuleParams defines parameters for CreateModule.
 type CreateModuleParams struct {
-	// The Share Code from the Share API. If presented in combination with a new Device ID,
-	// it can be used to add new devices to an account.
-	Share *ShareCode `form:"share,omitempty" json:"share,omitempty"`
-
 	// Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
 	// to be properly authenticated.
 	XDeviceID XDeviceID `json:"X-Device-ID"`
@@ -185,6 +175,12 @@ func (w *ServerInterfaceWrapper) Register(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params RegisterParams
+	// ------------- Optional query parameter "share" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "share", ctx.QueryParams(), &params.Share)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter share: %s", err))
+	}
 
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Device-ID" -------------
@@ -251,12 +247,6 @@ func (w *ServerInterfaceWrapper) GetDevices(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetDevicesParams
-	// ------------- Optional query parameter "share" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "share", ctx.QueryParams(), &params.Share)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter share: %s", err))
-	}
 
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Device-ID" -------------
@@ -306,12 +296,6 @@ func (w *ServerInterfaceWrapper) GetModule(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetModuleParams
-	// ------------- Optional query parameter "share" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "share", ctx.QueryParams(), &params.Share)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter share: %s", err))
-	}
 
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Device-ID" -------------
@@ -352,12 +336,6 @@ func (w *ServerInterfaceWrapper) CreateModule(ctx echo.Context) error {
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params CreateModuleParams
-	// ------------- Optional query parameter "share" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "share", ctx.QueryParams(), &params.Share)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter share: %s", err))
-	}
 
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Device-ID" -------------
@@ -433,36 +411,36 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -13,9 +13,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jakob-moeller-cloud/octi-sync-server/api"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
 	"github.com/rs/zerolog"
 	baseLogger "github.com/rs/zerolog/log"
+	"github.com/sethvargo/go-password/password"
 )
 
 var (
@@ -61,6 +63,18 @@ func main() {
 	}
 
 	cfg.Logger = &logger
+
+	cfg.PasswordGenerator, err = password.NewGenerator(nil)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cfg.UsernameGenerator, err = service.NewUsernameGenerator(service.UUIDUsernameGeneration)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	uuid.EnableRandPool()
 

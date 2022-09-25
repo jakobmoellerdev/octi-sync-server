@@ -80,12 +80,11 @@ func (mr *MockAccountsMockRecorder) HealthCheck() *gomock.Call {
 }
 
 // IsShared mocks base method.
-func (m *MockAccounts) IsShared(ctx context.Context, username, share string) (bool, error) {
+func (m *MockAccounts) IsShared(ctx context.Context, username, share string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsShared", ctx, username, share)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // IsShared indicates an expected call of IsShared.
@@ -95,19 +94,18 @@ func (mr *MockAccountsMockRecorder) IsShared(ctx, username, share interface{}) *
 }
 
 // Register mocks base method.
-func (m *MockAccounts) Register(ctx context.Context, username string) (service.Account, string, error) {
+func (m *MockAccounts) Register(ctx context.Context, username, password string) (service.Account, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, username)
+	ret := m.ctrl.Call(m, "Register", ctx, username, password)
 	ret0, _ := ret[0].(service.Account)
-	ret1, _ := ret[1].(string)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Register indicates an expected call of Register.
-func (mr *MockAccountsMockRecorder) Register(ctx, username interface{}) *gomock.Call {
+func (mr *MockAccountsMockRecorder) Register(ctx, username, password interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockAccounts)(nil).Register), ctx, username)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockAccounts)(nil).Register), ctx, username, password)
 }
 
 // Revoke mocks base method.

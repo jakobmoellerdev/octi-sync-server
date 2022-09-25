@@ -14,7 +14,7 @@ import (
 
 const (
 	RateLimitRequestsPerSecond = 20
-	DefaultTimeoutSeconds      = 30
+	DefaultTimeoutSeconds      = 20
 )
 
 // New generates the api used in the HTTP Server.
@@ -35,12 +35,10 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 
 	// Request ID Tracking for traceability
 	router.Use(middleware.RequestID())
-
-	// Timeout Configuration for timing out requests to 3rd party services
-	timeoutConfig := middleware.DefaultTimeoutConfig
-	// Default in Middleware is Zero, set to sane default
-	timeoutConfig.Timeout = DefaultTimeoutSeconds * time.Second
-	router.Use(middleware.TimeoutWithConfig(timeoutConfig))
+	router.Use(
+		RequestContextTimeout(config.Server.Timeout.Request),
+		MapRequestTimeoutToResponseCode(http.StatusServiceUnavailable),
+	)
 
 	// Compression Handlers
 	router.Use(
@@ -61,4 +59,46 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 	v1.New(ctx, router, config)
 
 	return router
+}
+
+func RequestContextTimeout(timeout time.Duration) echo.MiddlewareFunc {
+	if timeout == 0 {
+		timeout = DefaultTimeoutSeconds * time.Second
+	}
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			timeoutCtx, cancel := context.WithTimeout(c.Request().Context(), timeout)
+			c.SetRequest(c.Request().WithContext(timeoutCtx))
+			defer cancel()
+			return next(c)
+		}
+	}
+}
+
+func MapRequestTimeoutToResponseCode(targetCode int) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(ctx echo.Context) error {
+
+			doneCh := make(chan error)
+
+			run := func(ctx echo.Context) {
+				doneCh <- next(ctx)
+			}
+
+			go run(ctx)
+
+			select { // wait for task to finish or context to timeout/cancelled
+			case err := <-doneCh:
+				if err != nil {
+					return err
+				}
+				return nil
+			case <-ctx.Request().Context().Done():
+				if ctx.Request().Context().Err() == context.DeadlineExceeded {
+					return echo.NewHTTPError(targetCode).SetInternal(ctx.Request().Context().Err())
+				}
+				return ctx.Request().Context().Err()
+			}
+		}
+	}
 }

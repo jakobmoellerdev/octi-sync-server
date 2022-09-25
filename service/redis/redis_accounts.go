@@ -10,7 +10,6 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/util"
 )
 
 const (
@@ -31,20 +30,16 @@ func (r *Accounts) Find(ctx context.Context, username string) (service.Account, 
 	return service.NewBaseAccount(username, res), nil
 }
 
-func (r *Accounts) Register(ctx context.Context, username string) (service.Account, string, error) {
+func (r *Accounts) Register(ctx context.Context, username, password string) (service.Account, error) {
 	if acc, _ := r.Find(ctx, username); acc != nil {
-		return nil, "", service.ErrAccountAlreadyExists
+		return nil, service.ErrAccountAlreadyExists
 	}
-
-	passLength, minSpecial, minNum, minUpper := 32, 6, 6, 6
-	pass := util.NewInPlacePasswordGenerator().Generate(passLength, minSpecial, minNum, minUpper)
-	hashedPass := fmt.Sprintf("%x", sha256.Sum256([]byte(pass)))
-
+	hashedPass := fmt.Sprintf("%x", sha256.Sum256([]byte(password)))
 	if err := r.Client.HSet(ctx, AccountKeySpace, username, hashedPass).Err(); err != nil {
-		return nil, "", fmt.Errorf("error while setting user in account key space: %w", err)
+		return nil, fmt.Errorf("error while setting user in account key space: %w", err)
 	}
 
-	return service.NewBaseAccount(username, hashedPass), pass, nil
+	return service.NewBaseAccount(username, password), nil
 }
 
 func (r *Accounts) HealthCheck() service.HealthCheck {
@@ -80,17 +75,17 @@ func (r *Accounts) ActiveShares(ctx context.Context, username string) ([]string,
 	return shareCodes, nil
 }
 
-func (r *Accounts) IsShared(ctx context.Context, username string, share string) (bool, error) {
+func (r *Accounts) IsShared(ctx context.Context, username string, share string) error {
 	err := r.Client.LPos(ctx, r.shareKey(username), share, redis.LPosArgs{}).Err()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return false, nil
+			return service.ErrShareCodeInvalid
 		}
 
-		return false, fmt.Errorf("could not find out if share code is valid: %w", err)
+		return fmt.Errorf("could not find out if share code is valid: %w", err)
 	}
 
-	return true, nil
+	return nil
 }
 
 func (r *Accounts) Revoke(ctx context.Context, username string, shareCode string) error {

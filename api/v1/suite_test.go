@@ -1,6 +1,8 @@
 package v1_test
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -70,4 +72,8 @@ func RandomUUID(t *testing.T) uuid.UUID {
 	assert.NoError(t, err)
 
 	return newUUID
+}
+
+func HashedPassword(password string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(password)))
 }

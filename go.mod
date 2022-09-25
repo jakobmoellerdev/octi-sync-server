@@ -33,6 +33,9 @@ require (
 
 	// yaml parsing
 	gopkg.in/yaml.v3 v3.0.1
+
+	// high-entropy password generation
+	github.com/sethvargo/go-password v0.2.0
 )
 
 require (

@@ -84,7 +84,7 @@ func testGetDevicesReturns200(t *testing.T, api *v1.API) deviceTest {
 		deviceID := service.DeviceID(RandomUUID(t))
 		mockDevicesFromAPI(t, api).EXPECT().FindByAccount(context.Background(), acc).Times(1).
 			Return([]service.Device{
-				service.DeviceFromID(deviceID),
+				service.NewBaseDevice(deviceID),
 			}, nil)
 
 		err := api.GetDevices(ctx, REST.GetDevicesParams{XDeviceID: REST.XDeviceID(deviceID)})

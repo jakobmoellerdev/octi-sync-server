@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/util"
 )
 
 func NewAccounts() *Accounts {
@@ -38,17 +37,14 @@ func (m *Accounts) Find(_ context.Context, username string) (service.Account, er
 	return nil, service.ErrAccountNotFound
 }
 
-func (m *Accounts) Register(_ context.Context, username string) (service.Account, string, error) {
+func (m *Accounts) Register(_ context.Context, username, password string) (service.Account, error) {
 	m.sync.Lock()
 	defer m.sync.Unlock()
 
-	//nolint:gomnd
-	pass := util.NewInPlacePasswordGenerator().Generate(9, 3, 3, 3)
-	hashedPass := fmt.Sprintf("%x", sha256.Sum256([]byte(pass)))
+	hashedPass := fmt.Sprintf("%x", sha256.Sum256([]byte(password)))
+	m.accounts[username] = hashedPass
 
-	m.accounts[username] = fmt.Sprintf("%x", sha256.Sum256([]byte(pass)))
-
-	return service.NewBaseAccount(username, hashedPass), pass, nil
+	return service.NewBaseAccount(username, hashedPass), nil
 }
 
 func (m *Accounts) HealthCheck() service.HealthCheck {
@@ -90,16 +86,16 @@ func (m *Accounts) ActiveShares(_ context.Context, username string) ([]string, e
 	return shares, nil
 }
 
-func (m *Accounts) IsShared(ctx context.Context, username string, share string) (bool, error) {
+func (m *Accounts) IsShared(ctx context.Context, username string, share string) error {
 	shares, _ := m.ActiveShares(ctx, username)
 
 	for i := range shares {
 		if shares[i] == share {
-			return true, nil
+			return nil
 		}
 	}
 
-	return false, nil
+	return service.ErrShareCodeInvalid
 }
 
 func (m *Accounts) Revoke(_ context.Context, username string, shareCode string) error {

@@ -11,6 +11,7 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/rs/zerolog"
+	"github.com/sethvargo/go-password/password"
 	"gopkg.in/yaml.v3"
 )
 
@@ -54,6 +55,10 @@ type Config struct {
 			// Read is the amount of time to wait
 			// until an IDLE HTTP session is closed
 			Idle time.Duration `yaml:"idle"`
+
+			// Request is the amount of time to wait
+			// until a request is aborted if the context is blocking
+			Request time.Duration `yaml:"request"`
 		} `yaml:"timeout"`
 
 		// MaxRequestBodySize can be specified as `4x` or `4xB`, where x is one of the multiple from K, M,
@@ -77,6 +82,9 @@ type Config struct {
 
 	LogSettings `yaml:"log"`
 	Logger      *zerolog.Logger `yaml:"-"`
+
+	password.PasswordGenerator `yaml:"-"`
+	service.UsernameGenerator  `yaml:"-"`
 
 	Services struct {
 		service.Accounts

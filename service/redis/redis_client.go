@@ -28,9 +28,11 @@ func NewClientsWithRegularPing(ctx context.Context, config *config.Config, mutat
 
 	client := goredis.NewUniversalClient(&config.Redis.UniversalOptions)
 
-	detailLogger := logger.With().
-		Str("username", config.Redis.Username).
-		Logger()
+	detailLogger := logger.With().Logger()
+
+	if config.Redis.Username != "" {
+		detailLogger = logger.With().Str("username", config.Redis.Username).Logger()
+	}
 
 	logger = &detailLogger
 

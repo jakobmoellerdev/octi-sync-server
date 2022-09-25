@@ -1,11 +1,7 @@
 package basic
 
 import (
-	"crypto/sha256"
-	"crypto/subtle"
-	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/google/uuid"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
@@ -16,14 +12,11 @@ import (
 // AccountKey is the cookie name for user credential in basic auth.
 const AccountKey = "user"
 
-// DeviceID is the cookie name for user credential in basic auth.
-const DeviceID = "device"
+// Device is the cookie name for user credential in basic auth.
+const Device = "device"
 
 // DeviceIDHeader holds Device Authentication.
 const DeviceIDHeader = "X-Device-ID"
-
-// ShareQueryParamName holds Device Share Codes.
-const ShareQueryParamName = "share"
 
 // AuthWithShare returns a Basic HTTP Authorization Handler. It takes as argument a map[string]string where
 // the key is the username and the value is the password.
@@ -38,14 +31,13 @@ func AuthWithShare(accounts service.Accounts, devices service.Devices) echo.Midd
 				return false, echo.ErrUnauthorized
 			}
 
-			if subtle.ConstantTimeCompare([]byte(user.HashedPass()),
-				[]byte(fmt.Sprintf("%x", sha256.Sum256([]byte(password))))) != 1 {
+			if !user.Verify(password) {
 				return false, echo.ErrForbidden
 			}
 
-			// The user credentials was found, set user's id to key DeviceID in this context,
+			// The user credentials was found, set user's id to key Device in this context,
 			// the user's id can be read later using
-			// context.MustGet(auth.DeviceID).
+			// context.MustGet(auth.AccountKey).
 			context.Set(AccountKey, user)
 
 			deviceIDFromHeader := context.Request().Header.Get(DeviceIDHeader)
@@ -60,50 +52,18 @@ func AuthWithShare(accounts service.Accounts, devices service.Devices) echo.Midd
 			}
 
 			device, err := devices.FindByDeviceID(ctx, user, service.DeviceID(deviceID))
-			if err != nil {
-				if err = checkShare(context, accounts, user); err != nil {
-					return false, err
-				}
 
-				device, err = devices.Register(ctx, user, service.DeviceID(deviceID))
-
-				if err != nil {
-					return false, fmt.Errorf("device registration error: %w", err)
-				}
+			if err == service.ErrDeviceNotFound {
+				return false, echo.NewHTTPError(http.StatusForbidden).SetInternal(err)
 			}
 
-			// The account credentials was found, set account's id to key DeviceID in this context,
+			// The account credentials was found, set account's id to key Device in this context,
 			// the account's id can be read later using
-			// context.MustGet(auth.DeviceID).
-			context.Set(DeviceID, device)
+			// context.MustGet(auth.Device).
+			context.Set(Device, device)
 
 			return true, nil
 		},
 		Realm: "",
 	})
-}
-
-// checkShare verifies a share code.
-// if there is no share, it errors out
-// if there is a share code, but it does not apply for the given user account in accounts, then it errors out
-// if the IsShared check succeeds, it returns no error.
-func checkShare(ctx echo.Context, accounts service.Accounts, user service.Account) error {
-	var err error
-
-	share := ctx.QueryParam(ShareQueryParamName)
-	if share, err = url.QueryUnescape(share); err != nil {
-		return fmt.Errorf("error while unescaping share code: %w", err)
-	}
-
-	if share == "" {
-		// No share Code supplied
-		return echo.ErrForbidden
-	}
-
-	if shared, err := accounts.IsShared(ctx.Request().Context(), user.Username(), share); !shared || err != nil {
-		// Share code provided but not valid
-		return echo.ErrForbidden
-	}
-
-	return nil
 }

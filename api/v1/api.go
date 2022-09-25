@@ -8,6 +8,7 @@ import (
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/labstack/echo/v4"
+	"github.com/sethvargo/go-password/password"
 )
 
 //go:generate oapi-codegen --config REST/oapi-codegen.yaml REST/openapi.yaml
@@ -15,6 +16,8 @@ type API struct {
 	service.Accounts
 	service.Devices
 	service.Modules
+	password.PasswordGenerator
+	service.UsernameGenerator
 }
 
 const Prefix = "/v1"
@@ -36,6 +39,8 @@ func New(_ context.Context, engine *echo.Echo, config *config.Config) {
 			config.Services.Accounts,
 			config.Services.Devices,
 			config.Services.Modules,
+			config.PasswordGenerator,
+			config.UsernameGenerator,
 		},
 	}
 

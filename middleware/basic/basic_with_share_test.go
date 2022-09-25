@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 
 	"github.com/google/uuid"
@@ -15,6 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/random"
 	"github.com/rs/zerolog"
+	"github.com/sethvargo/go-password/password"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -49,7 +49,11 @@ func (suite *BasicAuthTestSuite) ResetRequest() {
 }
 
 func (suite *BasicAuthTestSuite) registerAndSetAuthorizationHeader(user string) service.Account {
-	acc, pass, err := suite.accounts.Register(context.Background(), user)
+
+	var passLength, minSpecial, minNum = 32, 6, 6
+
+	pass := password.MustGenerate(passLength, minNum, minSpecial, false, false)
+	acc, err := suite.accounts.Register(context.Background(), user, pass)
 
 	suite.NoError(err)
 	suite.req.SetBasicAuth(user, pass)
@@ -128,20 +132,15 @@ func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 	suite.ResetRequest()
 
 	// Now we share an account
-	share, err := suite.accounts.Share(context.Background(), acc.Username())
+	_, err := suite.devices.Register(context.Background(), acc, dev.ID())
 	suite.NoError(err)
 	// at first the device is not shared, the call should be forbidden
 	suite.req.Header.Set(auth.DeviceIDHeader, suite.randomDeviceID().String())
 	suite.Equal(http.StatusForbidden, suite.asHTTPError(testMiddleware(suite)).Code)
 	suite.ResetRequest()
 
-	// now it should still be invalid even though we provide a share code (that was not okay)
-	setQuery(suite.req.URL, auth.ShareQueryParamName, url.QueryEscape("invalid"))
-	suite.Equal(http.StatusForbidden, suite.asHTTPError(testMiddleware(suite)).Code)
-	suite.ResetRequest()
-
 	// now it should be valid as we provide a valid share code
-	setQuery(suite.req.URL, auth.ShareQueryParamName, url.QueryEscape(share))
+	suite.req.Header.Set(auth.DeviceIDHeader, dev.ID().String())
 	suite.NoError(testMiddleware(suite))
 	suite.ResetRequest()
 }
@@ -151,10 +150,6 @@ func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 func TestExampleTestSuite(t *testing.T) {
 	t.Parallel()
 	suite.Run(t, new(BasicAuthTestSuite))
-}
-
-func setQuery(u *url.URL, key string, values ...string) {
-	u.RawQuery = url.Values{key: values}.Encode()
 }
 
 func http200(context echo.Context) error {

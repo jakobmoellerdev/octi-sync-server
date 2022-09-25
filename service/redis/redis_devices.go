@@ -33,7 +33,7 @@ func (r *Devices) FindByAccount(ctx context.Context, acc service.Account) ([]ser
 			return devices, fmt.Errorf("device id could not be parsed: %w", err)
 		}
 
-		devices[i] = service.DeviceFromID(service.DeviceID(deviceId))
+		devices[i] = service.NewBaseDevice(service.DeviceID(deviceId))
 	}
 
 	return devices, nil
@@ -45,15 +45,16 @@ func (r *Devices) FindByDeviceID(
 	deviceID service.DeviceID,
 ) (service.Device, error) {
 	res, err := r.Client.LPos(ctx, r.deviceKeyForAccount(acc), deviceID.String(), redis.LPosArgs{}).Result()
+
+	if err == redis.Nil || res < 0 {
+		return nil, service.ErrDeviceNotFound
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("could not find devices by id: %w", err)
 	}
 
-	if res >= 0 {
-		return service.DeviceFromID(deviceID), nil
-	}
-
-	return nil, service.ErrDeviceNotFound
+	return service.NewBaseDevice(deviceID), nil
 }
 
 func (r *Devices) Register(
@@ -65,7 +66,7 @@ func (r *Devices) Register(
 		return nil, fmt.Errorf("could not push device id for registration: %w", err)
 	}
 
-	return service.DeviceFromID(deviceID), nil
+	return service.NewBaseDevice(deviceID), nil
 }
 
 func (r *Devices) HealthCheck() service.HealthCheck {

@@ -25,6 +25,6 @@ func (r *BaseDevice) ID() DeviceID {
 	return r.id
 }
 
-func DeviceFromID(deviceId DeviceID) *BaseDevice {
+func NewBaseDevice(deviceId DeviceID) *BaseDevice {
 	return &BaseDevice{deviceId}
 }
