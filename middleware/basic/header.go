@@ -9,8 +9,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const Basic = "Basic"
-const lengthBasic = len(Basic)
+const (
+	Basic       = "Basic"
+	lengthBasic = len(Basic)
+)
 
 var ErrNoCredentialsInHeader = errors.New("no basic auth credentials in header")
 
