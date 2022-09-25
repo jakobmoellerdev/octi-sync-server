@@ -34,6 +34,7 @@ func (r *Accounts) Register(ctx context.Context, username, password string) (ser
 	if acc, _ := r.Find(ctx, username); acc != nil {
 		return nil, service.ErrAccountAlreadyExists
 	}
+
 	hashedPass := fmt.Sprintf("%x", sha256.Sum256([]byte(password)))
 
 	if err := r.Client.HSet(ctx, AccountKeySpace, username, hashedPass).Err(); err != nil {

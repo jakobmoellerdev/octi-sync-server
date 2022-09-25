@@ -102,7 +102,7 @@ func MapRequestTimeoutToResponseCode(targetCode int) echo.MiddlewareFunc {
 					return echo.NewHTTPError(targetCode).SetInternal(ctx.Request().Context().Err())
 				}
 
-				return ctx.Request().Context().Err()
+				return ctx.Request().Context().Err() //nolint:wrapcheck we do not want to wrap here!
 			}
 		}
 	}

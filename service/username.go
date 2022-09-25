@@ -22,6 +22,7 @@ func (g *uuidUsernameGenerator) Generate() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("generating a uuid username for registration failed: %w", err)
 	}
+
 	return userID.String(), nil
 }
 

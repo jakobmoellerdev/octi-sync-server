@@ -22,8 +22,9 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 
 	deviceID := service.DeviceID(params.XDeviceID)
 
-	if username, password, err = basic.CredentialsFromAuthorizationHeader(ctx); err == echo.ErrBadRequest {
-		return err
+	if username, password, err = basic.CredentialsFromAuthorizationHeader(ctx); err != nil && err != basic.ErrNoCredentialsInHeader {
+		return echo.NewHTTPError(http.StatusBadRequest,
+			"invalid basic auth header cannot be used for registration").SetInternal(err)
 	}
 
 	if err == basic.ErrNoCredentialsInHeader {
