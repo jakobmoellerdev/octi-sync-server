@@ -86,10 +86,6 @@ func (api *API) registerNewAccount(ctx echo.Context) (service.Account, error) {
 		return nil, fmt.Errorf("generating a password for registration failed: %w", err)
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
 	account, err := api.Accounts.Register(ctx.Request().Context(), username, password)
 	if err != nil {
 		return nil, fmt.Errorf("account could not be registered (username: %s): %w", username, err)
@@ -105,6 +101,7 @@ func (api *API) verifyExistingAccount(ctx echo.Context, username, password strin
 	} else if !account.Verify(password) {
 		return nil, ErrPasswordMismatch
 	}
+
 	return account, nil
 }
 
