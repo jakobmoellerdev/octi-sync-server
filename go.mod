@@ -28,14 +28,14 @@ require (
 	// logging
 	github.com/rs/zerolog v1.28.0
 
+	// high-entropy password generation
+	github.com/sethvargo/go-password v0.2.0
+
 	// testing assertions
 	github.com/stretchr/testify v1.8.0
 
 	// yaml parsing
 	gopkg.in/yaml.v3 v3.0.1
-
-	// high-entropy password generation
-	github.com/sethvargo/go-password v0.2.0
 )
 
 require (

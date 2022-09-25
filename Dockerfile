@@ -10,6 +10,7 @@ COPY middleware/ middleware/
 COPY api/ api/
 COPY config/ config/
 COPY service/ service/
+COPY server/ server/
 
 COPY go.mod go.mod
 COPY go.sum go.sum
