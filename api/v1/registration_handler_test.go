@@ -74,7 +74,7 @@ func (r *RegisterTestSuite) SetupTest() {
 }
 
 func (r *RegisterTestSuite) Register(params REST.RegisterParams) error {
-	return r.api.Register(r.ctx, params)
+	return r.api.Register(r.ctx, params) //nolint:wrapcheck
 }
 
 func (r *RegisterTestSuite) Test_500_credential_username_generation_during_registration_fails() {
