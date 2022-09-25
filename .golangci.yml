@@ -34,6 +34,8 @@ linters-settings:
       - opinionated
       - performance
       - style
+  wsl:
+    allow-cuddle-declarations: true
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
