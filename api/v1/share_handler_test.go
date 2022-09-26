@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
@@ -33,7 +34,7 @@ func TestAPI_Share(t *testing.T) {
 	user := "test-user"
 	ctx := api.NewContext(req, rec)
 
-	ctx.Set(basic.AccountKey, service.NewBaseAccount(user, ""))
+	ctx.Set(basic.AccountKey, service.NewBaseAccount(user, time.Now()))
 
 	if assertions.NoError(apiImpl.Share(ctx, REST.ShareParams{XDeviceID: deviceID})) {
 		verifyShare(assertions, rec)

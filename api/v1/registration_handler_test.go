@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -28,6 +29,7 @@ type RegisterTestSuite struct {
 	ctrl     *gomock.Controller
 	devices  *mock.MockDevices
 	accounts *mock.MockAccounts
+	sharing *mock.MockSharing
 	router   *echo.Echo
 	api      *v1.API
 
@@ -56,12 +58,14 @@ func (r *RegisterTestSuite) SetupTest() {
 	r.ctrl = gomock.NewController(r.T())
 	r.devices = mock.NewMockDevices(r.ctrl)
 	r.accounts = mock.NewMockAccounts(r.ctrl)
+	r.sharing = mock.NewMockSharing(r.ctrl)
 	usernameGen := mock.NewMockUsernameGenerator(r.ctrl)
 	usernameGen.EXPECT().Generate().AnyTimes().Return(r.user, nil)
 
 	r.api = &v1.API{
 		Devices:           r.devices,
 		Accounts:          r.accounts,
+		Sharing: r.sharing,
 		UsernameGenerator: usernameGen,
 		PasswordGenerator: password.NewMockGenerator(r.pass, nil),
 	}
@@ -98,7 +102,7 @@ func (r *RegisterTestSuite) Test_500_credential_password_generation_during_regis
 }
 
 func (r *RegisterTestSuite) Test_500_account_registration_fails() {
-	r.accounts.EXPECT().Register(r.ctx.Request().Context(), r.user, r.pass).Times(1).
+	r.accounts.EXPECT().Create(r.ctx.Request().Context(), r.user).Times(1).
 		Return(nil, errors.New(r.errMockText))
 
 	err := r.Register(REST.RegisterParams{})
@@ -118,7 +122,7 @@ func (r *RegisterTestSuite) Test_403_account_not_exists_provided_credentials() {
 
 func (r *RegisterTestSuite) Test_403_account_not_exists_wrong_pass() {
 	r.accounts.EXPECT().Find(r.ctx.Request().Context(), "foo").Times(1).
-		Return(service.NewBaseAccount("foo", "bar"), nil)
+		Return(service.NewBaseAccount("foo", time.Now()), nil)
 	r.ctx.Request().SetBasicAuth("foo", "WRONG")
 
 	err := r.Register(REST.RegisterParams{})
@@ -127,12 +131,12 @@ func (r *RegisterTestSuite) Test_403_account_not_exists_wrong_pass() {
 }
 
 func (r *RegisterTestSuite) Test_403_device_not_registered_no_share_code() {
-	acc := service.NewBaseAccount(r.user, HashedPassword(r.pass))
+	acc := service.NewBaseAccount(r.user, time.Now())
 
 	r.ctx.Request().SetBasicAuth(r.user, r.pass)
 	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
 		Return(acc, nil)
-	r.devices.EXPECT().FindByDeviceID(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
+	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
 
 	err := r.Register(
@@ -145,14 +149,14 @@ func (r *RegisterTestSuite) Test_403_device_not_registered_no_share_code() {
 }
 
 func (r *RegisterTestSuite) Test_403_device_not_registered_share_code_lookup_fails() {
-	acc := service.NewBaseAccount(r.user, HashedPassword(r.pass))
+	acc := service.NewBaseAccount(r.user, time.Now())
 
 	r.ctx.Request().SetBasicAuth(r.user, r.pass)
 	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
 		Return(acc, nil)
-	r.devices.EXPECT().FindByDeviceID(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
+	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
-	r.accounts.EXPECT().IsShared(r.ctx.Request().Context(), acc.Username(), r.share).Times(1).
+	r.sharing.EXPECT().IsShared(r.ctx.Request().Context(), acc.Username(), r.share).Times(1).
 		Return(errors.New(r.errMockText))
 
 	err := r.Register(
@@ -166,14 +170,14 @@ func (r *RegisterTestSuite) Test_403_device_not_registered_share_code_lookup_fai
 }
 
 func (r *RegisterTestSuite) Test_403_device_not_registered_share_code_invalid() {
-	acc := service.NewBaseAccount(r.user, HashedPassword(r.pass))
+	acc := service.NewBaseAccount(r.user, time.Now())
 
 	r.ctx.Request().SetBasicAuth(r.user, r.pass)
 	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
 		Return(acc, nil)
-	r.devices.EXPECT().FindByDeviceID(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
+	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
-	r.accounts.EXPECT().IsShared(r.ctx.Request().Context(), acc.Username(), r.share).Times(1).
+	r.sharing.EXPECT().IsShared(r.ctx.Request().Context(), acc.Username(), r.share).Times(1).
 		Return(service.ErrShareCodeInvalid)
 
 	err := r.Register(
@@ -187,16 +191,16 @@ func (r *RegisterTestSuite) Test_403_device_not_registered_share_code_invalid() 
 }
 
 func (r *RegisterTestSuite) Test_500_device_not_registered_share_code_ok_device_registration_fails() {
-	acc := service.NewBaseAccount(r.user, HashedPassword(r.pass))
+	acc := service.NewBaseAccount(r.user, time.Now())
 
 	r.ctx.Request().SetBasicAuth(r.user, r.pass)
 	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
 		Return(acc, nil)
-	r.devices.EXPECT().FindByDeviceID(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
+	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
-	r.accounts.EXPECT().IsShared(r.ctx.Request().Context(), acc.Username(), r.share).Times(1).
+	r.sharing.EXPECT().IsShared(r.ctx.Request().Context(), acc.Username(), r.share).Times(1).
 		Return(nil)
-	r.devices.EXPECT().Register(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
+	r.devices.EXPECT().AddDevice(r.ctx.Request().Context(), acc, r.deviceID, r.pass).Times(1).
 		Return(nil, errors.New(r.errMockText))
 
 	err := r.Register(
@@ -210,17 +214,17 @@ func (r *RegisterTestSuite) Test_500_device_not_registered_share_code_ok_device_
 }
 
 func (r *RegisterTestSuite) Test_200_device_not_registered_share_code_ok_device_registration_ok_with_header() {
-	acc := service.NewBaseAccount(r.user, HashedPassword(r.pass))
+	acc := service.NewBaseAccount(r.user, time.Now())
 
 	r.ctx.Request().SetBasicAuth(r.user, r.pass)
 	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
 		Return(acc, nil)
-	r.devices.EXPECT().FindByDeviceID(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
+	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
-	r.accounts.EXPECT().IsShared(r.ctx.Request().Context(), acc.Username(), r.share).Times(1).
+	r.sharing.EXPECT().IsShared(r.ctx.Request().Context(), acc.Username(), r.share).Times(1).
 		Return(nil)
-	r.devices.EXPECT().Register(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
-		Return(service.NewBaseDevice(r.deviceID), nil)
+	r.devices.EXPECT().AddDevice(r.ctx.Request().Context(), acc, r.deviceID, r.pass).Times(1).
+		Return(service.NewBaseDevice(r.deviceID, HashedPassword(r.pass)), nil)
 
 	err := r.Register(
 		REST.RegisterParams{
@@ -233,16 +237,16 @@ func (r *RegisterTestSuite) Test_200_device_not_registered_share_code_ok_device_
 }
 
 func (r *RegisterTestSuite) Test_200_device_not_registered_share_code_ok_device_registration_ok_with_generated_creds() {
-	acc := service.NewBaseAccount(r.user, HashedPassword(r.pass))
+	acc := service.NewBaseAccount(r.user, time.Now())
 
-	r.accounts.EXPECT().Register(r.ctx.Request().Context(), r.user, r.pass).Times(1).
+	r.accounts.EXPECT().Create(r.ctx.Request().Context(), r.user).Times(1).
 		Return(acc, nil)
-	r.devices.EXPECT().FindByDeviceID(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
+	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
-	r.accounts.EXPECT().IsShared(r.ctx.Request().Context(), acc.Username(), r.share).Times(1).
+	r.sharing.EXPECT().IsShared(r.ctx.Request().Context(), acc.Username(), r.share).Times(1).
 		Return(nil)
-	r.devices.EXPECT().Register(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
-		Return(service.NewBaseDevice(r.deviceID), nil)
+	r.devices.EXPECT().AddDevice(r.ctx.Request().Context(), acc, r.deviceID, r.pass).Times(1).
+		Return(service.NewBaseDevice(r.deviceID, HashedPassword(r.pass)), nil)
 
 	err := r.Register(
 		REST.RegisterParams{

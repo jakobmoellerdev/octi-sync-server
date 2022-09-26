@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"time"
@@ -21,27 +20,32 @@ type Accounts struct {
 	Client redis.Cmdable
 }
 
+func (r *Accounts) Create(ctx context.Context, username string) (service.Account, error) {
+	if acc, _ := r.Find(ctx, username); acc != nil {
+		return nil, service.ErrAccountAlreadyExists
+	}
+
+	account := service.NewBaseAccount(username, time.Now())
+
+	if err := r.Client.HSet(ctx, AccountKeySpace, username, account.CreatedAt().String()).Err(); err != nil {
+		return nil, fmt.Errorf("error while setting user in account key space: %w", err)
+	}
+
+	return account, nil
+}
+
 func (r *Accounts) Find(ctx context.Context, username string) (service.Account, error) {
 	res, err := r.Client.HGet(ctx, AccountKeySpace, username).Result()
 	if err != nil {
 		return nil, fmt.Errorf("error while looking up user: %w", err)
 	}
 
-	return service.NewBaseAccount(username, res), nil
-}
-
-func (r *Accounts) Register(ctx context.Context, username, password string) (service.Account, error) {
-	if acc, _ := r.Find(ctx, username); acc != nil {
-		return nil, service.ErrAccountAlreadyExists
+	createdAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", res)
+	if err != nil {
+		return nil, fmt.Errorf("error while parsing user creation: %w", err)
 	}
 
-	hashedPass := fmt.Sprintf("%x", sha256.Sum256([]byte(password)))
-
-	if err := r.Client.HSet(ctx, AccountKeySpace, username, hashedPass).Err(); err != nil {
-		return nil, fmt.Errorf("error while setting user in account key space: %w", err)
-	}
-
-	return service.NewBaseAccount(username, password), nil
+	return service.NewBaseAccount(username, createdAt), nil
 }
 
 func (r *Accounts) HealthCheck() service.HealthCheck {
@@ -50,26 +54,30 @@ func (r *Accounts) HealthCheck() service.HealthCheck {
 	}
 }
 
-func (r *Accounts) Share(ctx context.Context, username string) (string, error) {
+func (r *Accounts) shareKey(account service.Account) string {
+	return fmt.Sprintf("%s:%s", ShareKeySpace, account.Username())
+}
+
+func (r *Accounts) Share(ctx context.Context, account service.Account) (string, error) {
 	shareID, err := uuid.NewRandom()
 	if err != nil {
 		return "", fmt.Errorf("error during share code generation: %w", err)
 	}
 
 	shareCode := shareID.String()
-	if err := r.Client.LPush(ctx, r.shareKey(username), shareCode).Err(); err != nil {
+	if err := r.Client.LPush(ctx, r.shareKey(account), shareCode).Err(); err != nil {
 		return "", fmt.Errorf("error while pushing shareCode: %w", err)
 	}
 
-	if err := r.Client.Expire(ctx, r.shareKey(username), time.Hour).Err(); err != nil {
+	if err := r.Client.Expire(ctx, r.shareKey(account), time.Hour).Err(); err != nil {
 		return "", fmt.Errorf("error while setting expiry: %w", err)
 	}
 
 	return shareCode, nil
 }
 
-func (r *Accounts) ActiveShares(ctx context.Context, username string) ([]string, error) {
-	shareCodes, err := r.Client.LRange(ctx, r.shareKey(username), 0, -1).Result()
+func (r *Accounts) ActiveShares(ctx context.Context, account service.Account) ([]string, error) {
+	shareCodes, err := r.Client.LRange(ctx, r.shareKey(account), 0, -1).Result()
 	if err != nil {
 		return []string{}, fmt.Errorf("could not determine active sharecode list: %w", err)
 	}
@@ -77,8 +85,8 @@ func (r *Accounts) ActiveShares(ctx context.Context, username string) ([]string,
 	return shareCodes, nil
 }
 
-func (r *Accounts) IsShared(ctx context.Context, username string, share string) error {
-	err := r.Client.LPos(ctx, r.shareKey(username), share, redis.LPosArgs{}).Err()
+func (r *Accounts) IsShared(ctx context.Context, account service.Account, shareCode service.ShareCode) error {
+	err := r.Client.LPos(ctx, r.shareKey(account), shareCode.String(), redis.LPosArgs{}).Err()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return service.ErrShareCodeInvalid
@@ -90,14 +98,10 @@ func (r *Accounts) IsShared(ctx context.Context, username string, share string) 
 	return nil
 }
 
-func (r *Accounts) Revoke(ctx context.Context, username string, shareCode string) error {
-	if err := r.Client.LRem(ctx, r.shareKey(username), 0, shareCode).Err(); err != nil {
+func (r *Accounts) Revoke(ctx context.Context, account service.Account, shareCode service.ShareCode) error {
+	if err := r.Client.LRem(ctx, r.shareKey(account), 0, shareCode).Err(); err != nil {
 		return fmt.Errorf("error while revoking user: %w", err)
 	}
 
 	return nil
-}
-
-func (r *Accounts) shareKey(username string) string {
-	return fmt.Sprintf("%s:%s", ShareKeySpace, username)
 }

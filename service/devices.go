@@ -7,10 +7,16 @@ import (
 
 //go:generate mockgen -source devices.go -package mock -destination mock/devices.go Devices
 type Devices interface {
-	FindByAccount(ctx context.Context, acc Account) ([]Device, error)
-	FindByDeviceID(ctx context.Context, acc Account, deviceId DeviceID) (Device, error)
-	Register(ctx context.Context, acc Account, deviceId DeviceID) (Device, error)
+	AddDevice(ctx context.Context, account Account, id DeviceID, password string) (Device, error)
+	GetDevices(ctx context.Context, account Account) (map[DeviceID]Device, error)
+	GetDevice(ctx context.Context, account Account, id DeviceID) (Device, error)
+	DeleteDevice(ctx context.Context, account Account, id DeviceID) error
+
 	HealthCheck() HealthCheck
 }
 
 var ErrDeviceNotFound = errors.New("device not found")
+
+func ErrIsDeviceNotFound(err error) bool {
+	return errors.Is(err, ErrDeviceNotFound)
+}

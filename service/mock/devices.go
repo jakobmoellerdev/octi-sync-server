@@ -35,34 +35,63 @@ func (m *MockDevices) EXPECT() *MockDevicesMockRecorder {
 	return m.recorder
 }
 
-// FindByAccount mocks base method.
-func (m *MockDevices) FindByAccount(ctx context.Context, acc service.Account) ([]service.Device, error) {
+// AddDevice mocks base method.
+func (m *MockDevices) AddDevice(ctx context.Context, account service.Account, id service.DeviceID, password string) (service.Device, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByAccount", ctx, acc)
-	ret0, _ := ret[0].([]service.Device)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindByAccount indicates an expected call of FindByAccount.
-func (mr *MockDevicesMockRecorder) FindByAccount(ctx, acc interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByAccount", reflect.TypeOf((*MockDevices)(nil).FindByAccount), ctx, acc)
-}
-
-// FindByDeviceID mocks base method.
-func (m *MockDevices) FindByDeviceID(ctx context.Context, acc service.Account, deviceId service.DeviceID) (service.Device, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByDeviceID", ctx, acc, deviceId)
+	ret := m.ctrl.Call(m, "AddDevice", ctx, account, id, password)
 	ret0, _ := ret[0].(service.Device)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindByDeviceID indicates an expected call of FindByDeviceID.
-func (mr *MockDevicesMockRecorder) FindByDeviceID(ctx, acc, deviceId interface{}) *gomock.Call {
+// AddDevice indicates an expected call of AddDevice.
+func (mr *MockDevicesMockRecorder) AddDevice(ctx, account, id, password interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByDeviceID", reflect.TypeOf((*MockDevices)(nil).FindByDeviceID), ctx, acc, deviceId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddDevice", reflect.TypeOf((*MockDevices)(nil).AddDevice), ctx, account, id, password)
+}
+
+// DeleteDevice mocks base method.
+func (m *MockDevices) DeleteDevice(ctx context.Context, account service.Account, id service.DeviceID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteDevice", ctx, account, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteDevice indicates an expected call of DeleteDevice.
+func (mr *MockDevicesMockRecorder) DeleteDevice(ctx, account, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteDevice", reflect.TypeOf((*MockDevices)(nil).DeleteDevice), ctx, account, id)
+}
+
+// GetDevice mocks base method.
+func (m *MockDevices) GetDevice(ctx context.Context, account service.Account, id service.DeviceID) (service.Device, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDevice", ctx, account, id)
+	ret0, _ := ret[0].(service.Device)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDevice indicates an expected call of GetDevice.
+func (mr *MockDevicesMockRecorder) GetDevice(ctx, account, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDevice", reflect.TypeOf((*MockDevices)(nil).GetDevice), ctx, account, id)
+}
+
+// GetDevices mocks base method.
+func (m *MockDevices) GetDevices(ctx context.Context, account service.Account) (map[service.DeviceID]service.Device, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDevices", ctx, account)
+	ret0, _ := ret[0].(map[service.DeviceID]service.Device)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDevices indicates an expected call of GetDevices.
+func (mr *MockDevicesMockRecorder) GetDevices(ctx, account interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDevices", reflect.TypeOf((*MockDevices)(nil).GetDevices), ctx, account)
 }
 
 // HealthCheck mocks base method.
@@ -77,19 +106,4 @@ func (m *MockDevices) HealthCheck() service.HealthCheck {
 func (mr *MockDevicesMockRecorder) HealthCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockDevices)(nil).HealthCheck))
-}
-
-// Register mocks base method.
-func (m *MockDevices) Register(ctx context.Context, acc service.Account, deviceId service.DeviceID) (service.Device, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, acc, deviceId)
-	ret0, _ := ret[0].(service.Device)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Register indicates an expected call of Register.
-func (mr *MockDevicesMockRecorder) Register(ctx, acc, deviceId interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockDevices)(nil).Register), ctx, acc, deviceId)
 }

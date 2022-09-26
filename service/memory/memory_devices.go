@@ -8,62 +8,54 @@ import (
 )
 
 func NewDevices() *Devices {
-	return &Devices{sync.RWMutex{}, make(map[string][]service.DeviceID)}
+	return &Devices{sync.RWMutex{}, make(map[string]map[service.DeviceID]service.Device)}
 }
 
 type Devices struct {
 	sync    sync.RWMutex
-	devices map[string][]service.DeviceID
+	devices map[string]map[service.DeviceID]service.Device
 }
 
-func (m *Devices) FindByAccount(_ context.Context, acc service.Account) ([]service.Device, error) {
-	m.sync.RLock()
-	defer m.sync.RUnlock()
-
-	deviceIDs := m.devices[acc.Username()]
-
-	devices := make([]service.Device, len(deviceIDs))
-	for i := range devices {
-		devices[i] = service.NewBaseDevice(deviceIDs[i])
-	}
-
-	return devices, nil
-}
-
-func (m *Devices) FindByDeviceID(
-	_ context.Context,
-	acc service.Account,
-	deviceID service.DeviceID,
-) (service.Device, error) {
-	m.sync.RLock()
-	defer m.sync.RUnlock()
-
-	devices, devicesExist := m.devices[acc.Username()]
-	if !devicesExist {
-		return nil, service.ErrDeviceNotFound
-	}
-
-	for i := range devices {
-		if devices[i] == deviceID {
-			return service.NewBaseDevice(deviceID), nil
-		}
-	}
-
-	return nil, service.ErrDeviceNotFound
-}
-
-func (m *Devices) Register(
-	_ context.Context,
-	acc service.Account,
-	deviceID service.DeviceID,
+func (m *Devices) AddDevice(
+	ctx context.Context, account service.Account, id service.DeviceID, password string,
 ) (service.Device, error) {
 	m.sync.Lock()
 	defer m.sync.Unlock()
 
-	devices := m.devices[acc.Username()]
-	m.devices[acc.Username()] = append(devices, deviceID)
+	if m.devices[account.Username()] == nil {
+		m.devices[account.Username()] = map[service.DeviceID]service.Device{}
+	}
 
-	return service.NewBaseDevice(deviceID), nil
+	m.devices[account.Username()][id] = service.NewBaseDevice(id, password)
+
+	return m.devices[account.Username()][id], nil
+}
+
+func (m *Devices) GetDevices(
+	_ context.Context, account service.Account,
+) (map[service.DeviceID]service.Device, error) {
+	m.sync.RLock()
+	defer m.sync.RUnlock()
+
+	deviceIDs := m.devices[account.Username()]
+
+	return deviceIDs, nil
+}
+
+func (m *Devices) GetDevice(_ context.Context, account service.Account, id service.DeviceID) (service.Device, error) {
+	m.sync.RLock()
+	defer m.sync.RUnlock()
+
+	return m.devices[account.Username()][id], nil
+}
+
+func (m *Devices) DeleteDevice(_ context.Context, account service.Account, id service.DeviceID) error {
+	m.sync.Lock()
+	defer m.sync.Unlock()
+
+	m.devices[account.Username()][id] = nil
+
+	return nil
 }
 
 func (m *Devices) HealthCheck() service.HealthCheck {

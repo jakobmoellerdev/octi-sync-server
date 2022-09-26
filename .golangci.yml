@@ -4,6 +4,7 @@ linters:
     - gci
     - wsl
     - wrapcheck
+    - gofumpt
   presets:
     - bugs
     - unused
@@ -39,6 +40,6 @@ linters-settings:
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
-  fix: false
+  fix: true
 run:
   timeout: 3m

@@ -48,14 +48,10 @@ func (suite *BasicAuthTestSuite) ResetRequest() {
 	suite.Context.Reset(suite.req, suite.Context.Response().Writer)
 }
 
-func (suite *BasicAuthTestSuite) registerAndSetAuthorizationHeader(user string) service.Account {
-	passLength, minSpecial, minNum := 32, 6, 6
-
-	pass := password.MustGenerate(passLength, minNum, minSpecial, false, false)
-	acc, err := suite.accounts.Register(context.Background(), user, pass)
+func (suite *BasicAuthTestSuite) register(user string) service.Account {
+	acc, err := suite.accounts.Create(context.Background(), user)
 
 	suite.NoError(err)
-	suite.req.SetBasicAuth(user, pass)
 
 	return acc
 }
@@ -64,10 +60,14 @@ func (suite *BasicAuthTestSuite) registerAndSetDeviceHeader(
 	acc service.Account,
 	deviceID service.DeviceID,
 ) service.Device {
-	dev, err := suite.devices.Register(context.Background(), acc, deviceID)
+	passLength, minSpecial, minNum := 32, 6, 6
+
+	pass := password.MustGenerate(passLength, minNum, minSpecial, false, false)
+	dev, err := suite.devices.AddDevice(context.Background(), acc, deviceID, pass)
 
 	suite.NoError(err)
 	suite.req.Header.Set(auth.DeviceIDHeader, deviceID.String())
+	suite.req.SetBasicAuth(acc.Username(), pass)
 
 	return dev
 }
@@ -103,7 +103,7 @@ func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 	suite.Equal(http.StatusUnauthorized, suite.asHTTPError(testMiddleware(suite)).Code)
 
 	// Valid Token
-	acc = suite.registerAndSetAuthorizationHeader(suite.randomUsername())
+	acc = suite.register(suite.randomUsername())
 	dev = suite.registerAndSetDeviceHeader(acc, suite.randomDeviceID())
 	suite.NoError(testMiddleware(suite))
 	suite.ResetRequest()
@@ -125,13 +125,13 @@ func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 	suite.ResetRequest()
 
 	// Valid Token with both params reset should work fine
-	acc = suite.registerAndSetAuthorizationHeader(suite.randomUsername())
+	acc = suite.register(suite.randomUsername())
 	suite.registerAndSetDeviceHeader(acc, suite.randomDeviceID())
 	suite.NoError(testMiddleware(suite))
 	suite.ResetRequest()
 
 	// Now we share an account
-	_, err := suite.devices.Register(context.Background(), acc, dev.ID())
+	_, err := suite.devices.AddDevice(context.Background(), acc, dev.ID(), dev.HashedPass())
 	suite.NoError(err)
 	// at first the device is not shared, the call should be forbidden
 	suite.req.Header.Set(auth.DeviceIDHeader, suite.randomDeviceID().String())
