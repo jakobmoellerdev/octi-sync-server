@@ -44,5 +44,4 @@ jobs:
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         run: |
           echo "Changed OpenAPI Spec: ${{ steps.verify-changed-files.outputs.changed_files }}"
-          echo "Run oapi-codegen --config api/${{ matrix.version }}/openapi.codegen.yaml api/${{ matrix.version }}/openapi.yaml > api/${{ matrix.version }}/api.gen.go and commit your changes!"
           run: exit 1
