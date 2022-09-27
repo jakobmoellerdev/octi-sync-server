@@ -17,6 +17,7 @@ var (
 	ErrDeviceNotRegistered = errors.New("device not found in account and there was no share code")
 )
 
+//nolint:funlen
 func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 	deviceID := service.DeviceID(params.XDeviceID)
 	username, password, err := basic.CredentialsFromAuthorizationHeader(ctx)

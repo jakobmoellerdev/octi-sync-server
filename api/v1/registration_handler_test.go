@@ -219,6 +219,7 @@ func (r *RegisterTestSuite) Test_500_device_not_registered_share_code_ok_device_
 	r.ErrorContains(err, "cannot register device")
 }
 
+//nolint:lll
 func (r *RegisterTestSuite) Test_500_device_not_registered_share_code_ok_device_registration_ok_share_revocation_failed() {
 	acc := service.NewBaseAccount(r.user, time.Now())
 
@@ -269,6 +270,7 @@ func (r *RegisterTestSuite) Test_200_device_not_registered_share_code_ok_device_
 	r.NoError(err)
 }
 
+//nolint:lll
 func (r *RegisterTestSuite) Test_200_device_not_registered_share_code_ok_device_registration_ok_with_generated_creds_new_account() {
 	acc := service.NewBaseAccount(r.user, time.Now())
 
@@ -289,8 +291,8 @@ func (r *RegisterTestSuite) Test_200_device_not_registered_share_code_ok_device_
 
 func (r *RegisterTestSuite) Test_200_device_not_registered_share_code_ok_device_registration_ok_with_generated_creds() {
 	acc := service.NewBaseAccount(r.user, time.Now())
-
 	newPass := "some new password"
+
 	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
 		Return(acc, nil)
 	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
