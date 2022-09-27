@@ -393,6 +393,7 @@ func RegisterHandlers(router EchoRouter, si ServerInterface) {
 // Registers handlers, and prepends BaseURL to the paths, so that the paths
 // can be served under a prefix.
 func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL string) {
+
 	wrapper := ServerInterfaceWrapper{
 		Handler: si,
 	}
@@ -404,10 +405,12 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/modules/:name", wrapper.GetModule)
 	router.POST(baseURL+"/modules/:name", wrapper.CreateModule)
 	router.GET(baseURL+"/ready", wrapper.IsReady)
+
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
+
 	"H4sIAAAAAAAC/8xZX28buRH/KizbhxZYa30JChz0VNVOExW5JLAS4ICcHyhyJDHhkhty1q5g6LsXQ+5f",
 	"7dqK0kt6T4mXw+HMb4a/maEeuHRF6SxYDHz+wEvhRQEIPv71i1OVgTeiAPpLQZBel6id5XO+Qq8lsqUC",
 	"i3qjwbON80ywtIdnXJNUKXDHM26jivRPxj18qbQHxefoK8h4kDsoBB3xFw8bPud/zjur8rQa8p4xh0PG",
@@ -472,7 +475,7 @@ func decodeSpecCached() func() ([]byte, error) {
 
 // Constructs a synthetic filesystem for resolving external references when loading openapi specifications.
 func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
-	res := make(map[string]func() ([]byte, error))
+	var res = make(map[string]func() ([]byte, error))
 	if len(pathToFile) > 0 {
 		res[pathToFile] = rawSpec
 	}
@@ -486,12 +489,12 @@ func PathToRawSpec(pathToFile string) map[string]func() ([]byte, error) {
 // Externally referenced files must be embedded in the corresponding golang packages.
 // Urls can be supported but this task was out of the scope.
 func GetSwagger() (swagger *openapi3.T, err error) {
-	resolvePath := PathToRawSpec("")
+	var resolvePath = PathToRawSpec("")
 
 	loader := openapi3.NewLoader()
 	loader.IsExternalRefsAllowed = true
 	loader.ReadFromURIFunc = func(loader *openapi3.Loader, url *url.URL) ([]byte, error) {
-		pathToFile := url.String()
+		var pathToFile = url.String()
 		pathToFile = path.Clean(pathToFile)
 		getSpec, ok := resolvePath[pathToFile]
 		if !ok {
