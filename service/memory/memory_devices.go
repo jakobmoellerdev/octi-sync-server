@@ -2,6 +2,8 @@ package memory
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"sync"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
@@ -16,49 +18,59 @@ type Devices struct {
 	devices map[string]map[service.DeviceID]service.Device
 }
 
-func (m *Devices) AddDevice(
-	ctx context.Context, account service.Account, id service.DeviceID, password string,
-) (service.Device, error) {
-	m.sync.Lock()
-	defer m.sync.Unlock()
-
-	if m.devices[account.Username()] == nil {
-		m.devices[account.Username()] = map[service.DeviceID]service.Device{}
-	}
-
-	m.devices[account.Username()][id] = service.NewBaseDevice(id, password)
-
-	return m.devices[account.Username()][id], nil
+func (r *Devices) hashPassword(password string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(password)))
 }
 
-func (m *Devices) GetDevices(
+func (r *Devices) AddDevice(
+	_ context.Context, account service.Account, id service.DeviceID, password string,
+) (service.Device, error) {
+	r.sync.Lock()
+	defer r.sync.Unlock()
+
+	if r.devices[account.Username()] == nil {
+		r.devices[account.Username()] = map[service.DeviceID]service.Device{}
+	}
+
+	r.devices[account.Username()][id] = service.NewBaseDevice(id, r.hashPassword(password))
+
+	return r.devices[account.Username()][id], nil
+}
+
+func (r *Devices) GetDevices(
 	_ context.Context, account service.Account,
 ) (map[service.DeviceID]service.Device, error) {
-	m.sync.RLock()
-	defer m.sync.RUnlock()
+	r.sync.RLock()
+	defer r.sync.RUnlock()
 
-	deviceIDs := m.devices[account.Username()]
+	deviceIDs := r.devices[account.Username()]
 
 	return deviceIDs, nil
 }
 
-func (m *Devices) GetDevice(_ context.Context, account service.Account, id service.DeviceID) (service.Device, error) {
-	m.sync.RLock()
-	defer m.sync.RUnlock()
+func (r *Devices) GetDevice(_ context.Context, account service.Account, id service.DeviceID) (service.Device, error) {
+	r.sync.RLock()
+	defer r.sync.RUnlock()
 
-	return m.devices[account.Username()][id], nil
+	device := r.devices[account.Username()][id]
+
+	if device == nil {
+		return nil, service.ErrDeviceNotFound
+	}
+
+	return device, nil
 }
 
-func (m *Devices) DeleteDevice(_ context.Context, account service.Account, id service.DeviceID) error {
-	m.sync.Lock()
-	defer m.sync.Unlock()
+func (r *Devices) DeleteDevice(_ context.Context, account service.Account, id service.DeviceID) error {
+	r.sync.Lock()
+	defer r.sync.Unlock()
 
-	m.devices[account.Username()][id] = nil
+	r.devices[account.Username()][id] = nil
 
 	return nil
 }
 
-func (m *Devices) HealthCheck() service.HealthCheck {
+func (r *Devices) HealthCheck() service.HealthCheck {
 	return func(_ context.Context) (string, bool) {
 		return "memory-devices", true
 	}

@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	ErrPasswordMismatch                   = errors.New("passwords do not match")
-	ErrDeviceExistsButNoShareCodeProvided = errors.New("device already exists but there was no share code")
+	ErrPasswordMismatch    = errors.New("passwords do not match")
+	ErrDeviceNotRegistered = errors.New("device not found in account and there was no share code")
 )
 
 func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
@@ -22,8 +22,10 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 	username, password, err := basic.CredentialsFromAuthorizationHeader(ctx)
 
 	if err != nil && err != basic.ErrNoCredentialsInHeader {
-		return echo.NewHTTPError(http.StatusBadRequest,
-			"invalid basic auth header cannot be used for registration").SetInternal(err)
+		return echo.NewHTTPError(
+			http.StatusBadRequest,
+			"invalid basic auth header cannot be used for registration",
+		).SetInternal(err)
 	}
 
 	var account service.Account
@@ -43,7 +45,7 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 	if device == nil {
 		// if the device does not exist we have to verify the share code
 		if params.Share == nil {
-			return echo.NewHTTPError(http.StatusForbidden).SetInternal(ErrDeviceExistsButNoShareCodeProvided)
+			return echo.NewHTTPError(http.StatusForbidden).SetInternal(ErrDeviceNotRegistered)
 		}
 
 		shareCode := service.ShareCode(*params.Share)

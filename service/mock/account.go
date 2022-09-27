@@ -6,6 +6,7 @@ package mock
 
 import (
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 )
@@ -33,18 +34,18 @@ func (m *MockAccount) EXPECT() *MockAccountMockRecorder {
 	return m.recorder
 }
 
-// HashedPass mocks base method.
-func (m *MockAccount) HashedPass() string {
+// CreatedAt mocks base method.
+func (m *MockAccount) CreatedAt() time.Time {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HashedPass")
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "CreatedAt")
+	ret0, _ := ret[0].(time.Time)
 	return ret0
 }
 
-// HashedPass indicates an expected call of HashedPass.
-func (mr *MockAccountMockRecorder) HashedPass() *gomock.Call {
+// CreatedAt indicates an expected call of CreatedAt.
+func (mr *MockAccountMockRecorder) CreatedAt() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HashedPass", reflect.TypeOf((*MockAccount)(nil).HashedPass))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatedAt", reflect.TypeOf((*MockAccount)(nil).CreatedAt))
 }
 
 // Username mocks base method.
@@ -59,18 +60,4 @@ func (m *MockAccount) Username() string {
 func (mr *MockAccountMockRecorder) Username() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Username", reflect.TypeOf((*MockAccount)(nil).Username))
-}
-
-// Verify mocks base method.
-func (m *MockAccount) Verify(password string) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Verify", password)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// Verify indicates an expected call of Verify.
-func (mr *MockAccountMockRecorder) Verify(password interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockAccount)(nil).Verify), password)
 }

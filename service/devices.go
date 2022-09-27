@@ -16,7 +16,3 @@ type Devices interface {
 }
 
 var ErrDeviceNotFound = errors.New("device not found")
-
-func ErrIsDeviceNotFound(err error) bool {
-	return errors.Is(err, ErrDeviceNotFound)
-}

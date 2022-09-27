@@ -27,7 +27,10 @@ func (r *Accounts) Create(ctx context.Context, username string) (service.Account
 
 	account := service.NewBaseAccount(username, time.Now())
 
-	if err := r.Client.HSet(ctx, AccountKeySpace, username, account.CreatedAt().String()).Err(); err != nil {
+	// cannot err out as time was created here
+	createdAt, _ := account.CreatedAt().MarshalBinary()
+
+	if err := r.Client.HSet(ctx, AccountKeySpace, username, createdAt).Err(); err != nil {
 		return nil, fmt.Errorf("error while setting user in account key space: %w", err)
 	}
 
@@ -40,8 +43,8 @@ func (r *Accounts) Find(ctx context.Context, username string) (service.Account, 
 		return nil, fmt.Errorf("error while looking up user: %w", err)
 	}
 
-	createdAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", res)
-	if err != nil {
+	var createdAt time.Time
+	if err = createdAt.UnmarshalBinary([]byte(res)); err != nil {
 		return nil, fmt.Errorf("error while parsing user creation: %w", err)
 	}
 

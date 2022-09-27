@@ -84,9 +84,11 @@ func testGetDevicesReturns200(t *testing.T, api *v1.API) deviceTest {
 
 		deviceID := service.DeviceID(RandomUUID(t))
 		mockDevicesFromAPI(t, api).EXPECT().GetDevices(context.Background(), acc).Times(1).
-			Return([]service.Device{
-				service.NewBaseDevice(deviceID, HashedPassword("test")),
-			}, nil)
+			Return(
+				map[service.DeviceID]service.Device{
+					deviceID: service.NewBaseDevice(deviceID, HashedPassword("test")),
+				}, nil,
+			)
 
 		err := api.GetDevices(ctx, REST.GetDevicesParams{XDeviceID: REST.XDeviceID(deviceID)})
 		assert.NoError(err)
@@ -97,8 +99,10 @@ func testGetDevicesReturns200(t *testing.T, api *v1.API) deviceTest {
 		var deviceListResponse REST.DeviceListResponse
 
 		assert.NoError(json.Unmarshal(rec.Body.Bytes(), &deviceListResponse))
-		assert.Len(deviceListResponse.Items, deviceListResponse.Count,
-			"list count should equal item count")
+		assert.Len(
+			deviceListResponse.Items, deviceListResponse.Count,
+			"list count should equal item count",
+		)
 	}
 }
 

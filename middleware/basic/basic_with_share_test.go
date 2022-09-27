@@ -131,15 +131,21 @@ func (suite *BasicAuthTestSuite) TestAuthWithSharing() {
 	suite.ResetRequest()
 
 	// Now we share an account
-	_, err := suite.devices.AddDevice(context.Background(), acc, dev.ID(), dev.HashedPass())
+	_, err := suite.devices.AddDevice(context.Background(), acc, dev.ID(), "test")
 	suite.NoError(err)
 	// at first the device is not shared, the call should be forbidden
 	suite.req.Header.Set(auth.DeviceIDHeader, suite.randomDeviceID().String())
 	suite.Equal(http.StatusForbidden, suite.asHTTPError(testMiddleware(suite)).Code)
 	suite.ResetRequest()
 
-	// now it should be valid as we provide a valid share code
+	// now it should be invalid since the password mismatched
 	suite.req.Header.Set(auth.DeviceIDHeader, dev.ID().String())
+	suite.Equal(http.StatusForbidden, suite.asHTTPError(testMiddleware(suite)).Code)
+	suite.ResetRequest()
+
+	// now it should be valid as we provide a valid device and password
+	suite.req.Header.Set(auth.DeviceIDHeader, dev.ID().String())
+	suite.req.SetBasicAuth(acc.Username(), "test")
 	suite.NoError(testMiddleware(suite))
 	suite.ResetRequest()
 }

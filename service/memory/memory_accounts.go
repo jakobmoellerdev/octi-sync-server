@@ -13,25 +13,28 @@ import (
 func NewAccounts() *Accounts {
 	return &Accounts{
 		sync.RWMutex{},
-		make(map[string]string),
+		make(map[string][]byte),
 		make(map[string][]string),
 	}
 }
 
 type Accounts struct {
 	sync     sync.RWMutex
-	accounts map[string]string
+	accounts map[string][]byte
 	shares   map[string][]string
 }
 
-func (m *Accounts) Create(ctx context.Context, username string) (service.Account, error) {
+func (m *Accounts) Create(_ context.Context, username string) (service.Account, error) {
 	m.sync.Lock()
 	defer m.sync.Unlock()
 
-	createdAt := time.Now()
-	m.accounts[username] = createdAt.String()
+	account := service.NewBaseAccount(username, time.Now())
 
-	return service.NewBaseAccount(username, createdAt), nil
+	// cannot err out as time was created here
+	createdAt, _ := account.CreatedAt().MarshalBinary()
+	m.accounts[username] = createdAt
+
+	return account, nil
 }
 
 func (m *Accounts) Find(_ context.Context, username string) (service.Account, error) {
@@ -39,8 +42,8 @@ func (m *Accounts) Find(_ context.Context, username string) (service.Account, er
 	defer m.sync.RUnlock()
 
 	for user, createdAtRaw := range m.accounts {
-		createdAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", createdAtRaw)
-		if err != nil {
+		var createdAt time.Time
+		if err := createdAt.UnmarshalBinary(createdAtRaw); err != nil {
 			return nil, fmt.Errorf("error while parsing user creation: %w", err)
 		}
 
