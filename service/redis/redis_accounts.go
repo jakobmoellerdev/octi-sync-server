@@ -39,6 +39,11 @@ func (r *Accounts) Create(ctx context.Context, username string) (service.Account
 
 func (r *Accounts) Find(ctx context.Context, username string) (service.Account, error) {
 	res, err := r.Client.HGet(ctx, AccountKeySpace, username).Result()
+
+	if err == redis.Nil {
+		return nil, service.ErrAccountNotFound
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("error while looking up user: %w", err)
 	}
@@ -102,7 +107,7 @@ func (r *Accounts) IsShared(ctx context.Context, account service.Account, shareC
 }
 
 func (r *Accounts) Revoke(ctx context.Context, account service.Account, shareCode service.ShareCode) error {
-	if err := r.Client.LRem(ctx, r.shareKey(account), 0, shareCode).Err(); err != nil {
+	if err := r.Client.LRem(ctx, r.shareKey(account), 0, shareCode.String()).Err(); err != nil {
 		return fmt.Errorf("error while revoking user: %w", err)
 	}
 

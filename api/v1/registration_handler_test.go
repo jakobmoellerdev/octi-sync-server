@@ -1,7 +1,6 @@
 package v1_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -97,8 +96,6 @@ func (r *RegisterTestSuite) Test_500_credential_username_generation_during_regis
 func (r *RegisterTestSuite) Test_500_credential_password_generation_during_registration_fails() {
 	r.api.PasswordGenerator = password.NewMockGenerator("", errors.New(r.errMockText))
 
-	acc := service.NewBaseAccount(r.user, time.Now())
-	r.accounts.EXPECT().Create(context.Background(), r.user).Times(1).Return(acc, nil)
 	err := r.Register(REST.RegisterParams{})
 
 	r.ErrorContains(err, "generating a password for registration failed")

@@ -35,7 +35,7 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 	if err == basic.ErrNoCredentialsInHeader {
 		account, device, err = api.newAccount(ctx.Request().Context(), deviceID)
 	} else {
-		account, device, err = api.existingAccount(ctx.Request().Context(), deviceID, username, password)
+		account, device, err = api.newOrExistingAccount(ctx.Request().Context(), deviceID, username, password)
 	}
 
 	if err != nil {
@@ -83,12 +83,27 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 	return nil
 }
 
-func (api *API) existingAccount(
+func (api *API) newOrExistingAccount(
 	ctx context.Context,
 	deviceID service.DeviceID,
 	username, password string,
 ) (service.Account, service.Device, error) {
 	account, err := api.Accounts.Find(ctx, username)
+
+	if err == service.ErrAccountNotFound {
+		account, err = api.Accounts.Create(ctx, username)
+		if err != nil {
+			return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
+				SetInternal(fmt.Errorf("error while creating account with provided credentials: %w", err))
+		}
+		device, err := api.Devices.AddDevice(ctx, account, deviceID, password)
+		if err != nil {
+			return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
+				SetInternal(fmt.Errorf("registering a new device failed: %w", err))
+		}
+		return account, device, nil
+	}
+
 	if err != nil {
 		return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
 			SetInternal(fmt.Errorf("error while finding account to verify credentials: %w", err))
@@ -108,51 +123,32 @@ func (api *API) newAccount(
 	deviceID service.DeviceID,
 ) (service.Account, service.Device, error) {
 	// if no credentials are present through Basic header, generate username and password
-	account, err := api.registerNewAccount(ctx)
+
+	username, err := api.UsernameGenerator.Generate()
 	if err != nil {
-		return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
-			SetInternal(fmt.Errorf("error while registering new account: %w", err))
+		return nil, nil, fmt.Errorf("generating a username for registration failed: %w", err)
 	}
 
-	device, err := api.registerNewDevice(ctx, account, deviceID)
+	passLength, minSpecial, minNum := 32, 6, 6
+
+	password, err := api.PasswordGenerator.Generate(passLength, minNum, minSpecial, false, false)
+	if err != nil {
+		return nil, nil, fmt.Errorf("generating a password for registration failed: %w", err)
+	}
+
+	account, err := api.Accounts.Create(ctx, username)
+	if err != nil {
+		return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
+			SetInternal(fmt.Errorf("account could not be registered (username: %s): %w", username, err))
+	}
+
+	device, err := api.Devices.AddDevice(ctx, account, deviceID, password)
 	if err != nil {
 		return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
 			SetInternal(fmt.Errorf("error while registering new device: %w", err))
 	}
 
 	return account, device, nil
-}
-
-func (api *API) registerNewAccount(ctx context.Context) (service.Account, error) {
-	username, err := api.UsernameGenerator.Generate()
-	if err != nil {
-		return nil, fmt.Errorf("generating a username for registration failed: %w", err)
-	}
-
-	account, err := api.Accounts.Create(ctx, username)
-	if err != nil {
-		return nil, fmt.Errorf("account could not be registered (username: %s): %w", username, err)
-	}
-
-	return account, nil
-}
-
-func (api *API) registerNewDevice(
-	ctx context.Context, account service.Account, id service.DeviceID,
-) (service.Device, error) {
-	passLength, minSpecial, minNum := 32, 6, 6
-
-	password, err := api.PasswordGenerator.Generate(passLength, minNum, minSpecial, false, false)
-	if err != nil {
-		return nil, fmt.Errorf("generating a password for registration failed: %w", err)
-	}
-
-	device, err := api.Devices.AddDevice(ctx, account, id, password)
-	if err != nil {
-		return nil, fmt.Errorf("registering a new device failed: %w", err)
-	}
-
-	return device, nil
 }
 
 func (api *API) verifyShareCode(ctx echo.Context, account service.Account, share service.ShareCode) error {
