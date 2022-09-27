@@ -35,19 +35,19 @@ func (m *MockAccounts) EXPECT() *MockAccountsMockRecorder {
 	return m.recorder
 }
 
-// ActiveShares mocks base method.
-func (m *MockAccounts) ActiveShares(ctx context.Context, username string) ([]string, error) {
+// Create mocks base method.
+func (m *MockAccounts) Create(ctx context.Context, username string) (service.Account, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ActiveShares", ctx, username)
-	ret0, _ := ret[0].([]string)
+	ret := m.ctrl.Call(m, "Create", ctx, username)
+	ret0, _ := ret[0].(service.Account)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ActiveShares indicates an expected call of ActiveShares.
-func (mr *MockAccountsMockRecorder) ActiveShares(ctx, username interface{}) *gomock.Call {
+// Create indicates an expected call of Create.
+func (mr *MockAccountsMockRecorder) Create(ctx, username interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ActiveShares", reflect.TypeOf((*MockAccounts)(nil).ActiveShares), ctx, username)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAccounts)(nil).Create), ctx, username)
 }
 
 // Find mocks base method.
@@ -77,62 +77,4 @@ func (m *MockAccounts) HealthCheck() service.HealthCheck {
 func (mr *MockAccountsMockRecorder) HealthCheck() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HealthCheck", reflect.TypeOf((*MockAccounts)(nil).HealthCheck))
-}
-
-// IsShared mocks base method.
-func (m *MockAccounts) IsShared(ctx context.Context, username, share string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsShared", ctx, username, share)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IsShared indicates an expected call of IsShared.
-func (mr *MockAccountsMockRecorder) IsShared(ctx, username, share interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsShared", reflect.TypeOf((*MockAccounts)(nil).IsShared), ctx, username, share)
-}
-
-// Register mocks base method.
-func (m *MockAccounts) Register(ctx context.Context, username, password string) (service.Account, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, username, password)
-	ret0, _ := ret[0].(service.Account)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Register indicates an expected call of Register.
-func (mr *MockAccountsMockRecorder) Register(ctx, username, password interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockAccounts)(nil).Register), ctx, username, password)
-}
-
-// Revoke mocks base method.
-func (m *MockAccounts) Revoke(ctx context.Context, username, shareCode string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Revoke", ctx, username, shareCode)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Revoke indicates an expected call of Revoke.
-func (mr *MockAccountsMockRecorder) Revoke(ctx, username, shareCode interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockAccounts)(nil).Revoke), ctx, username, shareCode)
-}
-
-// Share mocks base method.
-func (m *MockAccounts) Share(ctx context.Context, username string) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Share", ctx, username)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Share indicates an expected call of Share.
-func (mr *MockAccountsMockRecorder) Share(ctx, username interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Share", reflect.TypeOf((*MockAccounts)(nil).Share), ctx, username)
 }

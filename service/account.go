@@ -1,36 +1,26 @@
 package service
 
-import (
-	"crypto/sha256"
-	"crypto/subtle"
-	"fmt"
-)
+import "time"
 
 //go:generate mockgen -source account.go -package mock -destination mock/account.go Account
 type Account interface {
 	Username() string
-	HashedPass() string
-	Verify(password string) bool
+	CreatedAt() time.Time
 }
 
 type BaseAccount struct {
-	username   string
-	hashedPass string
+	username  string
+	createdAt time.Time
 }
 
 func (r *BaseAccount) Username() string {
 	return r.username
 }
 
-func (r *BaseAccount) HashedPass() string {
-	return r.hashedPass
+func (r *BaseAccount) CreatedAt() time.Time {
+	return r.createdAt
 }
 
-func NewBaseAccount(username, hashedPass string) *BaseAccount {
-	return &BaseAccount{username, hashedPass}
-}
-
-func (r *BaseAccount) Verify(password string) bool {
-	return subtle.ConstantTimeCompare([]byte(r.HashedPass()),
-		[]byte(fmt.Sprintf("%x", sha256.Sum256([]byte(password))))) == 1
+func NewBaseAccount(username string, createdAt time.Time) *BaseAccount {
+	return &BaseAccount{username, createdAt}
 }

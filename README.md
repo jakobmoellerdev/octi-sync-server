@@ -49,6 +49,12 @@ go run .
 
 Adjust configuration parameters in `config.yml` where necessary!
 
+For running a redis locally for testing, use
+
+```shell
+docker run -it --rm -p 6379:6379 --name octi-redis redis:latest
+```
+
 ### Inspecting and Recreating The OpenAPI Definitions and Mocks
 
 #### V1

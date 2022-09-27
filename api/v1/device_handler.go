@@ -20,7 +20,7 @@ func (api *API) GetDevices(ctx echo.Context, _ REST.GetDevicesParams) error {
 		return ErrNoDeviceAccessWithoutAccount
 	}
 
-	devicesFromAccount, err := api.Devices.FindByAccount(
+	devicesFromAccount, err := api.Devices.GetDevices(
 		ctx.Request().Context(),
 		account,
 	)
@@ -30,8 +30,12 @@ func (api *API) GetDevices(ctx echo.Context, _ REST.GetDevicesParams) error {
 	}
 
 	devices := make([]REST.Device, len(devicesFromAccount))
-	for i, device := range devicesFromAccount {
+
+	i := 0
+
+	for _, device := range devicesFromAccount {
 		devices[i] = REST.Device{Id: REST.DeviceID(device.ID())}
+		i++
 	}
 
 	if err := ctx.JSON(http.StatusOK, &REST.DeviceListResponse{

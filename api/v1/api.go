@@ -14,6 +14,7 @@ import (
 //go:generate oapi-codegen --config REST/oapi-codegen.yaml REST/openapi.yaml
 type API struct {
 	service.Accounts
+	service.Sharing
 	service.Devices
 	service.Modules
 	password.PasswordGenerator
@@ -37,6 +38,7 @@ func New(_ context.Context, engine *echo.Echo, config *config.Config) {
 	wrapper := REST.ServerInterfaceWrapper{
 		Handler: &API{
 			config.Services.Accounts,
+			config.Services.Sharing,
 			config.Services.Devices,
 			config.Services.Modules,
 			config.PasswordGenerator,

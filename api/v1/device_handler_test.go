@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
@@ -78,14 +79,16 @@ func testGetDevicesReturns200(t *testing.T, api *v1.API) deviceTest {
 	assert := assertions.New(t)
 
 	return func(ctx echo.Context, rec *httptest.ResponseRecorder) {
-		acc := service.NewBaseAccount("test", "pw")
+		acc := service.NewBaseAccount("test", time.Now())
 		ctx.Set(basic.AccountKey, acc)
 
 		deviceID := service.DeviceID(RandomUUID(t))
-		mockDevicesFromAPI(t, api).EXPECT().FindByAccount(context.Background(), acc).Times(1).
-			Return([]service.Device{
-				service.NewBaseDevice(deviceID),
-			}, nil)
+		mockDevicesFromAPI(t, api).EXPECT().GetDevices(context.Background(), acc).Times(1).
+			Return(
+				map[service.DeviceID]service.Device{
+					deviceID: service.NewBaseDevice(deviceID, HashedPassword("test")),
+				}, nil,
+			)
 
 		err := api.GetDevices(ctx, REST.GetDevicesParams{XDeviceID: REST.XDeviceID(deviceID)})
 		assert.NoError(err)
@@ -96,8 +99,10 @@ func testGetDevicesReturns200(t *testing.T, api *v1.API) deviceTest {
 		var deviceListResponse REST.DeviceListResponse
 
 		assert.NoError(json.Unmarshal(rec.Body.Bytes(), &deviceListResponse))
-		assert.Len(deviceListResponse.Items, deviceListResponse.Count,
-			"list count should equal item count")
+		assert.Len(
+			deviceListResponse.Items, deviceListResponse.Count,
+			"list count should equal item count",
+		)
 	}
 }
 
@@ -105,10 +110,10 @@ func testGetDevicesReturns500(t *testing.T, api *v1.API) deviceTest {
 	assert := assertions.New(t)
 
 	return func(ctx echo.Context, rec *httptest.ResponseRecorder) {
-		acc := service.NewBaseAccount("test", "pw")
+		acc := service.NewBaseAccount("test", time.Now())
 		ctx.Set(basic.AccountKey, acc)
 
-		mockDevicesFromAPI(t, api).EXPECT().FindByAccount(context.Background(), acc).Times(1).
+		mockDevicesFromAPI(t, api).EXPECT().GetDevices(context.Background(), acc).Times(1).
 			Return(nil, errors.New("mock account err"))
 
 		err := api.GetDevices(ctx, REST.GetDevicesParams{XDeviceID: RandomUUID(t)})

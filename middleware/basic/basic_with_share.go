@@ -1,6 +1,7 @@
 package basic
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -18,6 +19,8 @@ const Device = "device"
 // DeviceIDHeader holds Device Authentication.
 const DeviceIDHeader = "X-Device-ID"
 
+var ErrDevicePassVerificationFailed = errors.New("device pass verification failed")
+
 // AuthWithShare returns a Basic HTTP Authorization Handler. It takes as argument a map[string]string where
 // the key is the username and the value is the password.
 func AuthWithShare(accounts service.Accounts, devices service.Devices) echo.MiddlewareFunc {
@@ -25,20 +28,16 @@ func AuthWithShare(accounts service.Accounts, devices service.Devices) echo.Midd
 		Skipper: middleware.DefaultSkipper,
 		Validator: func(username, password string, context echo.Context) (bool, error) {
 			ctx := context.Request().Context()
-			// Search user in the slice of allowed credentials
-			user, err := accounts.Find(ctx, username)
+			// Search account in the slice of allowed credentials
+			account, err := accounts.Find(ctx, username)
 			if err != nil {
 				return false, echo.ErrUnauthorized
 			}
 
-			if !user.Verify(password) {
-				return false, echo.ErrForbidden
-			}
-
-			// The user credentials was found, set user's id to key Device in this context,
-			// the user's id can be read later using
+			// The account credentials was found, set account's id to key Device in this context,
+			// the account's id can be read later using
 			// context.MustGet(auth.AccountKey).
-			context.Set(AccountKey, user)
+			context.Set(AccountKey, account)
 
 			deviceIDFromHeader := context.Request().Header.Get(DeviceIDHeader)
 			if deviceIDFromHeader == "" {
@@ -51,10 +50,14 @@ func AuthWithShare(accounts service.Accounts, devices service.Devices) echo.Midd
 					DeviceIDHeader+" has to be a valid UUID!")
 			}
 
-			device, err := devices.FindByDeviceID(ctx, user, service.DeviceID(deviceID))
+			device, err := devices.GetDevice(ctx, account, service.DeviceID(deviceID))
 
 			if err == service.ErrDeviceNotFound {
 				return false, echo.NewHTTPError(http.StatusForbidden).SetInternal(err)
+			}
+
+			if !device.Verify(password) {
+				return false, echo.ErrForbidden.SetInternal(ErrDevicePassVerificationFailed)
 			}
 
 			// The account credentials was found, set account's id to key Device in this context,

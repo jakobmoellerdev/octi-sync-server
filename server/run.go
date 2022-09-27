@@ -28,7 +28,9 @@ func Run(ctx context.Context, cfg *config.Config) error {
 		return fmt.Errorf("error while starting up redis client")
 	}
 
-	cfg.Services.Accounts = &redis.Accounts{Client: clients["default"]}
+	accounts := &redis.Accounts{Client: clients["default"]}
+	cfg.Services.Accounts = accounts
+	cfg.Services.Sharing = accounts
 	cfg.Services.Modules = &redis.Modules{Client: clients["default"]}
 	cfg.Services.Devices = &redis.Devices{Client: clients["default"]}
 

@@ -88,6 +88,7 @@ type Config struct {
 
 	Services struct {
 		service.Accounts
+		service.Sharing
 		service.Modules
 		service.Devices
 		service.Health

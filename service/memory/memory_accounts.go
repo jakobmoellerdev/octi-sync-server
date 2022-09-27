@@ -2,9 +2,9 @@ package memory
 
 import (
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
@@ -13,38 +13,46 @@ import (
 func NewAccounts() *Accounts {
 	return &Accounts{
 		sync.RWMutex{},
-		make(map[string]string),
+		make(map[string][]byte),
 		make(map[string][]string),
 	}
 }
 
 type Accounts struct {
 	sync     sync.RWMutex
-	accounts map[string]string
+	accounts map[string][]byte
 	shares   map[string][]string
+}
+
+func (m *Accounts) Create(_ context.Context, username string) (service.Account, error) {
+	m.sync.Lock()
+	defer m.sync.Unlock()
+
+	account := service.NewBaseAccount(username, time.Now())
+
+	// cannot err out as time was created here
+	createdAt, _ := account.CreatedAt().MarshalBinary()
+	m.accounts[username] = createdAt
+
+	return account, nil
 }
 
 func (m *Accounts) Find(_ context.Context, username string) (service.Account, error) {
 	m.sync.RLock()
 	defer m.sync.RUnlock()
 
-	for user, pass := range m.accounts {
+	for user, createdAtRaw := range m.accounts {
+		var createdAt time.Time
+		if err := createdAt.UnmarshalBinary(createdAtRaw); err != nil {
+			return nil, fmt.Errorf("error while parsing user creation: %w", err)
+		}
+
 		if user == username {
-			return service.NewBaseAccount(user, pass), nil
+			return service.NewBaseAccount(user, createdAt), nil
 		}
 	}
 
 	return nil, service.ErrAccountNotFound
-}
-
-func (m *Accounts) Register(_ context.Context, username, password string) (service.Account, error) {
-	m.sync.Lock()
-	defer m.sync.Unlock()
-
-	hashedPass := fmt.Sprintf("%x", sha256.Sum256([]byte(password)))
-	m.accounts[username] = hashedPass
-
-	return service.NewBaseAccount(username, hashedPass), nil
 }
 
 func (m *Accounts) HealthCheck() service.HealthCheck {

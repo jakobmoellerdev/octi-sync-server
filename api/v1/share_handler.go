@@ -11,12 +11,12 @@ import (
 )
 
 func (api *API) Share(ctx echo.Context, _ REST.ShareParams) error {
-	user, found := ctx.Get(basic.AccountKey).(service.Account)
+	account, found := ctx.Get(basic.AccountKey).(service.Account)
 	if !found {
 		return echo.ErrForbidden
 	}
 
-	share, err := api.Accounts.Share(ctx.Request().Context(), user.Username())
+	share, err := api.Sharing.Share(ctx.Request().Context(), account)
 	if err != nil {
 		return fmt.Errorf("error while attempting to share an account: %w", err)
 	}

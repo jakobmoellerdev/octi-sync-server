@@ -34,6 +34,20 @@ func (m *MockDevice) EXPECT() *MockDeviceMockRecorder {
 	return m.recorder
 }
 
+// HashedPass mocks base method.
+func (m *MockDevice) HashedPass() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HashedPass")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// HashedPass indicates an expected call of HashedPass.
+func (mr *MockDeviceMockRecorder) HashedPass() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HashedPass", reflect.TypeOf((*MockDevice)(nil).HashedPass))
+}
+
 // ID mocks base method.
 func (m *MockDevice) ID() service.DeviceID {
 	m.ctrl.T.Helper()
@@ -46,4 +60,18 @@ func (m *MockDevice) ID() service.DeviceID {
 func (mr *MockDeviceMockRecorder) ID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockDevice)(nil).ID))
+}
+
+// Verify mocks base method.
+func (m *MockDevice) Verify(password string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Verify", password)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// Verify indicates an expected call of Verify.
+func (mr *MockDeviceMockRecorder) Verify(password interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockDevice)(nil).Verify), password)
 }
