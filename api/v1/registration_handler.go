@@ -96,11 +96,13 @@ func (api *API) newOrExistingAccount(
 			return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
 				SetInternal(fmt.Errorf("error while creating account with provided credentials: %w", err))
 		}
+
 		device, err := api.Devices.AddDevice(ctx, account, deviceID, password)
 		if err != nil {
 			return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
 				SetInternal(fmt.Errorf("registering a new device failed: %w", err))
 		}
+
 		return account, device, nil
 	}
 
@@ -123,7 +125,6 @@ func (api *API) newAccount(
 	deviceID service.DeviceID,
 ) (service.Account, service.Device, error) {
 	// if no credentials are present through Basic header, generate username and password
-
 	username, err := api.UsernameGenerator.Generate()
 	if err != nil {
 		return nil, nil, fmt.Errorf("generating a username for registration failed: %w", err)
