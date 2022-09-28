@@ -5,6 +5,8 @@ on:
     branches: [ "main" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "main" ]
 
 permissions:
   contents: write
@@ -37,25 +39,14 @@ jobs:
         uses: sigstore/cosign-installer@v2.7.0
         with:
           cosign-release: 'v1.12.1'
-        
+
       - uses: goreleaser/goreleaser-action@v2
-        name: Release
-        if: github.event_name != 'pull_request'
+        name: "{{ github.event_name == 'pull_request' && 'Snapshot' }} || 'Release'"
         with:
           distribution: goreleaser
           version: latest
-          args: release --rm-dist
+          args: release --rm-dist {{ github.event_name == 'pull_request' && '--snapshot' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
           COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
-
-      - uses: goreleaser/goreleaser-action@v2
-        name: Snapshot
-        if: github.event_name == 'pull_request'
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --rm-dist --snapshot
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
