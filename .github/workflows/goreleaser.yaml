@@ -56,3 +56,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
           COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
+      - name: Store Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: dist/artifacts.json
+      - name: Store Metadata
+        uses: actions/upload-artifact@v3
+        with:
+          name: metadata
+          path: dist/metadata.json
