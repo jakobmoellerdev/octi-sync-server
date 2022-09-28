@@ -29,6 +29,14 @@ jobs:
 
       - name: Install Mock Generator
         run: go install github.com/golang/mock/mockgen@v1.6.0
+
+      # Install the cosign tool except on PR
+      # https://github.com/sigstore/cosign-installer
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@v2.7.0
+        with:
+          cosign-release: 'v1.12.1'
         
       - uses: goreleaser/goreleaser-action@v2
         name: Release
@@ -39,6 +47,8 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
+          COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
 
       - uses: goreleaser/goreleaser-action@v2
         name: Snapshot
