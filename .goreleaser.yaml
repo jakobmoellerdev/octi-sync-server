@@ -73,12 +73,15 @@ docker_manifests:
     image_templates:
       - "ghcr.io/jakob-moeller-cloud/{{.ProjectName}}:{{ .Version }}-amd64"
       - "ghcr.io/jakob-moeller-cloud/{{.ProjectName}}:{{ .Version }}-arm64v8"
+signs:
+  - cmd: cosign
+    stdin: '{{ .Env.COSIGN_PASSWORD }}'
+    args: [ "sign-blob", "-key=env://COSIGN_PRIVATE_KEY", "-output=${signature}", "${artifact}"]
+    artifacts: checksum
 docker_signs:
-  - artifacts: all
+  - artifacts: manifests
     args: [ "sign", "--key=env://COSIGN_PRIVATE_KEY", "${artifact}" ]
     stdin: '{{ .Env.COSIGN_PASSWORD }}'
-    env:
-      - "COSIGN_PRIVATE_KEY={{ .Env.COSIGN_PRIVATE_KEY }}"
 checksum:
   name_template: 'checksums.txt'
 snapshot:

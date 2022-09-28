@@ -20,7 +20,7 @@ env:
 
 jobs:
   goreleaser:
-    name: ${{ startsWith(github.ref, 'refs/tags/v') && 'Snapshot' || 'Release' }}
+    name: ${{ (github.event_name == 'pull_request' && 'Snapshot') || 'Release' }}
     needs:
       - go-test
       - openapi
