@@ -32,13 +32,15 @@ builds:
       - linux
       - windows
       - darwin
+    goarch:
+      - amd64
+      - arm64
 archives:
   - replacements:
       darwin: Darwin
       linux: Linux
       windows: Windows
       amd64: x86_64
-      386: i386
 dockers:
   - image_templates:
       - "gcr.io/jakob-moeller-cloud/{{.ProjectName}}:{{ .Version }}-amd64"
