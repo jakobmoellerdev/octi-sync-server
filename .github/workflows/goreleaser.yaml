@@ -10,8 +10,13 @@ on:
 
 permissions:
   contents: write
-  # packages: write
-  # issues: write
+  packages: write
+  issues: write
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   goreleaser:
