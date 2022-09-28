@@ -38,6 +38,12 @@ Pre-Requisites:
 docker run ghcr.io/jakob-moeller-cloud/octi-sync-server:latest
 ```
 
+You can verify build the build integrity with the provided `cosign.pub` Public Key:
+
+```shell
+docker run -it --rm -v $PWD:/repo gcr.io/projectsigstore/cosign verify --key /repo/cosign.pub ghcr.io/jakob-moeller-cloud/octi-sync-server:latest
+```
+
 Make sure to open Port `8080` if you want the server to be reachable.
 Also, you might want to bind in `config.yml` via volume to override configuration values.
 
@@ -53,6 +59,39 @@ For running a redis locally for testing, use
 
 ```shell
 docker run -it --rm -p 6379:6379 --name octi-redis redis:latest
+```
+
+#### From Release
+
+First download the artifact:
+```shell
+VERSION=0.2.3-alpha4 \
+RELEASE=https://github.com/jakob-moeller-cloud/octi-sync-server/releases/download/v$VERSION; \
+wget $RELEASE/octi-sync-server_${VERSION}_Linux_x86_64.tar.gz
+```
+
+Next download the signature:
+
+To verify the integrity of the checksums of the remote build before downloading:
+```shell
+## note that PUBLIC_KEY is coming from the repository here, you can also download it before and use a local mount
+PUBLIC_KEY=/repo/cosign.pub \
+VERSION=0.2.3-alpha4 \
+RELEASE=https://github.com/jakob-moeller-cloud/octi-sync-server/releases/download/v$VERSION; \
+docker run -it --rm -v $PWD:/repo gcr.io/projectsigstore/cosign \
+  verify-blob --key PUBLIC_KEY \
+  --signature $RELEASE/checksums.txt.sig \
+  $RELEASE/checksums.txt
+```
+
+Now verify the downloaded artifact from above
+
+```shell
+PUBLIC_KEY=/repo/cosign.pub \
+VERSION=0.2.3-alpha4 \
+RELEASE=https://github.com/jakob-moeller-cloud/octi-sync-server/releases/download/v$VERSION; \
+echo "$(wget -qO /dev/stdout $RELEASE/checksums.txt | grep octi-sync-server_${VERSION}_Linux_x86_64.tar.gz)" | \
+sha256sum --check
 ```
 
 ### Inspecting and Recreating The OpenAPI Definitions and Mocks

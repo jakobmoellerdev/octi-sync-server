@@ -73,6 +73,10 @@ docker_manifests:
     image_templates:
       - "ghcr.io/jakob-moeller-cloud/{{.ProjectName}}:{{ .Version }}-amd64"
       - "ghcr.io/jakob-moeller-cloud/{{.ProjectName}}:{{ .Version }}-arm64v8"
+  - name_template: "ghcr.io/jakob-moeller-cloud/{{.ProjectName}}:latest"
+    image_templates:
+      - "ghcr.io/jakob-moeller-cloud/{{.ProjectName}}:{{ .Version }}-amd64"
+      - "ghcr.io/jakob-moeller-cloud/{{.ProjectName}}:{{ .Version }}-arm64v8"
 signs:
   - cmd: cosign
     stdin: '{{ .Env.COSIGN_PASSWORD }}'
@@ -87,11 +91,30 @@ checksum:
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 changelog:
+  use: github
   sort: asc
   filters:
     exclude:
       - '^docs:'
       - '^test:'
+  groups:
+    - title: 'Breaking Changes'
+      regexp: "^.*!feat[(\\w)]*:+.*$"
+      order: 0
+    - title: 'Features'
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 1
+    - title: 'Bug fixes'
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 2
+    - title: Others
+      order: 999
+release:
+  discussion_category_name: General
+  header: |
+    ## Octi Sync Server Release {{ .Version }} ({{ .Date }})
+
+    Welcome to the new release of the Sync Server!
 
 # modelines, feel free to remove those if you don't want/use them:
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json

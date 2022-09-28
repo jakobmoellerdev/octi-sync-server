@@ -2,3 +2,4 @@
 *.iml
 dist/
 bin
+cosign.key
