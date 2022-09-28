@@ -1,4 +1,4 @@
-name: ${{ startsWith(github.ref, 'refs/tags/v') && 'Snapshot' || 'Release' }}
+name: Build
 
 on:
   push:
@@ -20,7 +20,7 @@ env:
 
 jobs:
   goreleaser:
-    name: Build
+    name: ${{ startsWith(github.ref, 'refs/tags/v') && 'Snapshot' || 'Release' }}
     needs:
       - go-test
       - openapi
