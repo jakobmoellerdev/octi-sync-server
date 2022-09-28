@@ -33,7 +33,7 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 	var device service.Device
 
 	if err == basic.ErrNoCredentialsInHeader {
-		account, device, err = api.newAccount(ctx.Request().Context(), deviceID)
+		account, device, password, err = api.newAccount(ctx.Request().Context(), deviceID)
 	} else {
 		account, device, err = api.newOrExistingAccount(ctx.Request().Context(), deviceID, username, password)
 	}
@@ -123,33 +123,33 @@ func (api *API) newOrExistingAccount(
 func (api *API) newAccount(
 	ctx context.Context,
 	deviceID service.DeviceID,
-) (service.Account, service.Device, error) {
+) (service.Account, service.Device, string, error) {
 	// if no credentials are present through Basic header, generate username and password
 	username, err := api.UsernameGenerator.Generate()
 	if err != nil {
-		return nil, nil, fmt.Errorf("generating a username for registration failed: %w", err)
+		return nil, nil, "", fmt.Errorf("generating a username for registration failed: %w", err)
 	}
 
 	passLength, minSpecial, minNum := 32, 6, 6
 
 	password, err := api.PasswordGenerator.Generate(passLength, minNum, minSpecial, false, false)
 	if err != nil {
-		return nil, nil, fmt.Errorf("generating a password for registration failed: %w", err)
+		return nil, nil, "", fmt.Errorf("generating a password for registration failed: %w", err)
 	}
 
 	account, err := api.Accounts.Create(ctx, username)
 	if err != nil {
-		return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
+		return nil, nil, "", echo.NewHTTPError(http.StatusInternalServerError).
 			SetInternal(fmt.Errorf("account could not be registered (username: %s): %w", username, err))
 	}
 
 	device, err := api.Devices.AddDevice(ctx, account, deviceID, password)
 	if err != nil {
-		return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
+		return nil, nil, "", echo.NewHTTPError(http.StatusInternalServerError).
 			SetInternal(fmt.Errorf("error while registering new device: %w", err))
 	}
 
-	return account, device, nil
+	return account, device, password, nil
 }
 
 func (api *API) verifyShareCode(ctx echo.Context, account service.Account, share service.ShareCode) error {
