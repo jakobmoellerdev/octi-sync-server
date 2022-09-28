@@ -80,7 +80,7 @@ docker_manifests:
 signs:
   - cmd: cosign
     stdin: '{{ .Env.COSIGN_PASSWORD }}'
-    args: [ "sign-blob", "-key=env://COSIGN_PRIVATE_KEY", "-output=${signature}", "${artifact}"]
+    args: [ "sign-blob", "--key=env://COSIGN_PRIVATE_KEY", "--output-signature=${signature}", "${artifact}"]
     artifacts: checksum
 docker_signs:
   - artifacts: manifests
