@@ -49,7 +49,7 @@ func TestAPI_Share(t *testing.T) {
 
 	shareCode := "share"
 
-	sharing.EXPECT().Share(context.Background(), gomock.Any()).Times(1).Return(shareCode, nil)
+	sharing.EXPECT().Share(context.Background(), gomock.Any()).Times(1).Return(service.ShareCode(shareCode), nil)
 
 	if assert.NoError(apiImpl.Share(ctx, REST.ShareParams{XDeviceID: deviceID})) {
 		assert.Equal(http.StatusOK, rec.Code)
