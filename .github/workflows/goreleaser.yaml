@@ -20,6 +20,11 @@ env:
 
 jobs:
   goreleaser:
+    name: ${{ (github.event_name == 'pull_request' && 'Snapshot') || 'Release' }}
+    needs:
+      - go-test
+      - openapi
+      - lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -70,8 +75,8 @@ jobs:
         env:
           BUILDER: ${{ steps.buildx.outputs.name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
-          COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
       - name: Store Artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -82,3 +87,70 @@ jobs:
         with:
           name: metadata
           path: dist/metadata.json
+  go-test:
+    name: Go ${{ matrix.go }} Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: [ '1.19' ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+      - run: go test ./... -covermode=atomic -coverprofile=coverage.out --race
+      - name: Convert coverage.out to coverage.lcov
+        uses: jandelgado/gcov2lcov-action@v1
+      - name: Coveralls
+        uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ secrets.github_token }}
+          path-to-lcov: coverage.lcov
+          flag-name: Go ${{ matrix.go }}
+          parallel: true
+  collect-coverage:
+    needs: go-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          parallel-finished: true
+  openapi:
+    name: Verify ${{ matrix.version }} OpenAPI
+    runs-on: ubuntu-latest  # windows-latest | macos-latest
+    strategy:
+      matrix:
+        version: [ 'v1' ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.11.0
+      - run: go install github.com/golang/mock/mockgen@v1.6.0
+      - run: go generate ./...
+      - name: Check Changed files for ${{ matrix.version }}
+        uses: tj-actions/verify-changed-files@v11.1
+        id: verify-changed-files
+        with:
+          files: |
+            **/*
+      - name: Fail if ${{ matrix.version }} OpenAPI spec changed after running code-generation with oapi-codegen.
+        if: steps.verify-changed-files.outputs.files_changed == 'true'
+        run: |
+          echo "Changed OpenAPI Spec: ${{ steps.verify-changed-files.outputs.changed_files }}"
+          run: exit 1
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/checkout@v3
+      - uses: golangci/golangci-lint-action@v3
