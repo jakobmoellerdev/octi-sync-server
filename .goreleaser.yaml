@@ -49,6 +49,7 @@ dockers:
       - "ghcr.io/jakob-moeller-cloud/{{.ProjectName}}:{{ .Version }}-amd64"
     use: buildx
     build_flag_templates:
+      - "--builder={{ .Env.BUILDER }}"
       - "--platform=linux/amd64"
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -60,6 +61,7 @@ dockers:
     use: buildx
     goarch: arm64
     build_flag_templates:
+      - "--builder={{ .Env.BUILDER }}"
       - "--platform=linux/arm64/v8"
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
