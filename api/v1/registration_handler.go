@@ -131,7 +131,7 @@ func (api *API) defaultUsername(username string) (string, error) {
 		}
 	}
 
-	return username, err
+	return username, err //nolint:wrapcheck
 }
 
 func (api *API) defaultPassword(password string) (string, error) {
@@ -146,7 +146,7 @@ func (api *API) defaultPassword(password string) (string, error) {
 		}
 	}
 
-	return password, err
+	return password, err //nolint:wrapcheck
 }
 
 func (api *API) revokeShareCode(ctx context.Context, code service.ShareCode) error {
@@ -159,5 +159,5 @@ func (api *API) revokeShareCode(ctx context.Context, code service.ShareCode) err
 		}
 	}
 
-	return err
+	return err //nolint:wrapcheck
 }
