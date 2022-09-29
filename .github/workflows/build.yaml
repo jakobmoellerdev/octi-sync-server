@@ -65,7 +65,7 @@ jobs:
           endpoint: builders
 
       - uses: goreleaser/goreleaser-action@v3
-        name: ${{ (github.event_name == 'pull_request' && 'Snapshot') || 'Release' }}
+        name: goreleaser
         with:
           distribution: goreleaser
           version: latest
