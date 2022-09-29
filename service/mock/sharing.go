@@ -35,54 +35,25 @@ func (m *MockSharing) EXPECT() *MockSharingMockRecorder {
 	return m.recorder
 }
 
-// ActiveShares mocks base method.
-func (m *MockSharing) ActiveShares(ctx context.Context, account service.Account) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ActiveShares", ctx, account)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ActiveShares indicates an expected call of ActiveShares.
-func (mr *MockSharingMockRecorder) ActiveShares(ctx, account interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ActiveShares", reflect.TypeOf((*MockSharing)(nil).ActiveShares), ctx, account)
-}
-
-// IsShared mocks base method.
-func (m *MockSharing) IsShared(ctx context.Context, account service.Account, shareCode service.ShareCode) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsShared", ctx, account, shareCode)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IsShared indicates an expected call of IsShared.
-func (mr *MockSharingMockRecorder) IsShared(ctx, account, shareCode interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsShared", reflect.TypeOf((*MockSharing)(nil).IsShared), ctx, account, shareCode)
-}
-
 // Revoke mocks base method.
-func (m *MockSharing) Revoke(ctx context.Context, account service.Account, shareCode service.ShareCode) error {
+func (m *MockSharing) Revoke(ctx context.Context, shareCode service.ShareCode) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Revoke", ctx, account, shareCode)
+	ret := m.ctrl.Call(m, "Revoke", ctx, shareCode)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Revoke indicates an expected call of Revoke.
-func (mr *MockSharingMockRecorder) Revoke(ctx, account, shareCode interface{}) *gomock.Call {
+func (mr *MockSharingMockRecorder) Revoke(ctx, shareCode interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockSharing)(nil).Revoke), ctx, account, shareCode)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockSharing)(nil).Revoke), ctx, shareCode)
 }
 
 // Share mocks base method.
-func (m *MockSharing) Share(ctx context.Context, account service.Account) (string, error) {
+func (m *MockSharing) Share(ctx context.Context, account service.Account) (service.ShareCode, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Share", ctx, account)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(service.ShareCode)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -91,4 +62,19 @@ func (m *MockSharing) Share(ctx context.Context, account service.Account) (strin
 func (mr *MockSharingMockRecorder) Share(ctx, account interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Share", reflect.TypeOf((*MockSharing)(nil).Share), ctx, account)
+}
+
+// Shared mocks base method.
+func (m *MockSharing) Shared(ctx context.Context, shareCode service.ShareCode) (service.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Shared", ctx, shareCode)
+	ret0, _ := ret[0].(service.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Shared indicates an expected call of Shared.
+func (mr *MockSharingMockRecorder) Shared(ctx, shareCode interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shared", reflect.TypeOf((*MockSharing)(nil).Shared), ctx, shareCode)
 }

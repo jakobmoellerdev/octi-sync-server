@@ -13,12 +13,20 @@ import (
 )
 
 var (
-	ErrPasswordMismatch    = errors.New("passwords do not match")
-	ErrDeviceNotRegistered = errors.New("device not found in account and there was no share code")
+	ErrDeviceNotRegistered      = errors.New("device not found in account and there was no share code")
+	ErrAccountShareCodeMismatch = errors.New("the provided share code did not belong to the provided account")
+)
+
+const (
+	passLength, minSpecial, minNum = 32, 6, 6
 )
 
 //nolint:funlen
 func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
+	var account service.Account
+	var device service.Device
+	var shareCode service.ShareCode
+
 	deviceID := service.DeviceID(params.XDeviceID)
 	username, password, err := basic.CredentialsFromAuthorizationHeader(ctx)
 
@@ -29,47 +37,60 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 		).SetInternal(err)
 	}
 
-	var account service.Account
-	var device service.Device
-
-	if err == basic.ErrNoCredentialsInHeader {
-		account, device, password, err = api.newAccount(ctx.Request().Context(), deviceID)
-	} else {
-		account, device, err = api.newOrExistingAccount(ctx.Request().Context(), deviceID, username, password)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	// next use the device-id from the parameters
-	if device == nil {
-		// if the device does not exist we have to verify the share code
-		if params.Share == nil {
-			return echo.NewHTTPError(http.StatusForbidden).SetInternal(ErrDeviceNotRegistered)
-		}
-
-		shareCode := service.ShareCode(*params.Share)
-
-		if err = api.verifyShareCode(ctx, account, shareCode); err != nil {
+	// if the share code exists we have to verify it
+	if params.Share != nil {
+		shareCode = service.ShareCode(*params.Share)
+		if account, err = api.resolveShareCode(ctx, shareCode); err != nil {
 			return echo.NewHTTPError(http.StatusForbidden).SetInternal(err)
 		}
 
-		// if it is then we are free to register the device
-		if _, err = api.Devices.AddDevice(ctx.Request().Context(), account, deviceID, password); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
-				fmt.Errorf("cannot register device %s for %s: %w", deviceID, account.Username(), err),
-			)
+		if username != "" && account.Username() != username {
+			return echo.NewHTTPError(http.StatusForbidden).SetInternal(ErrAccountShareCodeMismatch)
 		}
 
-		if err = api.Sharing.Revoke(ctx.Request().Context(), account, shareCode); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
-				fmt.Errorf("cannot revoke old share code %s for %s: %w", deviceID, account.Username(), err),
-			)
+		username = account.Username()
+	} else {
+		account, _ = api.Accounts.Find(ctx.Request().Context(), username)
+	}
+
+	if username, err = api.defaultUsername(username); err != nil {
+		return err
+	}
+
+	if password, err = api.defaultPassword(password); err != nil {
+		return err
+	}
+
+	if account == nil {
+		// if the account did not exist we can create it
+		account, err = api.Accounts.Create(ctx.Request().Context(), username)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError).
+				SetInternal(fmt.Errorf("error while creating account with provided credentials: %w", err))
+		}
+	} else {
+		device, _ = api.Devices.GetDevice(ctx.Request().Context(), account, deviceID)
+
+		// the device is not in the account and there is no valid share code
+		if device == nil && shareCode == "" {
+			return echo.NewHTTPError(http.StatusForbidden).
+				SetInternal(ErrDeviceNotRegistered)
 		}
 	}
 
-	ctx.Response().Header().Set(basic.DeviceIDHeader, deviceID.String())
+	// if the device is present or there is a valid shareCode is then we are free to (re-)register the device
+	device, err = api.Devices.AddDevice(ctx.Request().Context(), account, deviceID, password)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
+			fmt.Errorf("cannot register device %s for %s: %w", deviceID, account.Username(), err),
+		)
+	}
+
+	if err = api.revokeShareCode(ctx.Request().Context(), shareCode); err != nil {
+		return err
+	}
+
+	ctx.Response().Header().Set(basic.DeviceIDHeader, device.ID().String())
 
 	if err = ctx.JSON(
 		http.StatusOK, &REST.RegistrationResult{
@@ -83,86 +104,60 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 	return nil
 }
 
-func (api *API) newOrExistingAccount(
-	ctx context.Context,
-	deviceID service.DeviceID,
-	username, password string,
-) (service.Account, service.Device, error) {
-	account, err := api.Accounts.Find(ctx, username)
-
-	if err == service.ErrAccountNotFound {
-		account, err = api.Accounts.Create(ctx, username)
-		if err != nil {
-			return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
-				SetInternal(fmt.Errorf("error while creating account with provided credentials: %w", err))
-		}
-
-		device, err := api.Devices.AddDevice(ctx, account, deviceID, password)
-		if err != nil {
-			return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
-				SetInternal(fmt.Errorf("registering a new device failed: %w", err))
-		}
-
-		return account, device, nil
-	}
-
-	if err != nil {
-		return nil, nil, echo.NewHTTPError(http.StatusInternalServerError).
-			SetInternal(fmt.Errorf("error while finding account to verify credentials: %w", err))
-	}
-
-	device, _ := api.Devices.GetDevice(ctx, account, deviceID)
-
-	if device != nil && !device.Verify(password) {
-		return nil, nil, echo.NewHTTPError(http.StatusForbidden).SetInternal(ErrPasswordMismatch)
-	}
-
-	return account, device, nil
-}
-
-func (api *API) newAccount(
-	ctx context.Context,
-	deviceID service.DeviceID,
-) (service.Account, service.Device, string, error) {
-	// if no credentials are present through Basic header, generate username and password
-	username, err := api.UsernameGenerator.Generate()
-	if err != nil {
-		return nil, nil, "", fmt.Errorf("generating a username for registration failed: %w", err)
-	}
-
-	passLength, minSpecial, minNum := 32, 6, 6
-
-	password, err := api.PasswordGenerator.Generate(passLength, minNum, minSpecial, false, false)
-	if err != nil {
-		return nil, nil, "", fmt.Errorf("generating a password for registration failed: %w", err)
-	}
-
-	account, err := api.Accounts.Create(ctx, username)
-	if err != nil {
-		return nil, nil, "", echo.NewHTTPError(http.StatusInternalServerError).
-			SetInternal(fmt.Errorf("account could not be registered (username: %s): %w", username, err))
-	}
-
-	device, err := api.Devices.AddDevice(ctx, account, deviceID, password)
-	if err != nil {
-		return nil, nil, "", echo.NewHTTPError(http.StatusInternalServerError).
-			SetInternal(fmt.Errorf("error while registering new device: %w", err))
-	}
-
-	return account, device, password, nil
-}
-
-func (api *API) verifyShareCode(ctx echo.Context, account service.Account, share service.ShareCode) error {
+func (api *API) resolveShareCode(ctx echo.Context, share service.ShareCode) (service.Account, error) {
 	// check that if the device code is present, it is actually for the account
-	err := api.Sharing.IsShared(ctx.Request().Context(), account, share)
+	account, err := api.Sharing.Shared(ctx.Request().Context(), share)
 
 	if err == service.ErrShareCodeInvalid {
-		return fmt.Errorf("share %s is invalid (not shared) for %s: %w", share, account.Username(), err)
+		return nil, fmt.Errorf("share %s is invalid (not shared): %w", share, err)
 	}
 
 	if err != nil {
-		return fmt.Errorf("cannot verify share %s is valid for %s: %w", share, account.Username(), err)
+		return nil, fmt.Errorf("cannot verify share %s is valid: %w", share, err)
 	}
 
-	return nil
+	return account, nil
+}
+
+func (api *API) defaultUsername(username string) (string, error) {
+	var err error
+	if username == "" {
+		// if no username is present through Basic header or the Share Code, generate it
+		username, err = api.UsernameGenerator.Generate()
+		if err != nil {
+			return "", echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
+				fmt.Errorf("generating a username for registration failed: %w", err),
+			)
+		}
+	}
+
+	return username, err //nolint:wrapcheck
+}
+
+func (api *API) defaultPassword(password string) (string, error) {
+	var err error
+	if password == "" {
+		// if no password is present through Basic header, generate it
+		password, err = api.PasswordGenerator.Generate(passLength, minNum, minSpecial, false, false)
+		if err != nil {
+			return "", echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
+				fmt.Errorf("generating a password for registration failed: %w", err),
+			)
+		}
+	}
+
+	return password, err //nolint:wrapcheck
+}
+
+func (api *API) revokeShareCode(ctx context.Context, code service.ShareCode) error {
+	var err error
+	if code != "" {
+		if err = api.Sharing.Revoke(ctx, code); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
+				fmt.Errorf("cannot revoke old share code %s: %w", code, err),
+			)
+		}
+	}
+
+	return err //nolint:wrapcheck
 }

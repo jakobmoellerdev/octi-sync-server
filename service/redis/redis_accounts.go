@@ -62,53 +62,45 @@ func (r *Accounts) HealthCheck() service.HealthCheck {
 	}
 }
 
-func (r *Accounts) shareKey(account service.Account) string {
-	return fmt.Sprintf("%s:%s", ShareKeySpace, account.Username())
+func (r *Accounts) shareKey(shareCode service.ShareCode) string {
+	return fmt.Sprintf("%s:%s", ShareKeySpace, shareCode.String())
 }
 
-func (r *Accounts) Share(ctx context.Context, account service.Account) (string, error) {
+func (r *Accounts) Share(ctx context.Context, account service.Account) (service.ShareCode, error) {
 	shareID, err := uuid.NewRandom()
 	if err != nil {
 		return "", fmt.Errorf("error during share code generation: %w", err)
 	}
 
-	shareCode := shareID.String()
-	if err := r.Client.LPush(ctx, r.shareKey(account), shareCode).Err(); err != nil {
+	shareCode := service.ShareCode(shareID.String())
+	if err := r.Client.Set(
+		ctx,
+		r.shareKey(shareCode),
+		account.Username(),
+		time.Hour,
+	).Err(); err != nil {
 		return "", fmt.Errorf("error while pushing shareCode: %w", err)
-	}
-
-	if err := r.Client.Expire(ctx, r.shareKey(account), time.Hour).Err(); err != nil {
-		return "", fmt.Errorf("error while setting expiry: %w", err)
 	}
 
 	return shareCode, nil
 }
 
-func (r *Accounts) ActiveShares(ctx context.Context, account service.Account) ([]string, error) {
-	shareCodes, err := r.Client.LRange(ctx, r.shareKey(account), 0, -1).Result()
-	if err != nil {
-		return []string{}, fmt.Errorf("could not determine active sharecode list: %w", err)
-	}
-
-	return shareCodes, nil
-}
-
-func (r *Accounts) IsShared(ctx context.Context, account service.Account, shareCode service.ShareCode) error {
-	err := r.Client.LPos(ctx, r.shareKey(account), shareCode.String(), redis.LPosArgs{}).Err()
+func (r *Accounts) Shared(ctx context.Context, shareCode service.ShareCode) (service.Account, error) {
+	accountID, err := r.Client.Get(ctx, r.shareKey(shareCode)).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return service.ErrShareCodeInvalid
+			return nil, service.ErrShareCodeInvalid
 		}
 
-		return fmt.Errorf("could not find out if share code is valid: %w", err)
+		return nil, fmt.Errorf("could not find out if share code is valid: %w", err)
 	}
 
-	return nil
+	return r.Find(ctx, accountID)
 }
 
-func (r *Accounts) Revoke(ctx context.Context, account service.Account, shareCode service.ShareCode) error {
-	if err := r.Client.LRem(ctx, r.shareKey(account), 0, shareCode.String()).Err(); err != nil {
-		return fmt.Errorf("error while revoking user: %w", err)
+func (r *Accounts) Revoke(ctx context.Context, shareCode service.ShareCode) error {
+	if err := r.Client.Del(ctx, r.shareKey(shareCode)).Err(); err != nil {
+		return fmt.Errorf("error while revoking share code: %w", err)
 	}
 
 	return nil

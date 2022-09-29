@@ -65,11 +65,11 @@ jobs:
           endpoint: builders
 
       - uses: goreleaser/goreleaser-action@v3
-        name: ${{ (github.event_name == 'pull_request' && 'Snapshot') || 'Release' }}
+        name: goreleaser
         with:
           distribution: goreleaser
           version: latest
-          args: release
+          args: ${{ (github.event_name == 'pull_request' && 'release --snapshot --skip-sign') || 'release' }}
         env:
           BUILDER: ${{ steps.buildx.outputs.name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

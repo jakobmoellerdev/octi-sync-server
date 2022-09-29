@@ -22,7 +22,7 @@ func (api *API) Share(ctx echo.Context, _ REST.ShareParams) error {
 	}
 
 	if err := ctx.JSON(http.StatusOK, &REST.ShareResponse{
-		ShareCode: &share,
+		ShareCode: (*string)(&share),
 	}); err != nil {
 		return fmt.Errorf("could not write share response: %w", err)
 	}

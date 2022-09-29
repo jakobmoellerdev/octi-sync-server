@@ -10,8 +10,7 @@ func (c ShareCode) String() string {
 
 //go:generate mockgen -source sharing.go -package mock -destination mock/sharing.go Sharing
 type Sharing interface {
-	Share(ctx context.Context, account Account) (string, error)
-	ActiveShares(ctx context.Context, account Account) ([]string, error)
-	IsShared(ctx context.Context, account Account, shareCode ShareCode) error
-	Revoke(ctx context.Context, account Account, shareCode ShareCode) error
+	Share(ctx context.Context, account Account) (ShareCode, error)
+	Shared(ctx context.Context, shareCode ShareCode) (Account, error)
+	Revoke(ctx context.Context, shareCode ShareCode) error
 }

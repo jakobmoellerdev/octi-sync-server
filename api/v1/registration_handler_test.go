@@ -82,6 +82,9 @@ func (r *RegisterTestSuite) Register(params REST.RegisterParams) error {
 }
 
 func (r *RegisterTestSuite) Test_500_credential_username_generation_during_registration_fails() {
+	r.accounts.EXPECT().Find(r.ctx.Request().Context(), gomock.Any()).Times(1).
+		Return(nil, service.ErrDeviceNotFound)
+
 	usernameGen := mock.NewMockUsernameGenerator(r.ctrl)
 
 	usernameGen.EXPECT().Generate().AnyTimes().Return("", errors.New(r.errMockText))
@@ -94,6 +97,9 @@ func (r *RegisterTestSuite) Test_500_credential_username_generation_during_regis
 }
 
 func (r *RegisterTestSuite) Test_500_credential_password_generation_during_registration_fails() {
+	r.accounts.EXPECT().Find(r.ctx.Request().Context(), gomock.Any()).Times(1).
+		Return(nil, service.ErrDeviceNotFound)
+
 	r.api.PasswordGenerator = password.NewMockGenerator("", errors.New(r.errMockText))
 
 	err := r.Register(REST.RegisterParams{})
@@ -106,31 +112,31 @@ func (r *RegisterTestSuite) Test_500_account_registration_fails() {
 	r.accounts.EXPECT().Create(r.ctx.Request().Context(), r.user).Times(1).
 		Return(nil, errors.New(r.errMockText))
 
-	err := r.Register(REST.RegisterParams{})
-
-	r.ErrorContains(err, r.errMockText)
-}
-
-func (r *RegisterTestSuite) Test_403_account_not_exists_provided_credentials() {
-	r.accounts.EXPECT().Find(r.ctx.Request().Context(), "foo").Times(1).
-		Return(nil, errors.New(r.errMockText))
-	r.ctx.Request().SetBasicAuth("foo", "bar")
+	r.accounts.EXPECT().Find(r.ctx.Request().Context(), gomock.Any()).Times(1).
+		Return(nil, service.ErrDeviceNotFound)
 
 	err := r.Register(REST.RegisterParams{})
 
 	r.ErrorContains(err, r.errMockText)
 }
 
-func (r *RegisterTestSuite) Test_403_account_not_exists_wrong_pass() {
-	acc := service.NewBaseAccount("foo", time.Now())
-	r.accounts.EXPECT().Find(r.ctx.Request().Context(), "foo").Times(1).
-		Return(acc, nil)
-	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, gomock.Any()).Times(1).
-		Return(service.NewBaseDevice(r.deviceID, "test"), nil)
-	r.ctx.Request().SetBasicAuth("foo", "WRONG")
-	err := r.Register(REST.RegisterParams{})
+func (r *RegisterTestSuite) Test_200_account_not_exists_provided_credentials() {
+	acc := service.NewBaseAccount(r.user, time.Now())
 
-	r.ErrorIs(err, v1.ErrPasswordMismatch)
+	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
+		Return(nil, service.ErrAccountNotFound)
+	r.accounts.EXPECT().Create(r.ctx.Request().Context(), r.user).Times(1).Return(acc, nil)
+	r.devices.EXPECT().AddDevice(r.ctx.Request().Context(), acc, r.deviceID, r.pass).Times(1).
+		Return(service.NewBaseDevice(r.deviceID, HashedPassword(r.pass)), nil)
+	r.ctx.Request().SetBasicAuth(r.user, r.pass)
+
+	err := r.Register(
+		REST.RegisterParams{
+			XDeviceID: REST.XDeviceID(r.deviceID),
+		},
+	)
+
+	r.NoError(err)
 }
 
 func (r *RegisterTestSuite) Test_403_device_not_registered_no_share_code() {
@@ -151,58 +157,14 @@ func (r *RegisterTestSuite) Test_403_device_not_registered_no_share_code() {
 	r.ErrorIs(err, v1.ErrDeviceNotRegistered)
 }
 
-func (r *RegisterTestSuite) Test_403_device_not_registered_share_code_lookup_fails() {
-	acc := service.NewBaseAccount(r.user, time.Now())
-
-	r.ctx.Request().SetBasicAuth(r.user, r.pass)
-	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
-		Return(acc, nil)
-	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
-		Return(nil, service.ErrDeviceNotFound)
-	r.sharing.EXPECT().IsShared(r.ctx.Request().Context(), acc, r.share).Times(1).
-		Return(errors.New(r.errMockText))
-
-	err := r.Register(
-		REST.RegisterParams{
-			XDeviceID: REST.XDeviceID(r.deviceID),
-			Share:     (*REST.ShareCode)(&r.share),
-		},
-	)
-
-	r.ErrorContains(err, "cannot verify share")
-}
-
-func (r *RegisterTestSuite) Test_403_device_not_registered_share_code_invalid() {
-	acc := service.NewBaseAccount(r.user, time.Now())
-
-	r.ctx.Request().SetBasicAuth(r.user, r.pass)
-	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
-		Return(acc, nil)
-	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
-		Return(nil, service.ErrDeviceNotFound)
-	r.sharing.EXPECT().IsShared(r.ctx.Request().Context(), acc, r.share).Times(1).
-		Return(service.ErrShareCodeInvalid)
-
-	err := r.Register(
-		REST.RegisterParams{
-			XDeviceID: REST.XDeviceID(r.deviceID),
-			Share:     (*REST.ShareCode)(&r.share),
-		},
-	)
-
-	r.ErrorContains(err, "is invalid (not shared)")
-}
-
 func (r *RegisterTestSuite) Test_500_device_not_registered_share_code_ok_device_registration_fails() {
 	acc := service.NewBaseAccount(r.user, time.Now())
 
 	r.ctx.Request().SetBasicAuth(r.user, r.pass)
-	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
-		Return(acc, nil)
 	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
-	r.sharing.EXPECT().IsShared(r.ctx.Request().Context(), acc, r.share).Times(1).
-		Return(nil)
+	r.sharing.EXPECT().Shared(r.ctx.Request().Context(), r.share).Times(1).
+		Return(acc, nil)
 	r.devices.EXPECT().AddDevice(r.ctx.Request().Context(), acc, r.deviceID, r.pass).Times(1).
 		Return(nil, errors.New(r.errMockText))
 
@@ -221,15 +183,13 @@ func (r *RegisterTestSuite) Test_500_device_not_registered_share_code_ok_device_
 	acc := service.NewBaseAccount(r.user, time.Now())
 
 	r.ctx.Request().SetBasicAuth(r.user, r.pass)
-	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
-		Return(acc, nil)
 	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
-	r.sharing.EXPECT().IsShared(r.ctx.Request().Context(), acc, r.share).Times(1).
-		Return(nil)
+	r.sharing.EXPECT().Shared(r.ctx.Request().Context(), r.share).Times(1).
+		Return(acc, nil)
 	r.devices.EXPECT().AddDevice(r.ctx.Request().Context(), acc, r.deviceID, r.pass).Times(1).
 		Return(service.NewBaseDevice(r.deviceID, HashedPassword(r.pass)), nil)
-	r.sharing.EXPECT().Revoke(r.ctx.Request().Context(), acc, r.share).Times(1).
+	r.sharing.EXPECT().Revoke(r.ctx.Request().Context(), r.share).Times(1).
 		Return(errors.New(r.errMockText))
 
 	err := r.Register(
@@ -242,40 +202,17 @@ func (r *RegisterTestSuite) Test_500_device_not_registered_share_code_ok_device_
 	r.ErrorContains(err, r.errMockText)
 }
 
-func (r *RegisterTestSuite) Test_200_device_not_registered_share_code_ok_device_registration_ok_with_header() {
-	acc := service.NewBaseAccount(r.user, time.Now())
-
-	r.ctx.Request().SetBasicAuth(r.user, r.pass)
-	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
-		Return(acc, nil)
-	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
-		Return(nil, service.ErrDeviceNotFound)
-	r.sharing.EXPECT().IsShared(r.ctx.Request().Context(), acc, r.share).Times(1).
-		Return(nil)
-	r.devices.EXPECT().AddDevice(r.ctx.Request().Context(), acc, r.deviceID, r.pass).Times(1).
-		Return(service.NewBaseDevice(r.deviceID, HashedPassword(r.pass)), nil)
-	r.sharing.EXPECT().Revoke(r.ctx.Request().Context(), acc, r.share).Times(1).
-		Return(nil)
-
-	err := r.Register(
-		REST.RegisterParams{
-			XDeviceID: REST.XDeviceID(r.deviceID),
-			Share:     (*REST.ShareCode)(&r.share),
-		},
-	)
-
-	r.NoError(err)
-}
-
 //nolint:lll
 func (r *RegisterTestSuite) Test_200_device_not_registered_share_code_ok_device_registration_ok_with_generated_creds_new_account() {
 	acc := service.NewBaseAccount(r.user, time.Now())
 
-	r.accounts.EXPECT().Create(r.ctx.Request().Context(), r.user).Times(1).
+	r.sharing.EXPECT().Shared(r.ctx.Request().Context(), r.share).Times(1).
 		Return(acc, nil)
+	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
+		Return(nil, service.ErrDeviceNotFound)
 	r.devices.EXPECT().AddDevice(r.ctx.Request().Context(), acc, r.deviceID, r.pass).Times(1).
 		Return(service.NewBaseDevice(r.deviceID, HashedPassword(r.pass)), nil)
-
+	r.sharing.EXPECT().Revoke(r.ctx.Request().Context(), r.share).Times(1).Return(nil)
 	err := r.Register(
 		REST.RegisterParams{
 			XDeviceID: REST.XDeviceID(r.deviceID),
@@ -290,15 +227,13 @@ func (r *RegisterTestSuite) Test_200_device_not_registered_share_code_ok_device_
 	acc := service.NewBaseAccount(r.user, time.Now())
 	newPass := "some new password"
 
-	r.accounts.EXPECT().Find(r.ctx.Request().Context(), r.user).Times(1).
-		Return(acc, nil)
 	r.devices.EXPECT().GetDevice(r.ctx.Request().Context(), acc, r.deviceID).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
-	r.sharing.EXPECT().IsShared(r.ctx.Request().Context(), acc, r.share).Times(1).
-		Return(nil)
+	r.sharing.EXPECT().Shared(r.ctx.Request().Context(), r.share).Times(1).
+		Return(acc, nil)
 	r.devices.EXPECT().AddDevice(r.ctx.Request().Context(), acc, r.deviceID, newPass).Times(1).
 		Return(service.NewBaseDevice(r.deviceID, HashedPassword(newPass)), nil)
-	r.sharing.EXPECT().Revoke(r.ctx.Request().Context(), acc, r.share).Times(1).
+	r.sharing.EXPECT().Revoke(r.ctx.Request().Context(), r.share).Times(1).
 		Return(nil)
 
 	r.ctx.Request().SetBasicAuth(r.user, newPass)
