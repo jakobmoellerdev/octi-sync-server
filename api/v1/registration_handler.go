@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,7 +13,6 @@ import (
 )
 
 var (
-	ErrPasswordMismatch         = errors.New("passwords do not match")
 	ErrDeviceNotRegistered      = errors.New("device not found in account and there was no share code")
 	ErrAccountShareCodeMismatch = errors.New("the provided share code did not belong to the provided account")
 )
@@ -53,24 +53,12 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 		account, _ = api.Accounts.Find(ctx.Request().Context(), username)
 	}
 
-	if username == "" {
-		// if no username is present through Basic header or the Share Code, generate it
-		username, err = api.UsernameGenerator.Generate()
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
-				fmt.Errorf("generating a username for registration failed: %w", err),
-			)
-		}
+	if username, err = api.defaultUsername(username); err != nil {
+		return err
 	}
 
-	if password == "" {
-		// if no password is present through Basic header, generate it
-		password, err = api.PasswordGenerator.Generate(passLength, minNum, minSpecial, false, false)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
-				fmt.Errorf("generating a password for registration failed: %w", err),
-			)
-		}
+	if password, err = api.defaultPassword(password); err != nil {
+		return err
 	}
 
 	if account == nil {
@@ -98,12 +86,8 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 		)
 	}
 
-	if shareCode != "" {
-		if err = api.Sharing.Revoke(ctx.Request().Context(), shareCode); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
-				fmt.Errorf("cannot revoke old share code %s for %s: %w", deviceID, account.Username(), err),
-			)
-		}
+	if err = api.revokeShareCode(ctx.Request().Context(), shareCode); err != nil {
+		return err
 	}
 
 	ctx.Response().Header().Set(basic.DeviceIDHeader, device.ID().String())
@@ -133,4 +117,44 @@ func (api *API) resolveShareCode(ctx echo.Context, share service.ShareCode) (ser
 	}
 
 	return account, nil
+}
+
+func (api *API) defaultUsername(username string) (string, error) {
+	var err error
+	if username == "" {
+		// if no username is present through Basic header or the Share Code, generate it
+		username, err = api.UsernameGenerator.Generate()
+		if err != nil {
+			return "", echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
+				fmt.Errorf("generating a username for registration failed: %w", err),
+			)
+		}
+	}
+	return username, err
+}
+
+func (api *API) defaultPassword(password string) (string, error) {
+	var err error
+	if password == "" {
+		// if no password is present through Basic header, generate it
+		password, err = api.PasswordGenerator.Generate(passLength, minNum, minSpecial, false, false)
+		if err != nil {
+			return "", echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
+				fmt.Errorf("generating a password for registration failed: %w", err),
+			)
+		}
+	}
+	return password, err
+}
+
+func (api *API) revokeShareCode(ctx context.Context, code service.ShareCode) error {
+	var err error
+	if code != "" {
+		if err = api.Sharing.Revoke(ctx, code); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
+				fmt.Errorf("cannot revoke old share code %s: %w", code, err),
+			)
+		}
+	}
+	return err
 }
