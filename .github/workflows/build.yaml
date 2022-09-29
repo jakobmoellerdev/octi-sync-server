@@ -69,7 +69,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release
+          args: ${{ (github.event_name == 'pull_request' && 'build') || 'release' }}
         env:
           BUILDER: ${{ steps.buildx.outputs.name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
