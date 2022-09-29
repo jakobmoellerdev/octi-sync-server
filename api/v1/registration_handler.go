@@ -130,6 +130,7 @@ func (api *API) defaultUsername(username string) (string, error) {
 			)
 		}
 	}
+
 	return username, err
 }
 
@@ -144,6 +145,7 @@ func (api *API) defaultPassword(password string) (string, error) {
 			)
 		}
 	}
+
 	return password, err
 }
 
@@ -156,5 +158,6 @@ func (api *API) revokeShareCode(ctx context.Context, code service.ShareCode) err
 			)
 		}
 	}
+
 	return err
 }
