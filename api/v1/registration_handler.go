@@ -43,9 +43,11 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 		if account, err = api.resolveShareCode(ctx, shareCode); err != nil {
 			return echo.NewHTTPError(http.StatusForbidden).SetInternal(err)
 		}
+
 		if username != "" && account.Username() != username {
 			return echo.NewHTTPError(http.StatusForbidden).SetInternal(ErrAccountShareCodeMismatch)
 		}
+
 		username = account.Username()
 	} else {
 		account, _ = api.Accounts.Find(ctx.Request().Context(), username)
@@ -78,13 +80,6 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 			return echo.NewHTTPError(http.StatusInternalServerError).
 				SetInternal(fmt.Errorf("error while creating account with provided credentials: %w", err))
 		}
-
-		device, err = api.Devices.AddDevice(ctx.Request().Context(), account, deviceID, password)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError).
-				SetInternal(fmt.Errorf("registering a new device failed: %w", err))
-		}
-
 	} else {
 		device, _ = api.Devices.GetDevice(ctx.Request().Context(), account, deviceID)
 
@@ -93,14 +88,14 @@ func (api *API) Register(ctx echo.Context, params REST.RegisterParams) error {
 			return echo.NewHTTPError(http.StatusForbidden).
 				SetInternal(ErrDeviceNotRegistered)
 		}
+	}
 
-		// if the device is present or there is a valid shareCode is then we are free to (re-)register the device
-		device, err = api.Devices.AddDevice(ctx.Request().Context(), account, deviceID, password)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
-				fmt.Errorf("cannot register device %s for %s: %w", deviceID, account.Username(), err),
-			)
-		}
+	// if the device is present or there is a valid shareCode is then we are free to (re-)register the device
+	device, err = api.Devices.AddDevice(ctx.Request().Context(), account, deviceID, password)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(
+			fmt.Errorf("cannot register device %s for %s: %w", deviceID, account.Username(), err),
+		)
 	}
 
 	if shareCode != "" {

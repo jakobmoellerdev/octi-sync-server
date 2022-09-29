@@ -84,6 +84,7 @@ func (r *RegisterTestSuite) Register(params REST.RegisterParams) error {
 func (r *RegisterTestSuite) Test_500_credential_username_generation_during_registration_fails() {
 	r.accounts.EXPECT().Find(r.ctx.Request().Context(), gomock.Any()).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
+
 	usernameGen := mock.NewMockUsernameGenerator(r.ctrl)
 
 	usernameGen.EXPECT().Generate().AnyTimes().Return("", errors.New(r.errMockText))
@@ -98,6 +99,7 @@ func (r *RegisterTestSuite) Test_500_credential_username_generation_during_regis
 func (r *RegisterTestSuite) Test_500_credential_password_generation_during_registration_fails() {
 	r.accounts.EXPECT().Find(r.ctx.Request().Context(), gomock.Any()).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
+
 	r.api.PasswordGenerator = password.NewMockGenerator("", errors.New(r.errMockText))
 
 	err := r.Register(REST.RegisterParams{})
@@ -112,6 +114,7 @@ func (r *RegisterTestSuite) Test_500_account_registration_fails() {
 
 	r.accounts.EXPECT().Find(r.ctx.Request().Context(), gomock.Any()).Times(1).
 		Return(nil, service.ErrDeviceNotFound)
+
 	err := r.Register(REST.RegisterParams{})
 
 	r.ErrorContains(err, r.errMockText)
