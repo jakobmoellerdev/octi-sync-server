@@ -93,7 +93,7 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
-      - run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.11.0
+      - run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.11.1-0.20220912230023-4a1477f6a8ba
       - run: go install github.com/golang/mock/mockgen@v1.6.0
       - run: go generate ./...
       - name: Check Generated files after rerunning go generate
