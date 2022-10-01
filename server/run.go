@@ -28,21 +28,7 @@ func Run(ctx context.Context, cfg *config.Config) error {
 		return fmt.Errorf("error while starting up redis client")
 	}
 
-	accounts := &redis.Accounts{Client: clients["default"]}
-	cfg.Services.Accounts = accounts
-	cfg.Services.Sharing = accounts
-	cfg.Services.Modules = &redis.Modules{Client: clients["default"]}
-	cfg.Services.Devices = &redis.Devices{Client: clients["default"]}
-
-	// Define server options
-	srv := &http.Server{
-		Addr:              cfg.Server.Host + ":" + cfg.Server.Port,
-		Handler:           api.New(startUpContext, cfg),
-		ReadTimeout:       cfg.Server.Timeout.Read,
-		ReadHeaderTimeout: cfg.Server.Timeout.Read,
-		WriteTimeout:      cfg.Server.Timeout.Write,
-		IdleTimeout:       cfg.Server.Timeout.Idle,
-	}
+	srv := createServer(startUpContext, clients, cfg)
 
 	idleConsClosed := make(chan struct{})
 	closeServer := func() {
@@ -76,6 +62,28 @@ func Run(ctx context.Context, cfg *config.Config) error {
 	cfg.Logger.Info().Msg("server shut down finished")
 
 	return nil
+}
+
+func createServer(startUpContext context.Context, clients redis.Clients, cfg *config.Config) *http.Server {
+	accounts := &redis.Accounts{Client: clients["default"]}
+
+	cfg.Services.Accounts = accounts
+	cfg.Services.Sharing = accounts
+	cfg.Services.Modules = &redis.Modules{Client: clients["default"]}
+	cfg.Services.Devices = &redis.Devices{Client: clients["default"]}
+	cfg.Services.MetadataProvider = &redis.MetadataProvider{Client: clients["default"]}
+
+	// Define server options
+	srv := &http.Server{
+		Addr:              cfg.Server.Host + ":" + cfg.Server.Port,
+		Handler:           api.New(startUpContext, cfg),
+		ReadTimeout:       cfg.Server.Timeout.Read,
+		ReadHeaderTimeout: cfg.Server.Timeout.Read,
+		WriteTimeout:      cfg.Server.Timeout.Write,
+		IdleTimeout:       cfg.Server.Timeout.Idle,
+	}
+
+	return srv
 }
 
 func DefaultClientMutators(identifier string) redis.ClientMutators {

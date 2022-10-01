@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"time"
 
 	goredis "github.com/go-redis/redis/v9"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
@@ -13,6 +14,7 @@ const (
 	EnvRedisPassword       = "REDIS_PASSWORD"
 	DefaultIntervalSeconds = 5
 	DefaultTimeoutSeconds  = 5
+	NoExpiry               = time.Duration(-1)
 )
 
 type (

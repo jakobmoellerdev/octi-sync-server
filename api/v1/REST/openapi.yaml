@@ -205,11 +205,21 @@ components:
         application/octet-stream:
           schema:
             $ref: '#/components/schemas/ModuleDataStream'
+      headers:
+        X-Modified-At:
+          description: |-
+            When returned, indicates when the queried data was last modified.
+          schema:
+            $ref: '#/components/schemas/ModifiedAtTimestamp'
   schemas:
     DeviceID:
       type: string
       description: "Device ID is the unique identifier for a remote device"
       format: uuid
+    ModifiedAtTimestamp:
+      type: string
+      description: "A Timestamp indicating when a datum was last modified"
+      format: date-time
     HealthAggregationComponent:
       type: object
       properties:
