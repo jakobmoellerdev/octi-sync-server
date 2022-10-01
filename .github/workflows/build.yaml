@@ -3,92 +3,16 @@ name: CI
 on:
   push:
     branches: [ "main" ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ "main" ]
 
 permissions:
-  contents: write
-  packages: write
-  issues: write
-env:
-  # Use docker.io for Docker Hub if empty
-  REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
-
+  contents: read
+  packages: read
+  issues: read
 jobs:
-  release:
-    name: Release
-    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    needs:
-      - build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-go@v3
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v2.7.0
-        with:
-          cosign-release: 'v1.12.1'
-
-      - name: Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@21f251affc0769ccac8a1cf17e937592fb492337
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Docker Context for Buildx
-        id: buildx-context
-        run: docker context create builders
-      - name: Setup Docker buildx
-        id: buildx
-        uses: docker/setup-buildx-action@f385c9ed953addec511152eb20a6021fe3d09fe6
-        with:
-          endpoint: builders
-
-      - name: Setup Semantic Version Util
-        run: |
-          echo 'deb [trusted=yes] https://apt.fury.io/caarlos0/ /' | sudo tee /etc/apt/sources.list.d/caarlos0.list
-          sudo apt-get update
-          sudo apt-get install -y svu
-      - name: Create New Release Tag
-        run: |
-          git tag "$(svu next)"
-          git push --tags
-      - uses: goreleaser/goreleaser-action@v3
-        name: Release
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release
-        env:
-          BUILDER: ${{ steps.buildx.outputs.name }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-
-      - name: Store Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: artifacts
-          path: dist/artifacts.json
-      - name: Store Metadata
-        uses: actions/upload-artifact@v3
-        with:
-          name: metadata
-          path: dist/metadata.json
   build:
-    name: Build
+    name: Snapshot
     needs:
       - go-test
       - generated-files-check
@@ -108,10 +32,14 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: build --snapshot
+          args: release --snapshot
         env:
-          BUILDER: ${{ steps.buildx.outputs.name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Store Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: dist/*.json
   go-test:
     name: Tests
     runs-on: ubuntu-latest
