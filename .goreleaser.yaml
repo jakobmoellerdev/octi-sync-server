@@ -88,8 +88,6 @@ docker_signs:
     stdin: '{{ .Env.COSIGN_PASSWORD }}'
 checksum:
   name_template: 'checksums.txt'
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
 changelog:
   use: github
   sort: asc

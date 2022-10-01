@@ -27,6 +27,14 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - name: Set up Docker Context for Buildx
+        id: buildx-context
+        run: docker context create builders
+      - name: Setup Docker buildx
+        id: buildx
+        uses: docker/setup-buildx-action@f385c9ed953addec511152eb20a6021fe3d09fe6
+        with:
+          endpoint: builders
       - uses: goreleaser/goreleaser-action@v3
         name: goreleaser
         with:
@@ -34,6 +42,7 @@ jobs:
           version: latest
           args: release --snapshot --skip-sign
         env:
+          BUILDER: ${{ steps.buildx.outputs.name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Store Artifacts
         uses: actions/upload-artifact@v3
