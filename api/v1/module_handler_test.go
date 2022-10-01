@@ -152,44 +152,48 @@ func (m *ModuleTestSuite) TestAPI_GetModule() {
 }
 
 func (m *ModuleTestSuite) TestAPI_GetModule_By_Param() {
-	req := emptyRequest(http.MethodPost)
-
 	secondDeviceId := uuid.Must(uuid.NewRandom())
 
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	for _, testCase := range []struct {
+		dataInReturn []byte
+		expectedCode int
+	}{
+		{[]byte(moduleData), http.StatusOK},
+		{[]byte{}, http.StatusNoContent},
+	} {
+		m.rec = httptest.NewRecorder()
+		req := emptyRequest(http.MethodPost)
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
-	ctx := m.server.NewContext(req, m.rec)
+		ctx := m.server.NewContext(req, m.rec)
+		id := fmt.Sprintf("%s-%s-%s", m.user.Username(), secondDeviceId, moduleName)
 
-	ctx.Set(basic.AccountKey, m.user)
+		ctx.Set(basic.AccountKey, m.user)
 
-	id := fmt.Sprintf("%s-%s-%s", m.user.Username(), secondDeviceId, moduleName)
+		m.devices.EXPECT().GetDevice(ctx.Request().Context(), m.user, service.DeviceID(secondDeviceId)).
+			Return(nil, nil)
 
-	m.modules.EXPECT().Get(
-		ctx.Request().Context(), id,
-	).Return(redis.ModuleFromBytes([]byte(moduleData)), nil)
+		m.metadata.EXPECT().Get(ctx.Request().Context(), service.MetadataID(id)).Return(
+			service.NewBaseMetadata(
+				id, time.Now(),
+			), nil,
+		)
 
-	m.devices.EXPECT().GetDevice(ctx.Request().Context(), m.user, service.DeviceID(secondDeviceId)).
-		Return(nil, nil)
+		m.modules.EXPECT().Get(
+			ctx.Request().Context(), id,
+		).Return(redis.ModuleFromBytes(testCase.dataInReturn), nil)
 
-	m.metadata.EXPECT().Get(ctx.Request().Context(), service.MetadataID(id)).Return(
-		service.NewBaseMetadata(
-			id, time.Now(),
-		), nil,
-	)
-
-	if m.NoError(
-		m.api.GetModule(
-			ctx, moduleName, REST.GetModuleParams{
-				XDeviceID: m.deviceID,
-				DeviceId:  &secondDeviceId,
-			},
-		),
-	) {
-		m.Equal(http.StatusOK, m.rec.Code)
-
-		body := m.rec.Body.String()
-
-		m.NotEmpty(body)
-		m.Equal(moduleData, body)
+		if m.NoError(
+			m.api.GetModule(
+				ctx, moduleName, REST.GetModuleParams{
+					XDeviceID: m.deviceID,
+					DeviceId:  &secondDeviceId,
+				},
+			),
+		) {
+			m.Equal(testCase.expectedCode, m.rec.Code)
+			body := m.rec.Body.String()
+			m.Equal(string(testCase.dataInReturn), body)
+		}
 	}
 }
