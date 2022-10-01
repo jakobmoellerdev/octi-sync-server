@@ -92,6 +92,7 @@ type Config struct {
 		service.Modules
 		service.Devices
 		service.Health
+		service.MetadataProvider
 	} `yaml:"-"`
 }
 

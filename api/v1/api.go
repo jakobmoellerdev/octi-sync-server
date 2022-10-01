@@ -17,6 +17,7 @@ type API struct {
 	service.Sharing
 	service.Devices
 	service.Modules
+	service.MetadataProvider
 	password.PasswordGenerator
 	service.UsernameGenerator
 }
@@ -41,6 +42,7 @@ func New(_ context.Context, engine *echo.Echo, config *config.Config) {
 			config.Services.Sharing,
 			config.Services.Devices,
 			config.Services.Modules,
+			config.Services.MetadataProvider,
 			config.PasswordGenerator,
 			config.UsernameGenerator,
 		},

@@ -33,6 +33,7 @@ func Run(ctx context.Context, cfg *config.Config) error {
 	cfg.Services.Sharing = accounts
 	cfg.Services.Modules = &redis.Modules{Client: clients["default"]}
 	cfg.Services.Devices = &redis.Devices{Client: clients["default"]}
+	cfg.Services.MetadataProvider = &redis.MetadataProvider{Client: clients["default"]}
 
 	// Define server options
 	srv := &http.Server{

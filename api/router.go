@@ -38,7 +38,7 @@ func New(ctx context.Context, config *config.Config) http.Handler {
 	// Rate Limiting Support based on simple In-Memory Solution
 	router.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(RateLimitRequestsPerSecond)))
 
-	// Request ID Tracking for traceability
+	// Request GetID Tracking for traceability
 	router.Use(middleware.RequestID())
 	router.Use(
 		RequestContextTimeout(config.Server.Timeout.Request),

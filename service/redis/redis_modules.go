@@ -5,13 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
-
-const NoExpiry = time.Duration(-1)
 
 type Modules struct {
 	Client redis.Cmdable
