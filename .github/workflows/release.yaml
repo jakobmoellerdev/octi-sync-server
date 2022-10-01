@@ -56,7 +56,7 @@ jobs:
           echo 'deb [trusted=yes] https://apt.fury.io/caarlos0/ /' | sudo tee /etc/apt/sources.list.d/caarlos0.list
           sudo apt-get update
           sudo apt-get install -y svu
-      - name: Create New Release Tag
+      - name: Create and Push New Release Tag
         run: |
           git tag "$(svu next)"
           git push --tags

@@ -35,6 +35,13 @@ jobs:
         uses: docker/setup-buildx-action@f385c9ed953addec511152eb20a6021fe3d09fe6
         with:
           endpoint: builders
+      - name: Setup Semantic Version Util
+        run: |
+          echo 'deb [trusted=yes] https://apt.fury.io/caarlos0/ /' | sudo tee /etc/apt/sources.list.d/caarlos0.list
+          sudo apt-get update
+          sudo apt-get install -y svu
+      - name: Determine Next Release Version and Set Tag
+        run: git tag "$(svu next)"
       - uses: goreleaser/goreleaser-action@v3
         name: goreleaser
         with:
