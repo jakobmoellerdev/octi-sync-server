@@ -11,6 +11,8 @@ import (
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 )
 
+const NoExpiry = time.Duration(-1)
+
 type Modules struct {
 	Client redis.Cmdable
 }
@@ -18,7 +20,6 @@ type Modules struct {
 func (r *Modules) Set(ctx context.Context, name string, module service.Module) error {
 	moduleData, err := io.ReadAll(module.Raw())
 	if err == nil {
-		NoExpiry := time.Duration(-1)
 		err = r.Client.Set(ctx, name, moduleData, NoExpiry).Err()
 	}
 

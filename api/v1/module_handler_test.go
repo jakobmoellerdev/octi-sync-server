@@ -6,9 +6,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
@@ -52,13 +55,43 @@ func TestAPI_GetModule(t *testing.T) {
 
 	apiImpl := API()
 
-	assertions.NoError(apiImpl.Modules.Set(
-		context.Background(), fmt.Sprintf("%s-%s", deviceID.String(), moduleName),
-		memory.ModuleFromBytes([]byte("test"))),
+	assertions.NoError(
+		apiImpl.Modules.Set(
+			context.Background(), fmt.Sprintf("%s-%s", deviceID.String(), moduleName),
+			memory.ModuleFromBytes([]byte("test")),
+		),
 	)
 
 	if rec := httptest.NewRecorder(); assertions.NoError(
 		apiImpl.GetModule(api.NewContext(req, rec), moduleName, REST.GetModuleParams{XDeviceID: deviceID}),
+	) {
+		verifyGetModuleResponse(assertions, rec)
+	}
+
+	rec := httptest.NewRecorder()
+	assertions.ErrorContains(
+		apiImpl.GetModule(
+			api.NewContext(req, rec), moduleName, REST.GetModuleParams{
+				XDeviceID: uuid.Must(uuid.NewRandom()),
+				DeviceId:  &deviceID,
+			},
+		),
+		"account for verifying device id in params is not present",
+	)
+
+	acc := service.NewBaseAccount("test", time.Now())
+	ctx := api.NewContext(req, rec)
+	ctx.Set(basic.AccountKey, acc)
+	_, err = apiImpl.Devices.AddDevice(ctx.Request().Context(), acc, service.DeviceID(deviceID), "test")
+	assert.NoError(t, err)
+
+	if assertions.NoError(
+		apiImpl.GetModule(
+			ctx, moduleName, REST.GetModuleParams{
+				XDeviceID: uuid.Must(uuid.NewRandom()),
+				DeviceId:  &deviceID,
+			},
+		),
 	) {
 		verifyGetModuleResponse(assertions, rec)
 	}
