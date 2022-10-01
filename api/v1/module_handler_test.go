@@ -1,6 +1,7 @@
 package v1_test
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -90,6 +91,50 @@ func (m *ModuleTestSuite) TestAPI_CreateModule() {
 		m.Equal(http.StatusAccepted, m.rec.Code)
 		m.NoError(json.Unmarshal(m.rec.Body.Bytes(), &map[string]string{}))
 	}
+}
+
+func (m *ModuleTestSuite) TestAPI_CreateModule_WriteFails() {
+	req := emptyRequest(http.MethodPost)
+
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+	ctx := m.server.NewContext(req, m.rec)
+
+	ctx.Set(basic.AccountKey, m.user)
+
+	m.modules.EXPECT().Set(
+		ctx.Request().Context(), fmt.Sprintf("%s-%s-%s", m.user.Username(), m.deviceID, moduleName),
+		gomock.Any(),
+	).Return(errors.New("set error"))
+
+	m.ErrorContains(
+		m.api.CreateModule(ctx, moduleName, REST.CreateModuleParams{XDeviceID: m.deviceID}),
+		"could not create/update module",
+	)
+}
+
+func (m *ModuleTestSuite) TestAPI_CreateModule_MetadataFails() {
+	req := emptyRequest(http.MethodPost)
+
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+	ctx := m.server.NewContext(req, m.rec)
+
+	ctx.Set(basic.AccountKey, m.user)
+
+	m.modules.EXPECT().Set(
+		ctx.Request().Context(), fmt.Sprintf("%s-%s-%s", m.user.Username(), m.deviceID, moduleName),
+		gomock.Any(),
+	).Return(nil)
+
+	m.metadata.EXPECT().Set(ctx.Request().Context(), gomock.Any()).Return(
+		errors.New("metadata set err"),
+	)
+
+	m.ErrorContains(
+		m.api.CreateModule(ctx, moduleName, REST.CreateModuleParams{XDeviceID: m.deviceID}),
+		"could not create/update module metadata",
+	)
 }
 
 func (m *ModuleTestSuite) TestAPI_CreateModule_NoAccount() {
