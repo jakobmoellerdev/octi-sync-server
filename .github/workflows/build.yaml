@@ -21,6 +21,7 @@ env:
 jobs:
   release:
     name: Release
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     needs:
       - build
     runs-on: ubuntu-latest
@@ -31,8 +32,8 @@ jobs:
       - name: Setup Semantic Version Util
         run: |
           echo 'deb [trusted=yes] https://apt.fury.io/caarlos0/ /' | sudo tee /etc/apt/sources.list.d/caarlos0.list
-          sudo apt update
-          sudo apt install svu
+          sudo apt-get update
+          sudo apt-get install -y svu
       - name: Create New Release Tag
         run: |
           git tag "$(svu next)"
@@ -41,7 +42,7 @@ jobs:
     name: Build
     needs:
       - go-test
-      - openapi
+      - generated-files-check
       - lint
     runs-on: ubuntu-latest
     steps:
@@ -104,16 +105,13 @@ jobs:
           name: metadata
           path: dist/metadata.json
   go-test:
-    name: Go ${{ matrix.go }} Tests
+    name: Tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go: [ '1.19' ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
-          go-version: ${{ matrix.go }}
+          go-version-file: go.mod
           cache: true
       - run: go test ./... -covermode=atomic -coverprofile=coverage.out --race
       - name: Convert coverage.out to coverage.lcov
@@ -123,7 +121,7 @@ jobs:
         with:
           github-token: ${{ secrets.github_token }}
           path-to-lcov: coverage.lcov
-          flag-name: Go ${{ matrix.go }}
+          flag-name: Tests
           parallel: true
   collect-coverage:
     needs: go-test
@@ -134,12 +132,9 @@ jobs:
         with:
           github-token: ${{ secrets.github_token }}
           parallel-finished: true
-  openapi:
-    name: Verify ${{ matrix.version }} OpenAPI
-    runs-on: ubuntu-latest  # windows-latest | macos-latest
-    strategy:
-      matrix:
-        version: [ 'v1' ]
+  generated-files-check:
+    name: Verify Generated Files
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -149,16 +144,17 @@ jobs:
       - run: go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.11.0
       - run: go install github.com/golang/mock/mockgen@v1.6.0
       - run: go generate ./...
-      - name: Check Changed files for ${{ matrix.version }}
+      - name: Check Generated files after rerunning go generate
         uses: tj-actions/verify-changed-files@v11.1
         id: verify-changed-files
         with:
           files: |
             **/*
-      - name: Fail if ${{ matrix.version }} OpenAPI spec changed after running code-generation with oapi-codegen.
+      - name: Fail if Generated Files changed after running code-generation.
         if: steps.verify-changed-files.outputs.files_changed == 'true'
         run: |
-          echo "Changed OpenAPI Spec: ${{ steps.verify-changed-files.outputs.changed_files }}"
+          echo "Changed Generated Files: ${{ steps.verify-changed-files.outputs.changed_files }}"
+          echo "Rerun go generate ./... to fix this issue"
           run: exit 1
   lint:
     name: Lint
