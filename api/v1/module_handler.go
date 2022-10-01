@@ -27,8 +27,16 @@ func (api *API) CreateModule(ctx echo.Context, name REST.ModuleName, params REST
 }
 
 func (api *API) GetModule(ctx echo.Context, name REST.ModuleName, params REST.GetModuleParams) error {
-	module, err := api.Modules.Get(ctx.Request().Context(),
-		fmt.Sprintf("%s-%s", params.XDeviceID, name))
+	deviceID := params.XDeviceID
+
+	if params.DeviceId != nil {
+		deviceID = *params.DeviceId
+	}
+
+	module, err := api.Modules.Get(
+		ctx.Request().Context(),
+		fmt.Sprintf("%s-%s", deviceID, name),
+	)
 	if err != nil {
 		return fmt.Errorf("error while fetching module: %w", err)
 	}

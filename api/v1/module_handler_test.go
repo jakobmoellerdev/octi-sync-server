@@ -52,13 +52,26 @@ func TestAPI_GetModule(t *testing.T) {
 
 	apiImpl := API()
 
-	assertions.NoError(apiImpl.Modules.Set(
-		context.Background(), fmt.Sprintf("%s-%s", deviceID.String(), moduleName),
-		memory.ModuleFromBytes([]byte("test"))),
+	assertions.NoError(
+		apiImpl.Modules.Set(
+			context.Background(), fmt.Sprintf("%s-%s", deviceID.String(), moduleName),
+			memory.ModuleFromBytes([]byte("test")),
+		),
 	)
 
 	if rec := httptest.NewRecorder(); assertions.NoError(
 		apiImpl.GetModule(api.NewContext(req, rec), moduleName, REST.GetModuleParams{XDeviceID: deviceID}),
+	) {
+		verifyGetModuleResponse(assertions, rec)
+	}
+
+	if rec := httptest.NewRecorder(); assertions.NoError(
+		apiImpl.GetModule(
+			api.NewContext(req, rec), moduleName, REST.GetModuleParams{
+				XDeviceID: uuid.Must(uuid.NewRandom()),
+				DeviceId:  &deviceID,
+			},
+		),
 	) {
 		verifyGetModuleResponse(assertions, rec)
 	}

@@ -134,7 +134,6 @@ paths:
       operationId: createModule
       parameters:
         - $ref: '#/components/parameters/XDeviceID'
-        - $ref: '#/components/parameters/DeviceIDQuery'
         - $ref: '#/components/parameters/ModuleName'
       requestBody:
         $ref: '#/components/requestBodies/ModuleDataRequest'
