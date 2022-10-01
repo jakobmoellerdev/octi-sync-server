@@ -33,6 +33,7 @@ type ModuleTestSuite struct {
 	api      *v1.API
 	modules  *mock.MockModules
 	metadata *mock.MockMetadataProvider
+	devices  *mock.MockDevices
 	server   *echo.Echo
 	deviceID uuid.UUID
 	rec      *httptest.ResponseRecorder
@@ -47,12 +48,14 @@ func (m *ModuleTestSuite) SetupTest() {
 	ctrl := gomock.NewController(m.T())
 	m.modules = mock.NewMockModules(ctrl)
 	m.metadata = mock.NewMockMetadataProvider(ctrl)
+	m.devices = mock.NewMockDevices(ctrl)
 	m.server = echo.New()
 	logger := zerolog.New(zerolog.NewConsoleWriter(zerolog.ConsoleTestWriter(m.T())))
 	m.server.Use(logging.RequestLogging(&logger))
 	m.api = &v1.API{
 		Modules:          m.modules,
 		MetadataProvider: m.metadata,
+		Devices:          m.devices,
 	}
 	deviceID, err := uuid.NewRandom()
 
@@ -89,6 +92,32 @@ func (m *ModuleTestSuite) TestAPI_CreateModule() {
 	}
 }
 
+func (m *ModuleTestSuite) TestAPI_CreateModule_NoAccount() {
+	req := emptyRequest(http.MethodPost)
+
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+	ctx := m.server.NewContext(req, m.rec)
+
+	m.Error(
+		m.api.GetModule(ctx, moduleName, REST.GetModuleParams{XDeviceID: m.deviceID}),
+		v1.ErrAccountForVerifyingDeviceNotPresent,
+	)
+}
+
+func (m *ModuleTestSuite) TestAPI_GetModule_NoAccount() {
+	req := emptyRequest(http.MethodGet)
+
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+	ctx := m.server.NewContext(req, m.rec)
+
+	m.Error(
+		m.api.GetModule(ctx, moduleName, REST.GetModuleParams{XDeviceID: m.deviceID}),
+		v1.ErrAccountForVerifyingDeviceNotPresent,
+	)
+}
+
 func (m *ModuleTestSuite) TestAPI_GetModule() {
 	req := emptyRequest(http.MethodPost)
 
@@ -112,6 +141,49 @@ func (m *ModuleTestSuite) TestAPI_GetModule() {
 
 	if m.NoError(
 		m.api.GetModule(ctx, moduleName, REST.GetModuleParams{XDeviceID: m.deviceID}),
+	) {
+		m.Equal(http.StatusOK, m.rec.Code)
+
+		body := m.rec.Body.String()
+
+		m.NotEmpty(body)
+		m.Equal(moduleData, body)
+	}
+}
+
+func (m *ModuleTestSuite) TestAPI_GetModule_By_Param() {
+	req := emptyRequest(http.MethodPost)
+
+	secondDeviceId := uuid.Must(uuid.NewRandom())
+
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+	ctx := m.server.NewContext(req, m.rec)
+
+	ctx.Set(basic.AccountKey, m.user)
+
+	id := fmt.Sprintf("%s-%s-%s", m.user.Username(), secondDeviceId, moduleName)
+
+	m.modules.EXPECT().Get(
+		ctx.Request().Context(), id,
+	).Return(redis.ModuleFromBytes([]byte(moduleData)), nil)
+
+	m.devices.EXPECT().GetDevice(ctx.Request().Context(), m.user, service.DeviceID(secondDeviceId)).
+		Return(nil, nil)
+
+	m.metadata.EXPECT().Get(ctx.Request().Context(), service.MetadataID(id)).Return(
+		service.NewBaseMetadata(
+			id, time.Now(),
+		), nil,
+	)
+
+	if m.NoError(
+		m.api.GetModule(
+			ctx, moduleName, REST.GetModuleParams{
+				XDeviceID: m.deviceID,
+				DeviceId:  &secondDeviceId,
+			},
+		),
 	) {
 		m.Equal(http.StatusOK, m.rec.Code)
 
