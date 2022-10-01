@@ -1,4 +1,4 @@
-name: Build
+name: CI
 
 on:
   push:
@@ -19,8 +19,26 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  goreleaser:
-    name: ${{ (github.event_name == 'pull_request' && 'Snapshot') || 'Release' }}
+  release:
+    name: Release
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup Semantic Version Util
+        run: |
+          echo 'deb [trusted=yes] https://apt.fury.io/caarlos0/ /' | sudo tee /etc/apt/sources.list.d/caarlos0.list
+          sudo apt update
+          sudo apt install svu
+      - name: Create New Release Tag
+        run: |
+          git tag "$(svu next)"
+          git push --tags
+  build:
+    name: Build
     needs:
       - go-test
       - openapi
