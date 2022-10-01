@@ -1,13 +1,18 @@
 package v1
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
+	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
+	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
 	"github.com/labstack/echo/v4"
 )
+
+var ErrAccountForVerifyingDeviceNotPresent = errors.New("account for verifying device id in params is not present")
 
 func (api *API) CreateModule(ctx echo.Context, name REST.ModuleName, params REST.CreateModuleParams) error {
 	err := api.Modules.Set(
@@ -31,6 +36,21 @@ func (api *API) GetModule(ctx echo.Context, name REST.ModuleName, params REST.Ge
 
 	if params.DeviceId != nil {
 		deviceID = *params.DeviceId
+		acc, accountPresent := ctx.Get(basic.AccountKey).(service.Account)
+
+		if !accountPresent {
+			return echo.NewHTTPError(
+				http.StatusForbidden, ErrAccountForVerifyingDeviceNotPresent,
+			)
+		}
+
+		if _, err := api.GetDevice(ctx.Request().Context(), acc, service.DeviceID(deviceID)); err != nil {
+			return echo.NewHTTPError(
+				http.StatusForbidden, fmt.Errorf(
+					"device from params could not be verified against account: %w", err,
+				),
+			)
+		}
 	}
 
 	module, err := api.Modules.Get(
