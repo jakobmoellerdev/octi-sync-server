@@ -66,6 +66,7 @@ func Run(ctx context.Context, cfg *config.Config) error {
 
 func createServer(startUpContext context.Context, clients redis.Clients, cfg *config.Config) *http.Server {
 	accounts := &redis.Accounts{Client: clients["default"]}
+
 	cfg.Services.Accounts = accounts
 	cfg.Services.Sharing = accounts
 	cfg.Services.Modules = &redis.Modules{Client: clients["default"]}
@@ -81,6 +82,7 @@ func createServer(startUpContext context.Context, clients redis.Clients, cfg *co
 		WriteTimeout:      cfg.Server.Timeout.Write,
 		IdleTimeout:       cfg.Server.Timeout.Idle,
 	}
+
 	return srv
 }
 
