@@ -119,6 +119,7 @@ paths:
       operationId: getModule
       parameters:
         - $ref: '#/components/parameters/XDeviceID'
+        - $ref: '#/components/parameters/DeviceIDQuery'
         - $ref: '#/components/parameters/ModuleName'
       responses:
         '200':
@@ -133,6 +134,7 @@ paths:
       operationId: createModule
       parameters:
         - $ref: '#/components/parameters/XDeviceID'
+        - $ref: '#/components/parameters/DeviceIDQuery'
         - $ref: '#/components/parameters/ModuleName'
       requestBody:
         $ref: '#/components/requestBodies/ModuleDataRequest'
@@ -158,6 +160,15 @@ components:
       description: |-
         Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
         to be properly authenticated.
+      schema:
+        $ref: '#/components/schemas/DeviceID'
+    DeviceIDQuery:
+      name: device-id
+      in: query
+      required: false
+      description: |-
+        Device Identifier to use for the Query. If given, takes precedence over X-Device-ID or other hints.
+        Use to query data from devices in your account from another account.
       schema:
         $ref: '#/components/schemas/DeviceID'
     ShareCode:
