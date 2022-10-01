@@ -94,7 +94,12 @@ func (api *API) GetModule(ctx echo.Context, name REST.ModuleName, params REST.Ge
 		REST.ModifiedAtTimestamp(metadata.GetModifiedAt()).Format(time.RFC3339),
 	)
 
-	if err := ctx.Stream(http.StatusOK, echo.MIMEOctetStream, module.Raw()); err != nil {
+	status := http.StatusOK
+	if module.Size() == 0 {
+		status = http.StatusNoContent
+	}
+
+	if err := ctx.Stream(status, echo.MIMEOctetStream, module.Raw()); err != nil {
 		return fmt.Errorf("error while writing module data to response while fetching module: %w", err)
 	}
 

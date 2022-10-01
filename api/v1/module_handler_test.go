@@ -19,109 +19,105 @@ import (
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestAPI_CreateModule(t *testing.T) {
-	t.Parallel()
-	logger := zerolog.New(zerolog.NewConsoleWriter(zerolog.ConsoleTestWriter(t)))
-	server := echo.New()
-	server.Use(logging.RequestLogging(&logger))
-	assertions := assert.New(t)
-	ctrl := gomock.NewController(t)
-	modules := mock.NewMockModules(ctrl)
-	metadata := mock.NewMockMetadataProvider(ctrl)
-	api := &v1.API{
-		Modules:          modules,
-		MetadataProvider: metadata,
+const (
+	moduleName = "test"
+	moduleData = "test"
+	username   = "username"
+)
+
+type ModuleTestSuite struct {
+	suite.Suite
+	api      *v1.API
+	modules  *mock.MockModules
+	metadata *mock.MockMetadataProvider
+	server   *echo.Echo
+	deviceID uuid.UUID
+	rec      *httptest.ResponseRecorder
+	user     *mock.MockAccount
+}
+
+func TestModuleTestSuite(t *testing.T) {
+	suite.Run(t, &ModuleTestSuite{})
+}
+
+func (m *ModuleTestSuite) SetupTest() {
+	ctrl := gomock.NewController(m.T())
+	m.modules = mock.NewMockModules(ctrl)
+	m.metadata = mock.NewMockMetadataProvider(ctrl)
+	m.server = echo.New()
+	logger := zerolog.New(zerolog.NewConsoleWriter(zerolog.ConsoleTestWriter(m.T())))
+	m.server.Use(logging.RequestLogging(&logger))
+	m.api = &v1.API{
+		Modules:          m.modules,
+		MetadataProvider: m.metadata,
 	}
-
 	deviceID, err := uuid.NewRandom()
-	assertions.NoError(err)
 
-	rec := httptest.NewRecorder()
+	m.NoError(err)
+
+	m.deviceID = deviceID
+	m.rec = httptest.NewRecorder()
+	m.user = mock.NewMockAccount(ctrl)
+
+	m.user.EXPECT().Username().AnyTimes().Return(username)
+}
+
+func (m *ModuleTestSuite) TestAPI_CreateModule() {
 	req := emptyRequest(http.MethodPost)
 
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
-	ctx := server.NewContext(req, rec)
+	ctx := m.server.NewContext(req, m.rec)
 
-	user := mock.NewMockAccount(ctrl)
-	user.EXPECT().Username().AnyTimes().Return("username")
-	ctx.Set(basic.AccountKey, user)
+	ctx.Set(basic.AccountKey, m.user)
 
-	moduleName := "test"
-
-	modules.EXPECT().Set(
-		ctx.Request().Context(), fmt.Sprintf("%s-%s-%s", user.Username(), deviceID, moduleName),
+	m.modules.EXPECT().Set(
+		ctx.Request().Context(), fmt.Sprintf("%s-%s-%s", m.user.Username(), m.deviceID, moduleName),
 		gomock.Any(),
 	).Return(nil)
 
-	metadata.EXPECT().Set(ctx.Request().Context(), gomock.Any()).Return(nil)
+	m.metadata.EXPECT().Set(ctx.Request().Context(), gomock.Any()).Return(nil)
 
-	if assertions.NoError(
-		api.CreateModule(ctx, moduleName, REST.CreateModuleParams{XDeviceID: deviceID}),
+	if m.NoError(
+		m.api.CreateModule(ctx, moduleName, REST.CreateModuleParams{XDeviceID: m.deviceID}),
 	) {
-		verifyCreateModuleResponse(assertions, rec)
+		m.Equal(http.StatusAccepted, m.rec.Code)
+		m.NoError(json.Unmarshal(m.rec.Body.Bytes(), &map[string]string{}))
 	}
 }
 
-func verifyCreateModuleResponse(assert *assert.Assertions, rec *httptest.ResponseRecorder) {
-	assert.Equal(http.StatusAccepted, rec.Code)
-	assert.NoError(json.Unmarshal(rec.Body.Bytes(), &map[string]string{}))
-}
-
-func TestAPI_GetModule(t *testing.T) {
-	t.Parallel()
-	logger := zerolog.New(zerolog.NewConsoleWriter(zerolog.ConsoleTestWriter(t)))
-	server := echo.New()
-	server.Use(logging.RequestLogging(&logger))
-	assertions := assert.New(t)
-	ctrl := gomock.NewController(t)
-	modules := mock.NewMockModules(ctrl)
-	metadata := mock.NewMockMetadataProvider(ctrl)
-	apiImpl := &v1.API{
-		Modules:          modules,
-		MetadataProvider: metadata,
-	}
-
+func (m *ModuleTestSuite) TestAPI_GetModule() {
 	req := emptyRequest(http.MethodPost)
 
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 
-	moduleName := "test"
-	deviceID, err := uuid.NewRandom()
-	assertions.NoError(err)
+	ctx := m.server.NewContext(req, m.rec)
 
-	rec := httptest.NewRecorder()
-	ctx := server.NewContext(req, rec)
+	ctx.Set(basic.AccountKey, m.user)
 
-	user := mock.NewMockAccount(ctrl)
-	user.EXPECT().Username().AnyTimes().Return("username")
-	ctx.Set(basic.AccountKey, user)
-	id := fmt.Sprintf("%s-%s-%s", user.Username(), deviceID, moduleName)
-	modules.EXPECT().Get(
+	id := fmt.Sprintf("%s-%s-%s", m.user.Username(), m.deviceID, moduleName)
+
+	m.modules.EXPECT().Get(
 		ctx.Request().Context(), id,
-	).Return(redis.ModuleFromBytes([]byte("test")), nil)
+	).Return(redis.ModuleFromBytes([]byte(moduleData)), nil)
 
-	metadata.EXPECT().Get(ctx.Request().Context(), service.MetadataID(id)).Return(
+	m.metadata.EXPECT().Get(ctx.Request().Context(), service.MetadataID(id)).Return(
 		service.NewBaseMetadata(
 			id, time.Now(),
 		), nil,
 	)
 
-	if assertions.NoError(
-		apiImpl.GetModule(ctx, moduleName, REST.GetModuleParams{XDeviceID: deviceID}),
+	if m.NoError(
+		m.api.GetModule(ctx, moduleName, REST.GetModuleParams{XDeviceID: m.deviceID}),
 	) {
-		verifyGetModuleResponse(assertions, rec)
+		m.Equal(http.StatusOK, m.rec.Code)
+
+		body := m.rec.Body.String()
+
+		m.NotEmpty(body)
+		m.Equal(moduleData, body)
 	}
-}
-
-func verifyGetModuleResponse(assert *assert.Assertions, rec *httptest.ResponseRecorder) {
-	assert.Equal(http.StatusOK, rec.Code)
-
-	body := rec.Body.String()
-	assert.NotEmpty(body)
-
-	assert.Equal("test", body)
 }

@@ -26,7 +26,6 @@ type BaseMetadata struct {
 }
 
 func (r *BaseMetadata) GetID() MetadataID {
-	// TODO implement me
 	return r.ID
 }
 
