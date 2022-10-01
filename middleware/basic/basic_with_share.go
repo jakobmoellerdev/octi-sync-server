@@ -17,7 +17,7 @@ const AccountKey = "user"
 const Device = "device"
 
 // DeviceIDHeader holds Device Authentication.
-const DeviceIDHeader = "X-Device-GetID"
+const DeviceIDHeader = "X-Device-ID"
 
 var ErrDevicePassVerificationFailed = errors.New("device pass verification failed")
 
