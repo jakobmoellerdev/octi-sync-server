@@ -84,6 +84,7 @@ func TestAPI_GetModule(t *testing.T) {
 	ctx.Set(basic.AccountKey, acc)
 	_, err = apiImpl.Devices.AddDevice(ctx.Request().Context(), acc, service.DeviceID(deviceID), "test")
 	assert.NoError(t, err)
+
 	if assertions.NoError(
 		apiImpl.GetModule(
 			ctx, moduleName, REST.GetModuleParams{
