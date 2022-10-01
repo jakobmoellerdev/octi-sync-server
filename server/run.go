@@ -69,7 +69,7 @@ func createServer(startUpContext context.Context, clients redis.Clients, cfg *co
 
 	cfg.Services.Accounts = accounts
 	cfg.Services.Sharing = accounts
-	cfg.Services.Modules = &redis.Modules{Client: clients["default"]}
+	cfg.Services.Modules = &redis.Modules{Client: clients["default"], Expiration: cfg.Redis.Module.Expiration}
 	cfg.Services.Devices = &redis.Devices{Client: clients["default"]}
 	cfg.Services.MetadataProvider = &redis.MetadataProvider{Client: clients["default"]}
 

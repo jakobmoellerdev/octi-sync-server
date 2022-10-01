@@ -39,6 +39,7 @@ type ModuleTestSuite struct {
 	deviceID uuid.UUID
 	rec      *httptest.ResponseRecorder
 	user     *mock.MockAccount
+	device   *mock.MockDevice
 }
 
 func TestModuleTestSuite(t *testing.T) {
@@ -65,7 +66,9 @@ func (m *ModuleTestSuite) SetupTest() {
 	m.deviceID = deviceID
 	m.rec = httptest.NewRecorder()
 	m.user = mock.NewMockAccount(ctrl)
+	m.device = mock.NewMockDevice(ctrl)
 
+	m.device.EXPECT().ID().AnyTimes().Return(service.DeviceID(m.deviceID))
 	m.user.EXPECT().Username().AnyTimes().Return(username)
 }
 
@@ -77,6 +80,7 @@ func (m *ModuleTestSuite) TestAPI_CreateModule() {
 	ctx := m.server.NewContext(req, m.rec)
 
 	ctx.Set(basic.AccountKey, m.user)
+	ctx.Set(basic.Device, m.device)
 
 	m.modules.EXPECT().Set(
 		ctx.Request().Context(), fmt.Sprintf("%s-%s-%s", m.user.Username(), m.deviceID, moduleName),
@@ -101,6 +105,7 @@ func (m *ModuleTestSuite) TestAPI_CreateModule_WriteFails() {
 	ctx := m.server.NewContext(req, m.rec)
 
 	ctx.Set(basic.AccountKey, m.user)
+	ctx.Set(basic.Device, service.NewBaseDevice(service.DeviceID(m.deviceID), "test"))
 
 	m.modules.EXPECT().Set(
 		ctx.Request().Context(), fmt.Sprintf("%s-%s-%s", m.user.Username(), m.deviceID, moduleName),
@@ -121,6 +126,7 @@ func (m *ModuleTestSuite) TestAPI_CreateModule_MetadataFails() {
 	ctx := m.server.NewContext(req, m.rec)
 
 	ctx.Set(basic.AccountKey, m.user)
+	ctx.Set(basic.Device, m.device)
 
 	m.modules.EXPECT().Set(
 		ctx.Request().Context(), fmt.Sprintf("%s-%s-%s", m.user.Username(), m.deviceID, moduleName),
@@ -171,6 +177,7 @@ func (m *ModuleTestSuite) TestAPI_GetModule() {
 	ctx := m.server.NewContext(req, m.rec)
 
 	ctx.Set(basic.AccountKey, m.user)
+	ctx.Set(basic.Device, m.device)
 
 	id := fmt.Sprintf("%s-%s-%s", m.user.Username(), m.deviceID, moduleName)
 
@@ -197,8 +204,6 @@ func (m *ModuleTestSuite) TestAPI_GetModule() {
 }
 
 func (m *ModuleTestSuite) TestAPI_GetModule_By_Param() {
-	secondDeviceId := uuid.Must(uuid.NewRandom())
-
 	for _, testCase := range []struct {
 		dataInReturn []byte
 		expectedCode int
@@ -206,6 +211,10 @@ func (m *ModuleTestSuite) TestAPI_GetModule_By_Param() {
 		{[]byte(moduleData), http.StatusOK},
 		{[]byte{}, http.StatusNoContent},
 	} {
+		secondDeviceId := uuid.Must(uuid.NewRandom())
+		secondDevice := mock.NewMockDevice(gomock.NewController(m.T()))
+		secondDevice.EXPECT().ID().Return(service.DeviceID(secondDeviceId))
+
 		m.rec = httptest.NewRecorder()
 		req := emptyRequest(http.MethodPost)
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -214,9 +223,10 @@ func (m *ModuleTestSuite) TestAPI_GetModule_By_Param() {
 		id := fmt.Sprintf("%s-%s-%s", m.user.Username(), secondDeviceId, moduleName)
 
 		ctx.Set(basic.AccountKey, m.user)
+		ctx.Set(basic.Device, m.device)
 
 		m.devices.EXPECT().GetDevice(ctx.Request().Context(), m.user, service.DeviceID(secondDeviceId)).
-			Return(nil, nil)
+			Return(secondDevice, nil)
 
 		m.metadata.EXPECT().Get(ctx.Request().Context(), service.MetadataID(id)).Return(
 			service.NewBaseMetadata(

@@ -55,6 +55,7 @@ func New(_ context.Context, engine *echo.Echo, config *config.Config) {
 	module := api.Group("/module", basicAuthWithShare)
 	module.GET("/:name", wrapper.GetModule)
 	module.POST("/:name", wrapper.CreateModule)
+	module.DELETE("/:name", wrapper.DeleteModules)
 
 	api.GET("/devices", wrapper.GetDevices, basicAuthWithShare)
 

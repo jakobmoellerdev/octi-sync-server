@@ -107,6 +107,9 @@ type DeviceListResponse = DeviceList
 // ModuleDataAccepted An Empty JSON
 type ModuleDataAccepted = interface{}
 
+// ModuleDeletionAccepted An Empty JSON
+type ModuleDeletionAccepted = interface{}
+
 // RegisterParams defines parameters for Register.
 type RegisterParams struct {
 	// Share The Share Code from the Share API. If presented in combination with a new Device ID,
@@ -127,6 +130,17 @@ type ShareParams struct {
 
 // GetDevicesParams defines parameters for GetDevices.
 type GetDevicesParams struct {
+	// XDeviceID Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
+	// to be properly authenticated.
+	XDeviceID XDeviceID `json:"X-Device-ID"`
+}
+
+// DeleteModulesParams defines parameters for DeleteModules.
+type DeleteModulesParams struct {
+	// DeviceId Device Identifier to use for the Query. If given, takes precedence over X-Device-ID or other hints.
+	// Use to query data from devices in your account from another account.
+	DeviceId *DeviceIDQuery `form:"device-id,omitempty" json:"device-id,omitempty"`
+
 	// XDeviceID Unique Identifier of the calling Device. If calling Data endpoints, must be presented in order
 	// to be properly authenticated.
 	XDeviceID XDeviceID `json:"X-Device-ID"`
@@ -164,11 +178,14 @@ type ServerInterface interface {
 	// Checks if the Service is Available for Processing Request
 	// (GET /health)
 	IsHealthy(ctx echo.Context) error
+	// Clears Module Data for a Device
+	// (DELETE /module)
+	DeleteModules(ctx echo.Context, params DeleteModulesParams) error
 	// Get Module Data
-	// (GET /modules/{name})
+	// (GET /module/{name})
 	GetModule(ctx echo.Context, name ModuleName, params GetModuleParams) error
 	// Create/Update Module Data
-	// (POST /modules/{name})
+	// (POST /module/{name})
 	CreateModule(ctx echo.Context, name ModuleName, params CreateModuleParams) error
 	// Checks if the Service is Operational
 	// (GET /ready)
@@ -289,6 +306,43 @@ func (w *ServerInterfaceWrapper) IsHealthy(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.IsHealthy(ctx)
+	return err
+}
+
+// DeleteModules converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteModules(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeleteModulesParams
+	// ------------- Optional query parameter "device-id" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "device-id", ctx.QueryParams(), &params.DeviceId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter device-id: %s", err))
+	}
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Device-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Device-ID")]; found {
+		var XDeviceID XDeviceID
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Device-ID, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Device-ID", runtime.ParamLocationHeader, valueList[0], &XDeviceID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Device-ID: %s", err))
+		}
+
+		params.XDeviceID = XDeviceID
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Device-ID is required, but not found"))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.DeleteModules(ctx, params)
 	return err
 }
 
@@ -419,8 +473,9 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/auth/share", wrapper.Share)
 	router.GET(baseURL+"/devices", wrapper.GetDevices)
 	router.GET(baseURL+"/health", wrapper.IsHealthy)
-	router.GET(baseURL+"/modules/:name", wrapper.GetModule)
-	router.POST(baseURL+"/modules/:name", wrapper.CreateModule)
+	router.DELETE(baseURL+"/module", wrapper.DeleteModules)
+	router.GET(baseURL+"/module/:name", wrapper.GetModule)
+	router.POST(baseURL+"/module/:name", wrapper.CreateModule)
 	router.GET(baseURL+"/ready", wrapper.IsReady)
 
 }
@@ -428,39 +483,40 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

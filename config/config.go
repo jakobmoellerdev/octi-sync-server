@@ -78,6 +78,10 @@ type Config struct {
 			Timeout  time.Duration `yaml:"timeout"`
 			Interval time.Duration `yaml:"interval"`
 		} `yaml:"ping"`
+
+		Module struct {
+			Expiration time.Duration `yaml:"expiration"`
+		}
 	} `yaml:"redis"`
 
 	LogSettings `yaml:"log"`

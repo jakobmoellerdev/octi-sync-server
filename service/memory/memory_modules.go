@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"regexp"
 	"sync"
 
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
@@ -16,6 +17,21 @@ func NewModules() *Modules {
 type Modules struct {
 	sync sync.RWMutex
 	data map[string][]byte
+}
+
+func (m *Modules) DeleteByPattern(_ context.Context, pattern string) error {
+	m.sync.Lock()
+	defer m.sync.Unlock()
+
+	for key := range m.data {
+		if matched, err := regexp.Match(pattern, []byte(key)); matched {
+			m.data[key] = nil
+		} else if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (m *Modules) Set(_ context.Context, name string, module service.Module) error {
