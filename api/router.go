@@ -22,6 +22,8 @@ const (
 func New(ctx context.Context, config *config.Config) http.Handler {
 	router := echo.New()
 
+	router.Pre(middleware.AddTrailingSlash())
+
 	// CORS Configuration based on config
 	router.Use(
 		middleware.CORSWithConfig(

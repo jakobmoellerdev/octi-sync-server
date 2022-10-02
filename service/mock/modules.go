@@ -35,6 +35,20 @@ func (m *MockModules) EXPECT() *MockModulesMockRecorder {
 	return m.recorder
 }
 
+// DeleteByPattern mocks base method.
+func (m *MockModules) DeleteByPattern(ctx context.Context, pattern string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByPattern", ctx, pattern)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByPattern indicates an expected call of DeleteByPattern.
+func (mr *MockModulesMockRecorder) DeleteByPattern(ctx, pattern interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByPattern", reflect.TypeOf((*MockModules)(nil).DeleteByPattern), ctx, pattern)
+}
+
 // Get mocks base method.
 func (m *MockModules) Get(ctx context.Context, name string) (service.Module, error) {
 	m.ctrl.T.Helper()

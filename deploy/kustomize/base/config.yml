@@ -11,5 +11,7 @@ redis:
   db: 0
   ping:
     enable: true
+  module:
+    expiration: 720h #30d
 log:
   format: json

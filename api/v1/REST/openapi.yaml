@@ -110,7 +110,20 @@ paths:
           $ref: '#/components/responses/DeviceListResponse'
       security:
         - deviceAuth: []
-  /modules/{name}:
+  /module:
+    delete:
+      tags:
+        - modules
+      summary: Clears Module Data for a Device
+      description: Deletes Module Data based on the authenticated Account and Device
+      operationId: deleteModules
+      parameters:
+        - $ref: '#/components/parameters/XDeviceID'
+        - $ref: '#/components/parameters/DeviceIDQuery'
+      responses:
+        '202':
+          $ref: '#/components/responses/ModuleDeletionAccepted'
+  /module/{name}:
     get:
       tags:
         - modules
@@ -195,6 +208,12 @@ components:
             $ref: '#/components/schemas/DeviceList'
     ModuleDataAccepted:
       description: Module Data got Accepted for Processing
+      content:
+        application/json:
+          schema:
+            description: "An Empty JSON"
+    ModuleDeletionAccepted:
+      description: Module Data got Accepted for Deletion
       content:
         application/json:
           schema:

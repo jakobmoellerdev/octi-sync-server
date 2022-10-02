@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
@@ -20,9 +21,11 @@ type Metadata interface {
 	GetModifiedAt() ModifiedAt
 }
 
+var ErrNoMetadata = errors.New("no metadata found")
+
 type BaseMetadata struct {
 	ID         MetadataID `yaml:"id" json:"id"`
-	ModifiedAt ModifiedAt `yaml:"modifiedAt" json:"modifiedAt"`
+	ModifiedAt time.Time  `yaml:"modifiedAt" json:"modifiedAt"`
 }
 
 func (r *BaseMetadata) GetID() MetadataID {
@@ -30,9 +33,9 @@ func (r *BaseMetadata) GetID() MetadataID {
 }
 
 func (r *BaseMetadata) GetModifiedAt() ModifiedAt {
-	return r.ModifiedAt
+	return ModifiedAt(r.ModifiedAt.UTC())
 }
 
 func NewBaseMetadata(id string, modifiedAt time.Time) *BaseMetadata {
-	return &BaseMetadata{MetadataID(id), ModifiedAt(modifiedAt)}
+	return &BaseMetadata{MetadataID(id), modifiedAt}
 }

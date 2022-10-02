@@ -10,6 +10,7 @@ type Modules interface {
 	Set(ctx context.Context, name string, module Module) error
 	Get(ctx context.Context, name string) (Module, error)
 	HealthCheck() HealthCheck
+	DeleteByPattern(ctx context.Context, pattern string) error
 }
 
 var (

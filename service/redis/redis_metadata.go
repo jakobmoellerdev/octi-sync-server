@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-redis/redis/v9"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"gopkg.in/yaml.v3"
+	json "github.com/json-iterator/go"
 )
 
 const MetadataKeySpace = "octi:metadata"
@@ -26,11 +26,11 @@ func (r *MetadataProvider) Get(ctx context.Context, id service.MetadataID) (serv
 	bytes, err := r.Client.Get(ctx, name).Bytes()
 
 	if errors.Is(err, redis.Nil) {
-		return nil, nil
+		return nil, service.ErrNoMetadata
 	}
 
 	var metaData service.BaseMetadata
-	if err := yaml.Unmarshal(bytes, &metaData); err != nil {
+	if err := json.Unmarshal(bytes, &metaData); err != nil {
 		return nil, fmt.Errorf("unmarshalling meta %s failed: %w", name, service.ErrWritingModuleFailed)
 	}
 
@@ -40,7 +40,7 @@ func (r *MetadataProvider) Get(ctx context.Context, id service.MetadataID) (serv
 func (r *MetadataProvider) Set(ctx context.Context, meta service.Metadata) error {
 	name := r.metadataKey(meta.GetID())
 
-	data, err := yaml.Marshal(&meta)
+	data, err := json.Marshal(&meta)
 	if err != nil {
 		return fmt.Errorf("marshalling meta %s failed: %w", name, service.ErrWritingModuleFailed)
 	}
