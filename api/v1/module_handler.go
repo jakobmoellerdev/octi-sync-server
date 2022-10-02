@@ -64,21 +64,21 @@ func (api *API) GetModule(ctx echo.Context, name REST.ModuleName, params REST.Ge
 		return fmt.Errorf("error while fetching module: %w", err)
 	}
 
-	metadata, err := api.MetadataProvider.Get(
-		ctx.Request().Context(), service.MetadataID(id),
-	)
-	if err != nil {
-		return fmt.Errorf("could not create/update module metadata: %w", err)
-	}
-
-	ctx.Response().Header().Set(
-		XModifiedAt,
-		REST.ModifiedAtTimestamp(metadata.GetModifiedAt()).Format(time.RFC3339),
-	)
-
 	status := http.StatusOK
 	if module.Size() == 0 {
 		status = http.StatusNoContent
+	} else {
+		metadata, err := api.MetadataProvider.Get(
+			ctx.Request().Context(), service.MetadataID(id),
+		)
+		if err != nil {
+			return fmt.Errorf("could not create/update module metadata: %w", err)
+		}
+
+		ctx.Response().Header().Set(
+			XModifiedAt,
+			REST.ModifiedAtTimestamp(metadata.GetModifiedAt()).Format(time.RFC3339),
+		)
 	}
 
 	if err := ctx.Stream(status, echo.MIMEOctetStream, module.Raw()); err != nil {
