@@ -228,11 +228,13 @@ func (m *ModuleTestSuite) TestAPI_GetModule_By_Param() {
 		m.devices.EXPECT().GetDevice(ctx.Request().Context(), m.user, service.DeviceID(secondDeviceId)).
 			Return(secondDevice, nil)
 
-		m.metadata.EXPECT().Get(ctx.Request().Context(), service.MetadataID(id)).Return(
-			service.NewBaseMetadata(
-				id, time.Now(),
-			), nil,
-		)
+		if len(testCase.dataInReturn) > 0 {
+			m.metadata.EXPECT().Get(ctx.Request().Context(), service.MetadataID(id)).Return(
+				service.NewBaseMetadata(
+					id, time.Now(),
+				), nil,
+			)
+		}
 
 		m.modules.EXPECT().Get(
 			ctx.Request().Context(), id,
