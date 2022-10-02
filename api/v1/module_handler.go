@@ -138,6 +138,7 @@ func (api *API) resolveDeviceIDAndAccount(
 					),
 				)
 			}
+
 			break
 		}
 	}
