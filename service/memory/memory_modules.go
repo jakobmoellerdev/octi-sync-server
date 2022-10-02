@@ -27,7 +27,7 @@ func (m *Modules) DeleteByPattern(_ context.Context, pattern string) error {
 		if matched, err := regexp.Match(pattern, []byte(key)); matched {
 			m.data[key] = nil
 		} else if err != nil {
-			return err
+			return fmt.Errorf("error while parsing regex pattern %s: %w", pattern, err)
 		}
 	}
 
