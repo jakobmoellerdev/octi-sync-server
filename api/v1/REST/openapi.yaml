@@ -123,6 +123,8 @@ paths:
       responses:
         '202':
           $ref: '#/components/responses/ModuleDeletionAccepted'
+      security:
+        - deviceAuth: []
   /module/{name}:
     get:
       tags:
