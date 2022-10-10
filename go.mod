@@ -10,7 +10,7 @@ require (
 	github.com/getkin/kin-openapi v0.103.0
 
 	// storage
-	github.com/go-redis/redis/v9 v9.0.0-beta.2
+	github.com/go-redis/redis/v9 v9.0.0-beta.3
 
 	// generated mocks
 	github.com/golang/mock v1.6.0
