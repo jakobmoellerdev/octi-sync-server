@@ -7,7 +7,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.11.1-0.20220912230023-4a1477f6a8ba
 
 	// openapi
-	github.com/getkin/kin-openapi v0.103.0
+	github.com/getkin/kin-openapi v0.106.0
 
 	// storage
 	github.com/go-redis/redis/v9 v9.0.0-beta.2
@@ -54,6 +54,7 @@ require (
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
