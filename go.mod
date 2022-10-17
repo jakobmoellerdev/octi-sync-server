@@ -22,8 +22,8 @@ require (
 	github.com/json-iterator/go v1.1.12
 
 	// routing
-	github.com/labstack/echo/v4 v4.9.0
-	github.com/labstack/gommon v0.3.1
+	github.com/labstack/echo/v4 v4.9.1
+	github.com/labstack/gommon v0.4.0
 
 	// logging
 	github.com/rs/zerolog v1.28.0
