@@ -10,7 +10,7 @@ require (
 	github.com/getkin/kin-openapi v0.103.0
 
 	// storage
-	github.com/go-redis/redis/v9 v9.0.0-beta.2
+	github.com/go-redis/redis/v9 v9.0.0-rc.2
 
 	// generated mocks
 	github.com/golang/mock v1.6.0
@@ -32,7 +32,7 @@ require (
 	github.com/sethvargo/go-password v0.2.0
 
 	// testing assertions
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 
 	// yaml parsing
 	gopkg.in/yaml.v3 v3.0.1
@@ -58,8 +58,8 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be // indirect
-	golang.org/x/net v0.0.0-20220930213112-107f3e3c3b0b // indirect
-	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/time v0.0.0-20220922220347-f3bd1da661af // indirect
 )
