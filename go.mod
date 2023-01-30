@@ -26,7 +26,7 @@ require (
 	github.com/labstack/gommon v0.3.1
 
 	// logging
-	github.com/rs/zerolog v1.28.0
+	github.com/rs/zerolog v1.29.0
 
 	// high-entropy password generation
 	github.com/sethvargo/go-password v0.2.0
