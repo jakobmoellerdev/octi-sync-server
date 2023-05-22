@@ -32,7 +32,7 @@ require (
 	github.com/sethvargo/go-password v0.2.0
 
 	// testing assertions
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.3
 
 	// yaml parsing
 	gopkg.in/yaml.v3 v3.0.1
