@@ -32,7 +32,7 @@ jobs:
         run: docker context create builders
       - name: Setup Docker buildx
         id: buildx
-        uses: docker/setup-buildx-action@f385c9ed953addec511152eb20a6021fe3d09fe6
+        uses: docker/setup-buildx-action@bdd549bec0b79f87fdf6064e966f34404a39cc33
         with:
           endpoint: builders
       - name: Setup Semantic Version Util
