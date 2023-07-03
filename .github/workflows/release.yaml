@@ -28,7 +28,7 @@ jobs:
           cache: true
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v2.7.0
+        uses: sigstore/cosign-installer@v3.1.1
         with:
           cosign-release: 'v1.12.1'
 
