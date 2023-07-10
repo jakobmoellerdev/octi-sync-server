@@ -33,7 +33,7 @@ jobs:
           cosign-release: 'v1.12.1'
 
       - name: Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@21f251affc0769ccac8a1cf17e937592fb492337
+        uses: docker/login-action@0a5a6d545fb45047924af7df26cac945aa69ad68
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
