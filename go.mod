@@ -16,7 +16,7 @@ require (
 	github.com/golang/mock v1.6.0
 
 	// id generation
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.3.1
 
 	// json parsing
 	github.com/json-iterator/go v1.1.12
