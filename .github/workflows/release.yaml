@@ -44,7 +44,7 @@ jobs:
         run: docker context create builders
       - name: Setup Docker buildx
         id: buildx
-        uses: docker/setup-buildx-action@f385c9ed953addec511152eb20a6021fe3d09fe6
+        uses: docker/setup-buildx-action@885d1462b80bc1c1c7f0b00334ad271f09369c55
         with:
           endpoint: builders
 
