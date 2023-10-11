@@ -8,15 +8,8 @@ build:
       ko:
         dependencies:
           paths: ["**/*.go"]
-          ignore: []
 manifests:
   kustomize:
     paths:
       - deploy/kustomize/namespace
       - deploy/kustomize
-profiles:
-  - name: base
-    manifests:
-      kustomize:
-        paths:
-          - deploy/kustomize/base
