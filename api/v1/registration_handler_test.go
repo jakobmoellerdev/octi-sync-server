@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
@@ -16,6 +15,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/sethvargo/go-password/password"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/mock/gomock"
 )
 
 func TestRegisterTestSuite(t *testing.T) {

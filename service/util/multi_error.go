@@ -19,7 +19,7 @@ func (e MultiError) Error() string {
 }
 
 // Is allows you to determine if a generic error is in fact a MultiError using `errors.Is()`
-// It will also return true if any of the contained errors match target
+// It will also return true if any of the contained errors match target.
 func (e MultiError) Is(target error) bool {
 	if _, ok := target.(MultiError); ok {
 		return true
@@ -35,7 +35,7 @@ func (e MultiError) Is(target error) bool {
 }
 
 // As allows you to use `errors.As()` to set target to the first error
-// within the multi error that matches the target type
+// within the multi error that matches the target type.
 func (e MultiError) As(target interface{}) bool {
 	for _, e := range e {
 		if errors.As(e, &target) {

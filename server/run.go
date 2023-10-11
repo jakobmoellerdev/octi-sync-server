@@ -8,10 +8,10 @@ import (
 	"os"
 	"os/signal"
 
-	goredis "github.com/go-redis/redis/v9"
 	"github.com/jakob-moeller-cloud/octi-sync-server/api"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 // Run will run the HTTP Server.

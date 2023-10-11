@@ -2,6 +2,8 @@ ifeq ($(OS),Windows_NT)
     $(error This Makefile does not support windows)
 endif
 
+ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+
 # Image URL to use all building/pushing image targets
 IMG := ghcr.io/jakob-moeller-cloud/octi-sync-server:latest
 
@@ -58,7 +60,7 @@ run: ## Run a controller from your host.
 
 .PHONY: generate
 generate: mockgen ## Generate code
-	go generate ./...
+	PATH=${PATH}:${ROOT_DIR}/bin go generate ./...
 
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
@@ -81,23 +83,30 @@ $(LOCALBIN):
 
 ##@ Tool Binaries
 
-KUSTOMIZE_VERSION ?= v4.5.6
+KUSTOMIZE_VERSION ?= v5.1.1
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
-	GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v4@$(KUSTOMIZE_VERSION)
+	GOBIN=$(LOCALBIN) go install sigs.k8s.io/kustomize/kustomize/v5@$(KUSTOMIZE_VERSION)
 
-GOLANG_CI_LINT_VERSION ?= v1.49.0
+GOLANG_CI_LINT_VERSION ?= v1.54.2
 GOLANG_CI_LINT = $(LOCALBIN)/golangci-lint
 .PHONY: golangci-lint
 golangci-lint: $(GOLANG_CI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANG_CI_LINT): $(LOCALBIN)
 	GOBIN=$(LOCALBIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANG_CI_LINT_VERSION)
 
-MOCKGEN_VERSION ?= v1.6.0
+MOCKGEN_VERSION ?= $(shell awk '/go\.uber\.org\/mock/ {print substr($$2, 2)}' go.mod)
 MOCKGEN = $(LOCALBIN)/mockgen
 .PHONY: mockgen
 mockgen: $(MOCKGEN) ## Download mockgen locally if necessary.
 $(MOCKGEN): $(LOCALBIN)
-	GOBIN=$(LOCALBIN) go install github.com/golang/mock/mockgen@$(MOCKGEN_VERSION)
+	GOBIN=$(LOCALBIN) go install go.uber.org/mock/mockgen@v$(MOCKGEN_VERSION)
+
+OAPI_CODEGEN_VERSION ?= $(shell awk '/github\.com\/deepmap\/oapi-codegen/ {print substr($$2, 2)}' go.mod)
+OAPI_CODEGEN = $(LOCALBIN)/oapi-codegen
+.PHONY: oapi-codegen
+oapi-codegen: $(OAPI_CODEGEN) ## Download mockgen locally if necessary.
+$(OAPI_CODEGEN): $(LOCALBIN)
+	GOBIN=$(LOCALBIN) go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v$(OAPI_CODEGEN_VERSION)
