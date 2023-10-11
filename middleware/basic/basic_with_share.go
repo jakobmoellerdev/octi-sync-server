@@ -57,7 +57,7 @@ func AuthWithShare(accounts service.Accounts, devices service.Devices) echo.Midd
 
 				device, err := devices.GetDevice(ctx, account, service.DeviceID(deviceID))
 
-				if err == service.ErrDeviceNotFound {
+				if errors.Is(err, service.ErrDeviceNotFound) {
 					return false, echo.NewHTTPError(http.StatusForbidden).SetInternal(err)
 				}
 

@@ -1,0 +1,15 @@
+apiVersion: skaffold/v4beta7
+kind: Config
+metadata:
+  name: octi-sync-server
+build:
+  artifacts:
+    - image: ghcr.io/jakob-moeller-cloud/octi-sync-server
+      ko:
+        dependencies:
+          paths: ["**/*.go"]
+manifests:
+  kustomize:
+    paths:
+      - deploy/kustomize/namespace
+      - deploy/kustomize
