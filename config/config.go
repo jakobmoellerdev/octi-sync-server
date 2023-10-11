@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-redis/redis/v9"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/sethvargo/go-password/password"
 	"gopkg.in/yaml.v3"

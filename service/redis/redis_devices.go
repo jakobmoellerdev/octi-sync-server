@@ -5,9 +5,9 @@ import (
 	"crypto/sha256"
 	"fmt"
 
-	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"github.com/redis/go-redis/v9"
 )
 
 const DeviceKeySpace = "octi:devices"

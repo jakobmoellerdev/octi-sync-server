@@ -24,8 +24,8 @@ before:
     # You may remove this if you don't use go modules.
     - go mod tidy
     # you may remove this if you don't need go generate
-    - go install github.com/golang/mock/mockgen@v1.6.0
-    - go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.11.0
+    - go install go.uber.org/mock/mockgen@v0.3.0
+    - go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.15.0
     - go generate ./...
 builds:
   - env:
@@ -40,10 +40,14 @@ builds:
     ldflags:
       - "-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}} -X main.builtBy=goreleaser"
 archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      amd64: x86_64
+  - name_template: >-
+      {{- .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end -}}
 dockers:
   - image_templates:
       - "ghcr.io/jakob-moeller-cloud/{{.ProjectName}}:{{ .Version }}-amd64"
@@ -113,7 +117,6 @@ release:
     ## Octi Sync Server Release {{ .Version }} ({{ .Date }})
 
     Welcome to the new release of the Sync Server!
-
 # modelines, feel free to remove those if you don't want/use them:
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # vim: set ts=2 sw=2 tw=0 fo=cnqoj

@@ -24,8 +24,8 @@ type Metadata interface {
 var ErrNoMetadata = errors.New("no metadata found")
 
 type BaseMetadata struct {
-	ID         MetadataID `yaml:"id" json:"id"`
-	ModifiedAt time.Time  `yaml:"modifiedAt" json:"modifiedAt"`
+	ID         MetadataID `json:"id"         yaml:"id"`
+	ModifiedAt time.Time  `json:"modifiedAt" yaml:"modifiedAt"`
 }
 
 func (r *BaseMetadata) GetID() MetadataID {

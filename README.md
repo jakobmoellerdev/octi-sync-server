@@ -116,7 +116,7 @@ and then opening your browser on [http://localhost:80](http://localhost:80) whil
 You can recreate the Definitions and Mocks with
 
 ```shell
-go install github.com/golang/mock/mockgen@v1.6.0
+go install go.uber.org/mock/mockgen@v1.6.0
 go generate ./...
 ```
 

@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
@@ -21,6 +20,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/mock/gomock"
 )
 
 const (

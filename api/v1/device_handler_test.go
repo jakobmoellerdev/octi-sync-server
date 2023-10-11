@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
 	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
@@ -17,6 +16,7 @@ import (
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	assertions "github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 type deviceTest func(ctx echo.Context, rec *httptest.ResponseRecorder)

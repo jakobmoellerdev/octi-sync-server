@@ -4,13 +4,13 @@ import (
 	"context"
 	"testing"
 
-	goredis "github.com/go-redis/redis/v9"
-	"github.com/golang/mock/gomock"
 	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis/mock"
+	goredis "github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func Test_NewClientWithRegularPing(t *testing.T) {

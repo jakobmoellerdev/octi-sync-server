@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/go-redis/redis/v9"
 	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	json "github.com/json-iterator/go"
+	"github.com/redis/go-redis/v9"
 )
 
 const MetadataKeySpace = "octi:metadata"
