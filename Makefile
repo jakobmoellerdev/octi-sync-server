@@ -44,7 +44,7 @@ help: ## Display this help.
 
 .PHONY: build
 build: ## Build manager binary.
-	go build -o bin/manager main.go
+	go build -o octi-sync-server main.go
 
 .PHONY: test
 test: ## Run tests.

@@ -3,3 +3,4 @@
 dist/
 bin
 cosign.key
+**/octi-sync-server
