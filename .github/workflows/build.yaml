@@ -41,7 +41,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y svu
       - name: Determine Next Release Version and Set Tag
-        run: git tag "$(svu next)"
+        run: git tag "$(svu next)" --force
       - uses: goreleaser/goreleaser-action@v5
         name: goreleaser
         with:
