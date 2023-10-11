@@ -56,7 +56,7 @@ jobs:
       - name: Create and Push New Release Tag
         run: |
           git tag "$(svu next)" --force
-          git push --tags
+          git push --tags --force
       - uses: goreleaser/goreleaser-action@v5
         name: Release
         with:
