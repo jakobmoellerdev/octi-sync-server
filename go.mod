@@ -4,11 +4,11 @@ go 1.21
 
 require (
 	github.com/getkin/kin-openapi v0.120.0
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.4.0
 	github.com/json-iterator/go v1.1.12
-	github.com/labstack/echo/v4 v4.11.2
+	github.com/labstack/echo/v4 v4.11.3
 	github.com/labstack/gommon v0.4.0
-	github.com/oapi-codegen/runtime v1.0.0
+	github.com/oapi-codegen/runtime v1.1.0
 	github.com/redis/go-redis/v9 v9.2.1
 	github.com/rs/zerolog v1.31.0
 	github.com/sethvargo/go-password v0.2.0
