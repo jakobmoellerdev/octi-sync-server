@@ -73,7 +73,7 @@ jobs:
           BUILDER: ${{ steps.buildx.outputs.name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Store Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts
           path: dist/*.json
