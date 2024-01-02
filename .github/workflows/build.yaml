@@ -118,7 +118,7 @@ jobs:
       - run: go install go.uber.org/mock/mockgen@v0.3.0
       - run: go generate ./...
       - name: Check Generated files after rerunning go generate
-        uses: tj-actions/verify-changed-files@v16
+        uses: tj-actions/verify-changed-files@v17
         id: verify-changed-files
         with:
           files: |
