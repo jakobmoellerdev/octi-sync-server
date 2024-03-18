@@ -10,7 +10,7 @@ require (
 	github.com/labstack/gommon v0.4.0
 	github.com/oapi-codegen/runtime v1.0.0
 	github.com/redis/go-redis/v9 v9.2.1
-	github.com/rs/zerolog v1.31.0
+	github.com/rs/zerolog v1.32.0
 	github.com/sethvargo/go-password v0.2.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/mock v0.3.0
