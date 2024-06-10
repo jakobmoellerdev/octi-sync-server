@@ -57,7 +57,7 @@ jobs:
         run: |
           git tag "$(svu next)" --force
           git push --tags --force
-      - uses: goreleaser/goreleaser-action@v5
+      - uses: goreleaser/goreleaser-action@v6
         name: Release
         with:
           distribution: goreleaser
