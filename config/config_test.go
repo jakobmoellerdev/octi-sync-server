@@ -5,8 +5,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/jakobmoellerdev/octi-sync-server/config"
 )
 
 func Test_ReadConfigFromFile(t *testing.T) {

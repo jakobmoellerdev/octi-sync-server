@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/util"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
+
+	"github.com/jakobmoellerdev/octi-sync-server/service/util"
 )
 
 func StartPingingRedis(

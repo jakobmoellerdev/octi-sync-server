@@ -6,8 +6,9 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/jakobmoellerdev/octi-sync-server/service"
 )
 
 const DeviceKeySpace = "octi:devices"

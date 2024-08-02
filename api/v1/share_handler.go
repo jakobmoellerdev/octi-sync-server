@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/labstack/echo/v4"
+
+	"github.com/jakobmoellerdev/octi-sync-server/api/v1/REST"
+	"github.com/jakobmoellerdev/octi-sync-server/middleware/basic"
+	"github.com/jakobmoellerdev/octi-sync-server/service"
 )
 
 func (api *API) Share(ctx echo.Context, _ REST.ShareParams) error {

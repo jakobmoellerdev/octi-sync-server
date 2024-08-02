@@ -4,8 +4,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	"github.com/rs/zerolog"
+
+	"github.com/jakobmoellerdev/octi-sync-server/config"
 )
 
 func applyDefaultConfiguration(logger *zerolog.Logger, config *config.Config) {

@@ -3,12 +3,13 @@ package v1
 import (
 	"context"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
-	"github.com/jakob-moeller-cloud/octi-sync-server/config"
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/labstack/echo/v4"
 	"github.com/sethvargo/go-password/password"
+
+	"github.com/jakobmoellerdev/octi-sync-server/api/v1/REST"
+	"github.com/jakobmoellerdev/octi-sync-server/config"
+	"github.com/jakobmoellerdev/octi-sync-server/middleware/basic"
+	"github.com/jakobmoellerdev/octi-sync-server/service"
 )
 
 //go:generate oapi-codegen --config REST/oapi-codegen.yaml REST/openapi.yaml

@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/jakobmoellerdev/octi-sync-server/service"
 )
 
 func Test_AccountFromUsername(t *testing.T) {

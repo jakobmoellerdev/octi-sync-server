@@ -8,14 +8,15 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
-	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/mock"
 	"github.com/labstack/echo/v4"
 	"github.com/sethvargo/go-password/password"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
+
+	v1 "github.com/jakobmoellerdev/octi-sync-server/api/v1"
+	"github.com/jakobmoellerdev/octi-sync-server/api/v1/REST"
+	"github.com/jakobmoellerdev/octi-sync-server/service"
+	"github.com/jakobmoellerdev/octi-sync-server/service/mock"
 )
 
 func TestRegisterTestSuite(t *testing.T) {

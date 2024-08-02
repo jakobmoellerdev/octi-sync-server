@@ -4,7 +4,7 @@ metadata:
   name: octi-sync-server
 build:
   artifacts:
-    - image: ghcr.io/jakob-moeller-cloud/octi-sync-server
+    - image: ghcr.io/jakobmoellerdev/octi-sync-server
       ko:
         dependencies:
           paths: ["**/*.go"]

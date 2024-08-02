@@ -5,9 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
-	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/labstack/echo/v4"
+
+	v1 "github.com/jakobmoellerdev/octi-sync-server/api/v1"
+	"github.com/jakobmoellerdev/octi-sync-server/api/v1/REST"
 )
 
 func TestOpenAPIHandler_ServeOpenAPI(t *testing.T) {

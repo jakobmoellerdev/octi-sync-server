@@ -17,9 +17,6 @@ linters:
     - module
     - test
   disable:
-    - scopelint
-    - ifshort
-    - nosnakecase
     - depguard
 
 linters-settings:

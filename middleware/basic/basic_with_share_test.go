@@ -7,15 +7,16 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	auth "github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/memory"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/random"
 	"github.com/rs/zerolog"
 	"github.com/sethvargo/go-password/password"
 	"github.com/stretchr/testify/suite"
+
+	auth "github.com/jakobmoellerdev/octi-sync-server/middleware/basic"
+	"github.com/jakobmoellerdev/octi-sync-server/middleware/logging"
+	"github.com/jakobmoellerdev/octi-sync-server/service"
+	"github.com/jakobmoellerdev/octi-sync-server/service/memory"
 )
 
 // Define the suite, and absorb the built-in basic suite

@@ -16,49 +16,49 @@ spec:
     spec:
       serviceAccountName: sync-server
       containers:
-      - image: ghcr.io/jakob-moeller-cloud/octi-sync-server:latest
-        name: sync-server
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "250m"
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
-        startupProbe:
-          httpGet:
-            path: /v1/health
-            port: http
-          failureThreshold: 5
-          periodSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: /v1/ready
-            port: http
-          initialDelaySeconds: 1
-          periodSeconds: 10
-        command: [ "octi-sync-server", "-config", "/config/config.yml", "-debug" ]
-        ports:
-          - name: http
-            protocol: TCP
-            containerPort: 8080
-        volumeMounts:
-          - name: config
-            mountPath: /config
-            readOnly: true
-        env:
-          - name: REDIS_ADDR
-            value: $(REDIS_NAME).$(REDIS_NAMESPACE):$(REDIS_PORT)
-          - name: REDIS_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: sync-server-secret
-                key: REDIS_USERNAME
-          - name: REDIS_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: sync-server-secret
-                key: REDIS_PASSWORD
+        - image: ghcr.io/jakobmoellerdev/octi-sync-server:latest
+          name: sync-server
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          startupProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            failureThreshold: 5
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /v1/ready
+              port: http
+            initialDelaySeconds: 1
+            periodSeconds: 10
+          command: [ "octi-sync-server", "-config", "/config/config.yml", "-debug" ]
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 8080
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+          env:
+            - name: REDIS_ADDR
+              value: $(REDIS_NAME).$(REDIS_NAMESPACE):$(REDIS_PORT)
+            - name: REDIS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sync-server-secret
+                  key: REDIS_USERNAME
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sync-server-secret
+                  key: REDIS_PASSWORD
       volumes:
         - name: config
           configMap:

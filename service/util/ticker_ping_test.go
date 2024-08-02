@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/util"
+	"github.com/jakobmoellerdev/octi-sync-server/service/util"
 )
 
 func TestTickerPinger(t *testing.T) {

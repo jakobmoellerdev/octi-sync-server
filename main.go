@@ -7,12 +7,13 @@ import (
 	"runtime/debug"
 
 	"github.com/google/uuid"
-	"github.com/jakob-moeller-cloud/octi-sync-server/config"
-	"github.com/jakob-moeller-cloud/octi-sync-server/server"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
 	"github.com/rs/zerolog"
 	baseLogger "github.com/rs/zerolog/log"
 	"github.com/sethvargo/go-password/password"
+
+	"github.com/jakobmoellerdev/octi-sync-server/config"
+	"github.com/jakobmoellerdev/octi-sync-server/server"
+	"github.com/jakobmoellerdev/octi-sync-server/service"
 )
 
 var (

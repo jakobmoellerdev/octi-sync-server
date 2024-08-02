@@ -9,49 +9,51 @@ resources:
   - redis.yaml
 
 configMapGenerator:
-  - name: sync-server-config
-    files:
+  - files:
       - config.yml
+    name: sync-server-config
 
 secretGenerator:
-  - name: sync-server-secret
-    literals:
+  - literals:
       - REDIS_USERNAME=
       - REDIS_PASSWORD=redis
+    name: sync-server-secret
 
 vars:
-  - name: REDIS_NAMESPACE
-    fieldref:
-      fieldpath: metadata.namespace
+  - fieldref:
+      fieldPath: metadata.namespace
+    name: REDIS_NAMESPACE
     objref:
+      apiVersion: v1
       kind: Service
       name: redis
-      apiVersion: v1
-  - name: REDIS_NAME
-    fieldref:
-      fieldpath: metadata.name
+  - fieldref:
+      fieldPath: metadata.name
+    name: REDIS_NAME
     objref:
+      apiVersion: v1
       kind: Service
       name: redis
-      apiVersion: v1
-  - name: REDIS_PORT
-    fieldref:
-      fieldpath: spec.template.spec.containers[0].ports.[0].containerPort
+  - fieldref:
+      fieldPath: spec.template.spec.containers[0].ports.[0].containerPort
+    name: REDIS_PORT
     objref:
+      apiVersion: apps/v1
       kind: Deployment
       name: redis
-      apiVersion: apps/v1
 
 namePrefix: octi-
 namespace: octi-system
-commonLabels:
-  app.kubernetes.io/instance: main
-  app.kubernetes.io/part-of: octi
-  app.kubernetes.io/created-by: kustomize
-  app.kubernetes.io/managed-by: kustomize
 
 images:
-  - name: ghcr.io/jakob-moeller-cloud/octi-sync-server.yaml
+  - name: ghcr.io/jakobmoellerdev/octi-sync-server.yaml
     newTag: latest
   - name: redis
     newTag: 7.0.4
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/created-by: kustomize
+      app.kubernetes.io/instance: main
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/part-of: octi

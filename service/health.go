@@ -52,8 +52,6 @@ func (h *healthAggregator) Check(ctx context.Context) HealthAggregation {
 	components := make([]HealthAggregationComponent, len(h.healthChecks))
 
 	for i := range h.healthChecks {
-		i := i
-
 		healthCheck := func() {
 			name, healthOk := h.healthChecks[i](ctx)
 			checks <- HealthAggregationComponent{

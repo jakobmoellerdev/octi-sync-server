@@ -8,12 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/jakobmoellerdev/octi-sync-server/middleware/basic"
+	"github.com/jakobmoellerdev/octi-sync-server/middleware/logging"
 )
 
 func TestRequestLogging(t *testing.T) {

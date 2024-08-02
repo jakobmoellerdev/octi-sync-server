@@ -5,10 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/config"
-	"github.com/jakob-moeller-cloud/octi-sync-server/server"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/jakobmoellerdev/octi-sync-server/config"
+	"github.com/jakobmoellerdev/octi-sync-server/server"
 )
 
 func TestRun(t *testing.T) {
