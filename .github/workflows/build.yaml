@@ -67,7 +67,7 @@ jobs:
         name: goreleaser
         with:
           distribution: goreleaser
-          version: latest
+          version: ~> v2
           args: release --snapshot --skip=sign
         env:
           BUILDER: ${{ steps.buildx.outputs.name }}
