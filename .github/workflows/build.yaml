@@ -87,7 +87,7 @@ jobs:
           go-version-file: go.mod
           cache: true
       - run: go test ./... -covermode=atomic -coverprofile=coverage.out --race
-      - run: cat coverage.ou | grep -v "mock" > coverage.filtered.out
+      - run: cat coverage.out | grep -v "mock" > coverage.filtered.out
       - name: Coveralls
         uses: coverallsapp/github-action@v2
         with:
