@@ -7,9 +7,10 @@ import (
 	"io"
 	"time"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/util"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/jakobmoellerdev/octi-sync-server/service"
+	"github.com/jakobmoellerdev/octi-sync-server/service/util"
 )
 
 type Modules struct {
@@ -51,7 +52,6 @@ func (r *Modules) HealthCheck() service.HealthCheck {
 
 func (r *Modules) DeleteByPattern(ctx context.Context, pattern string) error {
 	keys, err := r.Client.Keys(ctx, pattern).Result()
-
 	if err != nil {
 		return fmt.Errorf("error while getting keys with pattern %s, %w", pattern, err)
 	}
@@ -73,7 +73,6 @@ func (r *Modules) DeleteByPattern(ctx context.Context, pattern string) error {
 
 func (r *Modules) Delete(ctx context.Context, key string) error {
 	err := r.Client.Del(ctx, key).Err()
-
 	if err != nil {
 		return fmt.Errorf("error while deleting %s: %w", key, err)
 	}

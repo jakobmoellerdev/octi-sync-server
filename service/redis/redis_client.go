@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/config"
 	goredis "github.com/redis/go-redis/v9"
+
+	"github.com/jakobmoellerdev/octi-sync-server/config"
 )
 
 const (

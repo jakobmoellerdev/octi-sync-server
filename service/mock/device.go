@@ -5,13 +5,14 @@
 //
 //	mockgen -source device.go -package mock -destination mock/device.go Device
 //
+
 // Package mock is a generated GoMock package.
 package mock
 
 import (
 	reflect "reflect"
 
-	service "github.com/jakob-moeller-cloud/octi-sync-server/service"
+	service "github.com/jakobmoellerdev/octi-sync-server/service"
 	gomock "go.uber.org/mock/gomock"
 )
 

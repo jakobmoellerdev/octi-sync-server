@@ -3,10 +3,11 @@ package logging
 import (
 	"net"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
+
+	"github.com/jakobmoellerdev/octi-sync-server/middleware/basic"
 )
 
 func RequestLogging(logger *zerolog.Logger) echo.MiddlewareFunc {

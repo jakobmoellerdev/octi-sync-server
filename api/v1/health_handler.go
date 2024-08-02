@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
 	"github.com/labstack/echo/v4"
+
+	"github.com/jakobmoellerdev/octi-sync-server/api/v1/REST"
 )
 
 func (api *API) IsHealthy(ctx echo.Context) error {

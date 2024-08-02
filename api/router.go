@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
-	"github.com/jakob-moeller-cloud/octi-sync-server/config"
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	v1 "github.com/jakobmoellerdev/octi-sync-server/api/v1"
+	"github.com/jakobmoellerdev/octi-sync-server/config"
+	"github.com/jakobmoellerdev/octi-sync-server/middleware/logging"
 )
 
 const (

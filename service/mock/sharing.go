@@ -5,6 +5,7 @@
 //
 //	mockgen -source sharing.go -package mock -destination mock/sharing.go Sharing
 //
+
 // Package mock is a generated GoMock package.
 package mock
 
@@ -12,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	service "github.com/jakob-moeller-cloud/octi-sync-server/service"
+	service "github.com/jakobmoellerdev/octi-sync-server/service"
 	gomock "go.uber.org/mock/gomock"
 )
 

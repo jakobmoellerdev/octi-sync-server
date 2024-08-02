@@ -4,13 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/config"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis/mock"
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
+
+	"github.com/jakobmoellerdev/octi-sync-server/config"
+	"github.com/jakobmoellerdev/octi-sync-server/service/redis"
+	"github.com/jakobmoellerdev/octi-sync-server/service/redis/mock"
 )
 
 func Test_NewClientWithRegularPing(t *testing.T) {

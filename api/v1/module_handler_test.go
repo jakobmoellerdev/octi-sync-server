@@ -9,18 +9,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	v1 "github.com/jakob-moeller-cloud/octi-sync-server/api/v1"
-	"github.com/jakob-moeller-cloud/octi-sync-server/api/v1/REST"
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/basic"
-	"github.com/jakob-moeller-cloud/octi-sync-server/middleware/logging"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/mock"
-	"github.com/jakob-moeller-cloud/octi-sync-server/service/redis"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/mock/gomock"
+
+	v1 "github.com/jakobmoellerdev/octi-sync-server/api/v1"
+	"github.com/jakobmoellerdev/octi-sync-server/api/v1/REST"
+	"github.com/jakobmoellerdev/octi-sync-server/middleware/basic"
+	"github.com/jakobmoellerdev/octi-sync-server/middleware/logging"
+	"github.com/jakobmoellerdev/octi-sync-server/service"
+	"github.com/jakobmoellerdev/octi-sync-server/service/mock"
+	"github.com/jakobmoellerdev/octi-sync-server/service/redis"
 )
 
 const (

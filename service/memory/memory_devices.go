@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/jakob-moeller-cloud/octi-sync-server/service"
+	"github.com/jakobmoellerdev/octi-sync-server/service"
 )
 
 func NewDevices() *Devices {

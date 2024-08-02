@@ -5,6 +5,7 @@
 //
 //	mockgen -source username.go -package mock -destination mock/username.go UsernameGenerator
 //
+
 // Package mock is a generated GoMock package.
 package mock
 
