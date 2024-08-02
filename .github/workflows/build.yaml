@@ -67,7 +67,7 @@ jobs:
         name: goreleaser
         with:
           distribution: goreleaser
-          version: latest
+          version: ~> v2
           args: release --snapshot --skip=sign
         env:
           BUILDER: ${{ steps.buildx.outputs.name }}
@@ -87,13 +87,13 @@ jobs:
           go-version-file: go.mod
           cache: true
       - run: go test ./... -covermode=atomic -coverprofile=coverage.out --race
-      - name: Convert coverage.out to coverage.lcov
-        uses: jandelgado/gcov2lcov-action@v1
+      - run: cat coverage.out | grep -v "mock" > coverage.filtered.out
       - name: Coveralls
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.github_token }}
-          path-to-lcov: coverage.lcov
+          file: coverage.filtered.out
+          format: golang
           flag-name: Tests
           parallel: true
   collect-coverage:
